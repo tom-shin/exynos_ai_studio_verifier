@@ -1,0 +1,38 @@
+ * Test version : 2.2.24
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from INSTANCE_TEST
+[ RUN      ] INSTANCE_TEST.RUN
+/**********************************
+ * model : /data/vendor/enn/posenet-mobilenet-tflite-float-075-v1_O2_SingleCore.nnc
+ * input 1 : /data/vendor/enn/NPU_posenet-mobilenet-tflite-float-075-v1_input_data.bin
+ * golden 1 : /data/vendor/enn/NPU_posenet-mobilenet-tflite-float-075-v1_golden_data_0.bin
+ * iter : 3
+ * repeat : 1
+ * Use SQNR in golden compare
+ * profile : summary
+ * Monitors every 3 iterations
+ **********************************/
+vendor/samsung_slsi/exynos/enn/source/test/test_app/src/test_list.cpp:30: Failure
+Expected equality of these values:
+  ret
+    Which is: 2
+  enn_test::RET_SUCCESS
+    Which is: 0
+======================
+ OPEN MODEL FAILED
+======================
+-----------------------[ Summary : 0 ]-----------------------
+ Total : 0  (Repeats : 1,  Iterations : 3, sessions : 1)
+ Pass : [ 0 / 0 ]
+--------------------------------------------------------------
+[  FAILED  ] INSTANCE_TEST.RUN (7 ms)
+[----------] 1 test from INSTANCE_TEST (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (7 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] INSTANCE_TEST.RUN
+
+ 1 FAILED TEST

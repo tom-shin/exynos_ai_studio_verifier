@@ -1,0 +1,296 @@
+global_config:
+  converter:
+    activation_bitwidth: 8
+    debug: false
+    device: Gen-6
+    do_quantize: true
+    input_dtype: float32
+    mode: elt
+    onnx_simplify: true
+    optimize: true
+    output_dtype: float32
+    profile_batchsize: 2
+    quantize_type: fp16
+    snc_converter: true
+    test_vector_gen: true
+    tv_input: DATA/database.h5
+    use_randomdb: true
+    userdb: DATA/database.txt
+
+  compiler:
+    activation_bitwidth: 8
+    debug: false
+    device: Gen-6
+    do_quantize: true
+    input_dtype: float32
+    mode: elt
+    onnx_simplify: true
+    optimize: true
+    output_dtype: float32
+    profile_batchsize: 2
+    quantize_type: fp16
+    snc_converter: true
+    test_vector_gen: true
+    tv_input: DATA/database.h5
+    use_randomdb: true
+    userdb: DATA/database.txt
+
+model_config:
+  mobilenet-v1-quant.tflite:
+    converter:
+      quantize_type: qat
+      SSD: true
+    compiler:
+      enable_stm: true
+    repo: v1.0(pamir)
+
+  mobilenet-v2-int8.tflite:
+    converter:
+      quantize_type: qat
+    repo: v1.0(pamir)
+
+  PFR_detector.onnx:
+    converter:
+      quantize_type: asymm
+      bias_comp_batchsize: 100
+      bias_comp_target_layers: 0
+      quanmode: MAX
+      tv_input: DATA/images_100_retinaface_db.h5
+      userdb: DATA/images_100_retinaface_db.txt
+      SSD: true
+    compiler:
+      cfs: true
+      datalayout_conversion_in: sw
+      datalayout_conversion_out: sw
+      debug_str: -D multi_vc=False
+      enable_ofm_reuse: false
+      mi: true
+      mo: true
+      multi_vc: false
+
+  PFR_segmentation.onnx:
+    converter:
+      quantize_type: asymm
+      bias_comp_batchsize: 100
+      bias_comp_target_layers: 0
+      quanmode: MAX
+      tv_input: DATA/images_100_retinaface_db.h5
+      userdb: DATA/images_100_retinaface_db.txt
+      SSD: true
+    compiler:
+      cfs: true
+      datalayout_conversion_in: sw
+      datalayout_conversion_out: sw
+      debug_str: -D multi_vc=False
+      enable_ofm_reuse: false
+      mi: true
+      mo: true
+      multi_vc: false
+
+  depth_anything_vitb14.onnx:
+    repo: pyranee https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+
+  depth_anything_vitl14.onnx:
+    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+
+  depth_anything_vits14.onnx:
+    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+
+  yolox_darknet.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  yolox_m.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  yolox_nano.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  yolox_s.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  yolox_tiny.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  yolox_x.onnx:
+    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+
+  caffeFP_sample.caffemodel:
+    repo: SDK_V1.0
+
+  caffeQAT_sample.caffemodel:
+    repo: SDK_V1.0
+
+  Q_MV2_Deeplab_V3_plus_MLPerf.caffemodel:
+    repo: SDK_V1.0
+
+  asr_kor_joint.tflite:
+    repo: SDK_V1.0
+
+  nfd_qvga.caffemodel:
+    repo: SDK_V1.0
+
+  Q_aic_detector_cnn.caffemodel:
+    repo: SDK_V1.0
+
+  Q_inception_v3_pamir.caffemodel:
+    repo: SDK_V1.0
+
+  Q_mobilenet_edgetpu.caffemodel:
+    repo: SDK_V1.0
+
+  onnx_sample.onnx:
+    repo: SDK_V1.0
+
+  SCaffe_SQE.caffemodel:
+    repo: SDK_V1.0
+
+  sdlp_sample.tflite:
+    repo: SDK_V1.0
+
+  tflite_sample_float.tflite:
+    repo: SDK_V1.0
+
+  tflite_sample_fp16.tflite:
+    repo: SDK_V1.0
+
+  tflite_sample_uint8.tflite:
+    converter:
+      quantize_type: qat
+
+    repo: SDK_V1.0
+
+  01_aic_classifier_cnn.caffemodel:
+    repo: SDK_V1.0
+
+  07_LF_segmenter_cnn.caffemodel:
+    repo: SDK_V1.0
+
+  Efficientnet_Lite4.caffemodel:
+    repo: SDK_V1.0
+
+  Mobiledet_SSD.tflite:
+    converter:
+      SSD: true
+      output_dtype: uint8
+    repo: SDK_V1.0
+
+  Mobilenet_Edgetpu.tflite:
+    repo: SDK_V1.0
+
+  YolACT.caffemodel:
+    repo: SDK_V1.0
+
+  Q_vdsr_antutu.caffemodel:
+    repo: SDK_V1.0
+
+  efficientnet-lite4-11-int8.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+
+  efficientnet-lite4-11-qdq.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+
+  efficientnet-lite4-11.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+
+  mobilenetv2-10.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+
+  mobilenetv2-12-int8.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+
+  mobilenetv2-12-qdq.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+
+  mobilenetv2-12.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+
+  mobilenetv2-7.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+
+  resnet101-v1-7.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet152-v1-7.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet18-v1-7.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet34-v1-7.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet50-v1-12-int8.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet50-v1-12-qdq.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet50-v1-12.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  resnet50-v1-7.onnx:
+    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+
+  squeezenet1.0-12-int8.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-12.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-13-qdq.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-3.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-6.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-7.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-8.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.0-9.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  squeezenet1.1-7.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+
+  super-resolution-10.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+
+  yolov3-10.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+
+  yolov3-12-int8.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+
+  yolov3-12.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+
+  yolov4.onnx:
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model

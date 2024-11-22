@@ -1,0 +1,1 @@
+python -m PyQt5.uic.pyuic -x fileedit.ui -o fileedit.py

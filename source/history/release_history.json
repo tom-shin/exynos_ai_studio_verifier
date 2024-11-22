@@ -1,0 +1,30 @@
+[
+    {
+        "Image": "enntools-rel_7.11.2.21.image",
+        "Version": "2.0(Alpha)",
+        "TAG": "7.11.2.21",
+        "Repository": "ubuntu-22.04/enntools-rel",
+        "Released": "2024.11.15 (이석렬님)"
+    },
+    {
+        "Image": "enntools-rel_5.34.7.2.image(v14)",
+        "Version": "1.0",
+        "TAG": "5.34.7.2",
+        "Repository": "ubuntu-18.04/enntools-rel",
+        "Released": "2024.11.7"
+    },
+    {
+        "Image": "enntools-rel_4.33.25.3.image",
+        "Version": "1.0",
+        "TAG": "4.33.25.3",
+        "Repository": "ubuntu-18.04/enntools-rel",
+        "Released": "2023.09.26"
+    },
+    {
+        "Image": "enntools-rel_7.10.8.31.image",
+        "Version": "2.0(Alpha)",
+        "TAG": "7.10.8.31",
+        "Repository": "ubuntu-22.04/enntools-rel",
+        "Released": "2024.10.18"
+    }
+]
