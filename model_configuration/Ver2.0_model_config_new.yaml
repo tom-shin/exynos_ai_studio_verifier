@@ -88,7 +88,7 @@ model_config:
       multi_vc: false
 
   depth_anything_vitb14.onnx:
-    repo: pyranee https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
 
   depth_anything_vitl14.onnx:
     repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0

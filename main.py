@@ -22,11 +22,6 @@ import re
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-# from source.__init__ import keyword, Version, user_subprocess, Open_QMessageBox, \
-#     ModalLess_ProgressDialog, Modal_ProgressDialog, get_directory, check_for_specific_string_in_files, json_load_f, \
-#     json_dump_f, remove_dir, remove_alldata_files_except_specific_extension, ColonLineHighlighter, \
-#     upgrade_check_for_specific_string_in_files, find_paired_files_1, find_paired_files_2, CheckDir
-
 from source.__init__ import *
 
 from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, organize_files, \
@@ -519,10 +514,20 @@ class Model_Verify_Class(QObject):
                 changed_items_text = convert_changed_items_to_text(parameter_setting)
                 sub_widget[0].parametersetting_textEdit.setText(changed_items_text)
 
-                if len(out) == 0 and len(error) == 0:
+                directory, model_name = separate_folders_and_files(sub_widget[0].pathlineEdit.text())
+                filename, extension = separate_filename_and_extension(model_name)
+
+                check_DATA_dir = os.path.join(directory, "DATA")
+                check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
+                if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
                     sub_widget[0].initlineEdit.setText("Success")
                 else:
                     sub_widget[0].initlineEdit.setText("Fail")
+
+                # if len(out) == 0 and len(error) == 0:
+                #     sub_widget[0].initlineEdit.setText("Success")
+                # else:
+                #     sub_widget[0].initlineEdit.setText("Fail")
                 return
 
             elif "enntest" in execute_cmd:
@@ -535,14 +540,11 @@ class Model_Verify_Class(QObject):
                         string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
                     sub_widget[0].enntesttextEdit.setText(string_)
 
-                    # if out[0] == "Test_Failed":
-                    #     sub_widget[0].enntestlineEdit.setText("Test Fail")
-                    # elif out[0] == "Skip":
-                    #     sub_widget[0].enntestlineEdit.setText("Skip")
                 return
 
             elif "conversion" in execute_cmd:
                 check_log = os.path.join(cwd, "Converter_result", ".log")
+
             elif "compile" in execute_cmd:
                 check_log = os.path.join(cwd, "Compiler_result", ".log")
 
@@ -558,7 +560,6 @@ class Model_Verify_Class(QObject):
             error_keywords = keyword["error_keyword"]
 
             if os.path.exists(check_log):
-                # ret = check_for_specific_string_in_files(check_log, check_keywords=error_keywords)
                 ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
                                                                                       check_keywords=error_keywords)
 
@@ -780,7 +781,9 @@ class Model_Verify_Class(QObject):
         def clean_data(value):
             if isinstance(value, str):
                 # Excel에서 허용되지 않는 문자 제거 (\x00 같은 제어 문자)
-                value = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", value)
+                # value = re.sub(r"[\x00-\x1F\x7F-\x9F]", "", value)
+                # \n과 \t는 제외하고 제어 문자 제거
+                value = re.sub(r"[^\n\t\x20-\x7E]", "", value)
             return value
 
         result = []
@@ -792,21 +795,21 @@ class Model_Verify_Class(QObject):
             widget_result = {
                 "Model": clean_data(model),
                 "Framework": clean_data(framework.replace(".", "")),
-                "Set parameter": target_widget[0].parametersetting_textEdit.toPlainText().strip(),
+                "Set parameter": clean_data(target_widget[0].parametersetting_textEdit.toPlainText().strip()),
                 "init_Result": clean_data(target_widget[0].initlineEdit.text().strip()),
                 "init_log": clean_data(""),  # 초기화된 값이 비어 있다면
                 "conversion_Result": clean_data(target_widget[0].conversionlineEdit.text().strip()),
-                "conversion_log": target_widget[0].conversiontextEdit.toPlainText(),
+                "conversion_log": clean_data(target_widget[0].conversiontextEdit.toPlainText()),
                 "compile_Result": clean_data(target_widget[0].compilelineEdit.text().strip()),
-                "compile_log": target_widget[0].compilertextEdit.toPlainText(),
+                "compile_log": clean_data(target_widget[0].compilertextEdit.toPlainText()),
                 "estimation_Result": clean_data(target_widget[0].estimationlineEdit.text().strip()),
-                "estimation_log": target_widget[0].estimationtextEdit.toPlainText(),
+                "estimation_log": clean_data(target_widget[0].estimationtextEdit.toPlainText()),
                 "analysis_Result": clean_data(target_widget[0].analysislineEdit.text().strip()),
-                "analysis_log": target_widget[0].analysistextEdit.toPlainText(),
+                "analysis_log": clean_data(target_widget[0].analysistextEdit.toPlainText()),
                 "profiling_Result": clean_data(target_widget[0].profilinglineEdit.text().strip()),
-                "profiling_log": target_widget[0].profiletextEdit.toPlainText(),
+                "profiling_log": clean_data(target_widget[0].profiletextEdit.toPlainText()),
                 "enntest_execute": clean_data(target_widget[0].enntestlineEdit.text().strip()),
-                "enntest_fail(input, golden)": target_widget[0].enntesttextEdit.toPlainText(),
+                "enntest_fail(input, golden)": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),
             }

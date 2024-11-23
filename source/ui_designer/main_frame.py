@@ -465,7 +465,7 @@ class Ui_MainWindow(object):
         self.label_6.setText(_translate("MainWindow", "Version"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "AI-Studio Image History"))
         self.log_clear_pushButton.setText(_translate("MainWindow", "Log Clear"))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Docer Image Information"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "Docker Image Information"))
         self.imageregpushButton.setText(_translate("MainWindow", "신규 등록"))
         self.groupBox_3.setTitle(_translate("MainWindow", "AI Model Path"))
         self.open_pushButton.setText(_translate("MainWindow", "Import"))

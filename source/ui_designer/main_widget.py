@@ -376,7 +376,7 @@ class Ui_Form(object):
         self.label_7.setText(_translate("Form", "Result"))
         self.groupBox_7.setTitle(_translate("Form", "enntools profile"))
         self.profilinglabel.setText(_translate("Form", "Result"))
-        self.groupBox_8.setTitle(_translate("Form", "enntest"))
+        self.groupBox_8.setTitle(_translate("Form", "NNC profile(enntester)"))
         self.label_8.setText(_translate("Form", "Result"))
 
 

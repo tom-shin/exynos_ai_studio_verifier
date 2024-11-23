@@ -370,6 +370,7 @@ def get_directory(base_dir, user_defined_fmt=None, file_full_path=False):
     unique_paths = sorted(data)
     return unique_paths
 
+
 def CheckDir(dir_):
     if os.path.exists(dir_):
         shutil.rmtree(dir_)  # 기존 디렉터리 삭제
@@ -628,9 +629,17 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
                         check_files.append(filename)  # 에러가 발견된 파일 추가
 
                         # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
+                        # start_index = max(0, i - 4)
+                        # end_index = min(len(lines), i + 4)
+                        # context = lines[start_index:end_index]  # 주변 줄 추출
+
+                        # # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
                         start_index = max(0, i - 4)
                         end_index = min(len(lines), i + 4)
-                        context = lines[start_index:end_index]  # 주변 줄 추출
+
+                        # 각 라인의 끝에 줄바꿈 추가
+                        context = [line + "\n" if not line.endswith("\n") else line for line in
+                                   lines[start_index:end_index]]
 
                         # 파일 이름을 키로 사용하여 해당 내용 저장
                         if filename not in context_data:
