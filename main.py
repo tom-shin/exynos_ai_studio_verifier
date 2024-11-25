@@ -414,6 +414,30 @@ class Model_Verify_Class(QObject):
             widget_ui.profiletextEdit.hide()
             widget_ui.enntesttextEdit.hide()
 
+             # 체크박스 신호 연결
+            widget_ui.logonoffcheckBox.stateChanged.connect(
+                lambda state, ui=widget_ui: self.toggle_text_edits(ui, state)
+                )
+
+    def toggle_text_edits(self, ui, state):
+        """체크박스 상태에 따라 위젯 숨기기/보이기"""
+        if state == QtCore.Qt.Checked:
+            ui.inittextEdit.show()
+            ui.conversiontextEdit.show()
+            ui.compilertextEdit.show()
+            ui.estimationtextEdit.show()
+            ui.analysistextEdit.show()
+            ui.profiletextEdit.show()
+            ui.enntesttextEdit.show()
+        else:
+            ui.inittextEdit.hide()
+            ui.conversiontextEdit.hide()
+            ui.compilertextEdit.hide()
+            ui.estimationtextEdit.hide()
+            ui.analysistextEdit.hide()
+            ui.profiletextEdit.hide()
+                
+
     def update_all_sub_widget(self):
         # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사
         user_fmt = [fmt.strip() for fmt in self.grand_parent.targetformat_lineedit.text().split(",") if fmt.strip()]
