@@ -506,40 +506,6 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
     return line_output, error_output, timeout_expired
 
 
-def X_user_subprocess(cmd=None, run_time=False):
-    line_output = []
-    error_output = []
-
-    cmd = rf"wsl {cmd}"
-
-    if run_time:
-        with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-            for line in process.stdout:
-                line_output.append(line.strip())
-                print(line.strip())  # 실시간 출력
-                if "OPTYPE : DROPOUT" in line:
-                    print("operror")
-
-            for err_line in process.stderr:
-                error_output.append(err_line.strip())
-                print("ERROR:", err_line.strip())
-    else:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        line_output.extend(result.stdout.splitlines())  # 각 줄을 line_output에 추가
-        error_output.extend(result.stderr.splitlines())  # 각 줄을 error_output에 추가
-
-        for line in line_output:
-            print(line)
-        for err_line in error_output:
-            print("ERROR:", err_line)
-
-        # result.stdout은 출력을 그냥 string으로 보여주는 것임.
-        # print("stdout:", result.stdout)
-        # print("stderr:", result.stderr)
-
-    return line_output, error_output
-
-
 def Open_QMessageBox(message="", yes_b=True, no_b=True):
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Information")
@@ -635,7 +601,8 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
 
                         # # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
                         start_index = max(0, i - 4)
-                        end_index = min(len(lines), i + 4)
+                        end_index = min(len(lines), i + 2)
+                        # end_index = min(len(lines), i + 4)
 
                         # 각 라인의 끝에 줄바꿈 추가
                         context = [line + "\n" if not line.endswith("\n") else line for line in
