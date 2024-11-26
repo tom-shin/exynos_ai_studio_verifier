@@ -92,7 +92,7 @@ class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main g
         self.show()
 
     def closeEvent(self, event):
-        subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
+        # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
 
         self.send_user_close_event.emit(True)
         event.accept()
@@ -179,6 +179,8 @@ class Modal_ProgressDialog(QDialog):  # popup 메뉴가 있으면 뒤 main gui�
         super().show()
 
     def closeEvent(self, event):
+        # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
+
         self.send_user_close_event.emit(True)
         event.accept()
 
@@ -202,7 +204,6 @@ class Modal_ProgressDialog(QDialog):  # popup 메뉴가 있으면 뒤 main gui�
                         }
                     """)
         self.radio_state = not self.radio_state
-
 
 def json_dump_f(file_path, data, use_encoding=False):
     if file_path is None:
@@ -337,7 +338,7 @@ def load_document(base_dir):
     return data
 
 
-def X_get_markdown_files(source_dir):
+def get_markdown_files(source_dir):
     dir_ = source_dir
     loader = DirectoryLoader(dir_, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
     documents = loader.load()
@@ -532,25 +533,6 @@ def Open_QMessageBox(message="", yes_b=True, no_b=True):
         return False
 
 
-def X_check_for_specific_string_in_files(directory, check_keywords):
-    check_files = []  # 에러가 발견된 파일을 저장할 리스트
-
-    # 디렉터리 내의 모든 파일 검사
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-
-        # 파일인지 확인
-        if os.path.isfile(file_path):
-            with open(file_path, 'r', encoding='utf-8') as file:
-                contents = file.read()
-
-                # 에러 키워드 확인
-                if any(keyword in contents for keyword in check_keywords):
-                    check_files.append(filename)  # 에러가 발견된 파일 추가
-
-    return check_files
-
-
 def check_for_specific_string_in_files(directory, check_keywords):
     check_files = []  # 에러가 발견된 파일을 저장할 리스트
     context_data = {}
@@ -691,62 +673,88 @@ class ColonLineHighlighter(QSyntaxHighlighter):
             self.setFormat(0, len(text), self.colon_format)
 
 
-def find_paired_files_1(directory):
-    """
-    주어진 디렉토리 하위의 'input' 폴더에서 파일 쌍을 검색하여 경로를 튜플로 저장합니다.
+# def find_paired_files_1(directory):
+#     """
+#     주어진 디렉토리 하위의 'input' 폴더에서 파일 쌍을 검색하여 경로를 튜플로 저장합니다.
 
-    Args:
-        directory (str): 검색할 디렉토리 경로.
+#     Args:
+#         directory (str): 검색할 디렉토리 경로.
 
-    Returns:
-        list: 파일 경로 튜플의 리스트.
-    """
-    paired_files = []
+#     Returns:
+#         list: 파일 경로 튜플의 리스트.
+#               동일 이름의 파일 쌍을 찾아 튜플로 저장
+#     """
+#     paired_files = []
 
-    # 'input' 폴더를 찾기
-    for root, dirs, files in os.walk(directory):
-        if 'inout' in dirs:
-            input_folder = os.path.join(root, 'inout').replace("\\", "/")
-            input_files = os.listdir(input_folder)
+#     # 'input' 폴더를 찾기
+#     for root, dirs, files in os.walk(directory):
+#         if 'inout' in dirs:
+#             input_folder = os.path.join(root, 'inout').replace("\\", "/")
+#             input_files = os.listdir(input_folder)
 
-            # 파일 필터링 및 쌍(pair) 확인
-            for file in input_files:
-                if "input_data" in file and file.endswith(".bin"):
-                    # golden 파일 이름 생성
-                    golden_file = file.replace("input_data", "golden_data")
-                    golden_path = os.path.join(input_folder, golden_file).replace("\\", "/")
+#             # 파일 필터링 및 쌍(pair) 확인
+#             for file in input_files:
+#                 if "input_data" in file and file.endswith(".bin"):
+#                     # golden 파일 이름 생성
+#                     golden_file = file.replace("input_data", "golden_data")
+#                     golden_path = os.path.join(input_folder, golden_file).replace("\\", "/")
 
-                    # 두 파일이 모두 존재하면 튜플로 저장
-                    if golden_file in input_files:
-                        input_path = os.path.join(input_folder, file).replace("\\", "/")
-                        paired_files.append((input_path, golden_path))
-            break  # 첫 번째 'input' 폴더만 처리 후 종료
+#                     # 두 파일이 모두 존재하면 튜플로 저장
+#                     if golden_file in input_files:
+#                         input_path = os.path.join(input_folder, file).replace("\\", "/")
+#                         paired_files.append((input_path, golden_path))
+#             break  # 첫 번째 'input' 폴더만 처리 후 종료
 
-    return paired_files
+#     return paired_files
 
 
-def find_paired_files_2(directory):
-    """
-    주어진 디렉토리 하위의 'inout' 폴더에서 파일 쌍을 검색하여 경로를 리스트에 저장하고,
-    가능한 모든 조합을 paired_files에 추가합니다.
+# def find_paired_files_2(directory):
+#     """
+#     주어진 디렉토리 하위의 'inout' 폴더에서 파일 쌍을 검색하여 경로를 리스트에 저장하고,
+#     가능한 모든 조합을 paired_files에 추가합니다.
 
-    Args:
-        directory (str): 검색할 디렉토리 경로.
+#     Args:
+#         directory (str): 검색할 디렉토리 경로.
 
-    Returns:
-        list: 가능한 모든 조합의 파일 쌍 (input_binary, golden_binary).
-    """
+#     Returns:
+#         list: 가능한 모든 조합의 파일 쌍 (input_binary, golden_binary).
+#     """
+#     input_binary = []
+#     golden_binary = []
+#     paired_files = []
+
+#     # 'inout' 폴더를 찾기
+#     for root, dirs, files in os.walk(directory):
+#         if 'inout' in dirs:
+#             input_folder = os.path.join(root, 'inout').replace("\\", "/")
+#             input_files = os.listdir(input_folder)
+
+#             # 파일 필터링 및 경로 저장
+#             for file in input_files:
+#                 full_path = os.path.join(input_folder, file).replace("\\", "/")
+#                 if "input_data" in file and file.endswith(".bin"):
+#                     input_binary.append(full_path)
+#                 elif "golden_data" in file and file.endswith(".bin"):
+#                     golden_binary.append(full_path)
+
+#             break  # 첫 번째 'inout' 폴더만 처리 후 종료
+
+#     # 두 리스트에 원소가 모두 1개 이상 있는 경우에만 조합 생성
+#     if input_binary and golden_binary:
+#         paired_files = list(itertools.product(input_binary, golden_binary))
+
+#     return paired_files
+
+def find_paired_files(directory, mode=2):
     input_binary = []
     golden_binary = []
     paired_files = []
 
-    # 'inout' 폴더를 찾기
     for root, dirs, files in os.walk(directory):
         if 'inout' in dirs:
             input_folder = os.path.join(root, 'inout').replace("\\", "/")
             input_files = os.listdir(input_folder)
 
-            # 파일 필터링 및 경로 저장
             for file in input_files:
                 full_path = os.path.join(input_folder, file).replace("\\", "/")
                 if "input_data" in file and file.endswith(".bin"):
@@ -754,10 +762,14 @@ def find_paired_files_2(directory):
                 elif "golden_data" in file and file.endswith(".bin"):
                     golden_binary.append(full_path)
 
-            break  # 첫 번째 'inout' 폴더만 처리 후 종료
+            break
 
-    # 두 리스트에 원소가 모두 1개 이상 있는 경우에만 조합 생성
-    if input_binary and golden_binary:
+    if mode == 1:
+        for input_file in input_binary:
+            golden_file = input_file.replace("input_data", "golden_data")
+            if golden_file in golden_binary:
+                paired_files.append((input_file, golden_file))
+    else:
         paired_files = list(itertools.product(input_binary, golden_binary))
 
     return paired_files

@@ -558,13 +558,14 @@ def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
 
     model = nnc_files[0]
 
-    cnt = 0
     for input_file, golden_file in input_golden_pairs:
-        cnt += 1
-        filename, extension = os.path.splitext(os.path.basename(input_file))
+        in_filename, in_extension = os.path.splitext(os.path.basename(input_file))
+        g_filename, g_extension = os.path.splitext(os.path.basename(golden_file))
+
         result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model, input_binary=input_file,
                                        golden_binary=golden_file,
-                                       result_dir=out_dir, filename=f"{filename}_{cnt}", option=option, target_board=target_board)
+                                       result_dir=out_dir, filename=f"{in_filename}_{g_filename}", option=option, target_board=target_board)
+
         CHECK_ENNTEST.append(result_file)
 
         if not result_file:  # result_file이 False인 경우

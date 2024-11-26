@@ -108,7 +108,7 @@ class Model_Analyze_Thread(QThread):
         self.container_repo_tag = repo_tag
         self.timeout_expired = float(grand_parent.timeoutlineEdit.text().strip())
         self.container_trace = None
-
+                                                           
     def run(self):
         self.container_trace = []
 
@@ -142,57 +142,88 @@ class Model_Analyze_Thread(QThread):
                 user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
                 user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
 
+            base_cmd = [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    container_name,
+                    "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
+                    "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
+                    "--privileged",  # 권한 강화 (2번 항목)
+                    "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
+                    "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
+                    # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
+                    # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
+                    # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
+                    # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
+                    "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+                    "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
+                    "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
+                    self.container_repo_tag,
+                    "/bin/bash",
+                    "-c",
+                    "tail -f /dev/null"
+                ]
+            
             if self.grand_parent.cpuradioButton.isChecked():  # CPU
-                cmd = [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--name",
-                    container_name,
-                    "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-                    "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-                    "--privileged",  # 권한 강화 (2번 항목)
-                    "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-                    "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-                    # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-                    "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-                    "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-                    "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-                    self.container_repo_tag,
-                    "/bin/bash",
-                    "-c",
-                    "tail -f /dev/null"
-                ]
+                # For CPU
+                cmd = base_cmd[:3] + base_cmd[3:]  # No changes needed, just reuse the base command
+            else:
+                # For GPU
+                cmd = base_cmd[:3] + ["--gpus", "all"] + base_cmd[3:]  # Add GPU specific option
 
-            else:  # GPU
-                cmd = [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--gpus",
-                    "all",
-                    "--name",
-                    container_name,
-                    "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-                    "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-                    "--privileged",  # 권한 강화 (2번 항목)
-                    "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-                    "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-                    # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-                    "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-                    "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-                    "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-                    self.container_repo_tag,
-                    "/bin/bash",
-                    "-c",
-                    "tail -f /dev/null"
-                ]
+                
+            #     cmd = [
+            #         "docker",
+            #         "run",
+            #         "-d",
+            #         "--name",
+            #         container_name,
+            #         "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
+            #         "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
+            #         "--privileged",  # 권한 강화 (2번 항목)
+            #         "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
+            #         "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
+            #         # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
+            #         "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+            #         "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
+            #         "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
+            #         self.container_repo_tag,
+            #         "/bin/bash",
+            #         "-c",
+            #         "tail -f /dev/null"
+            #     ]
+
+            # else:  # GPU
+            #     cmd = [
+            #         "docker",
+            #         "run",
+            #         "-d",
+            #         "--gpus",
+            #         "all",
+            #         "--name",
+            #         container_name,
+            #         "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
+            #         "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
+            #         "--privileged",  # 권한 강화 (2번 항목)
+            #         "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
+            #         "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
+            #         # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
+            #         # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
+            #         "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+            #         "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
+            #         "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
+            #         self.container_repo_tag,
+            #         "/bin/bash",
+            #         "-c",
+            #         "tail -f /dev/null"
+            #     ]
 
             out, error, _ = user_subprocess(cmd=cmd, run_time=False, log=False, shell=False)
 
@@ -262,7 +293,7 @@ class Model_Analyze_Thread(QThread):
                                 nnc_files.append(filename)
 
                         input_golden_path = os.path.join(_directory_, "Converter_result").replace("\\", "/")
-                        input_golden_pairs = find_paired_files_2(input_golden_path)
+                        input_golden_pairs = find_paired_files(input_golden_path, mode=2)
 
                         out_dir = os.path.join(_directory_, "Enntester_result").replace("\\", "/")
                         CheckDir(out_dir)
@@ -273,8 +304,8 @@ class Model_Analyze_Thread(QThread):
                             ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
                                                             self.grand_parent.enntestcomboBox.currentText())
                             if not ret:
-                                out.append("Test_Failed")
-                                error.append("Test_Failed")
+                                out.append("Failed")
+                                error.append("Failed")
 
                         else:
                             out.append("Skip(No nnc or input_golden)")
@@ -631,34 +662,7 @@ class Model_Verify_Class(QObject):
         if self.work_progress is not None:
             self.work_progress.onCountChanged(value=executed_cnt)
             sub_widget[0].elapsedlineEdit.setText(elapsed_time)
-            self.save(self_saving=True)
-
-            # converter_log = os.path.join(cwd, "Converter_result", ".log")
-            # compile_log = os.path.join(cwd, "Compiler_result", ".log")
-            #
-            # error_keywords = keyword["error_keyword"]
-            #
-            # if os.path.exists(converter_log):
-            #     ret = check_for_specific_string_in_files(converter_log, check_keywords=error_keywords)
-            #     if len(ret) == 0:
-            #         sub_widget[0].conversionlineEdit.setText("Success")
-            #     else:
-            #         print("\nConversion Fail")
-            #         print(ret)
-            #         sub_widget[0].conversionlineEdit.setText("Fail")
-            # else:
-            #     sub_widget[0].conversionlineEdit.setText("Fail")
-            #
-            # if os.path.exists(compile_log):
-            #     ret = check_for_specific_string_in_files(compile_log, check_keywords=error_keywords)
-            #     if len(ret) == 0:
-            #         sub_widget[0].compilelineEdit.setText("Success")
-            #     else:
-            #         print("\nCompile Fail")
-            #         print(ret)
-            #         sub_widget[0].compilelineEdit.setText("Fail")
-            # else:
-            #     sub_widget[0].compilelineEdit.setText("Fail")
+            self.save(self_saving=True)            
 
     def error_update_test_result(self, error_message, sub_widget):
         if self.work_progress is not None:

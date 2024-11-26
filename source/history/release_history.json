@@ -1,4 +1,11 @@
 [
+     {
+        "Image": "enntools-rel_7.11.22.21.image",
+        "Version": "2.0(Alpha)",
+        "TAG": "7.11.22.21",
+        "Repository": "ubuntu-22.04/enntools-rel",
+        "Released": "2024.11.26 (최재훈님), Secure Trans/ exynos-ai-studio-1122.tar.gz.001 ~ 005"
+    },
     {
         "Image": "enntools-rel_7.11.2.21.image",
         "Version": "2.0(Alpha)",
