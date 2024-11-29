@@ -473,6 +473,7 @@ class Model_Verify_Class(QObject):
             ui.estimationtextEdit.hide()
             ui.analysistextEdit.hide()
             ui.profiletextEdit.hide()
+            ui.enntesttextEdit.hide()
 
     def update_all_sub_widget(self):
         # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사

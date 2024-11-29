@@ -311,4 +311,7 @@ model_config:
       output_dtype: uint8
 
   inception-v3-uint8.tflite:
+    converter:
+      quantize_type: asymm
+      use_randomdb: false
     repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v3-quant
