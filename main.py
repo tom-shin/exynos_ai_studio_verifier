@@ -24,7 +24,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 from source.__init__ import *
 
-from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, organize_files, \
+from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, \
     start_docker_desktop, set_model_config
 
 from source.source_files.main_enntest import run_enntest
@@ -91,7 +91,7 @@ class ImageLoadThread(QThread):
 
 class Model_Analyze_Thread(QThread):
     output_signal = pyqtSignal(str, tuple, int, str)
-    output_signal_2 = pyqtSignal(tuple, str, str, list, list, list, list)
+    output_signal_2 = pyqtSignal(tuple, str, str, list, list, OrderedDict, list)
 
     timeout_output_signal = pyqtSignal(str, tuple, float)
     finish_output_signal = pyqtSignal(bool)
@@ -108,7 +108,7 @@ class Model_Analyze_Thread(QThread):
         self.container_repo_tag = repo_tag
         self.timeout_expired = float(grand_parent.timeoutlineEdit.text().strip())
         self.container_trace = None
-                                                           
+
     def run(self):
         self.container_trace = []
 
@@ -143,29 +143,29 @@ class Model_Analyze_Thread(QThread):
                 user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
 
             base_cmd = [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--name",
-                    container_name,
-                    "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-                    "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-                    "--privileged",  # 권한 강화 (2번 항목)
-                    "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-                    "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-                    # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-                    # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-                    "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-                    "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-                    "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-                    self.container_repo_tag,
-                    "/bin/bash",
-                    "-c",
-                    "tail -f /dev/null"
-                ]
-            
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                container_name,
+                "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
+                "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
+                "--privileged",  # 권한 강화 (2번 항목)
+                "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
+                "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
+                # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
+                # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
+                # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
+                # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
+                "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+                "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
+                "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
+                self.container_repo_tag,
+                "/bin/bash",
+                "-c",
+                "tail -f /dev/null"
+            ]
+
             if self.grand_parent.cpuradioButton.isChecked():  # CPU
                 # For CPU
                 cmd = base_cmd[:3] + base_cmd[3:]  # No changes needed, just reuse the base command
@@ -173,7 +173,6 @@ class Model_Analyze_Thread(QThread):
                 # For GPU
                 cmd = base_cmd[:3] + ["--gpus", "all"] + base_cmd[3:]  # Add GPU specific option
 
-                
             #     cmd = [
             #         "docker",
             #         "run",
@@ -231,7 +230,13 @@ class Model_Analyze_Thread(QThread):
                 print("Error starting container:", error)
                 continue  # 다음 루프로 넘어감
 
-            cmd_fmt = [fmt.strip() for fmt in self.grand_parent.command_lineedit.text().split(",") if fmt.strip()]
+            # cmd_fmt = [fmt.strip() for fmt in self.grand_parent.command_lineedit.text().split(",") if fmt.strip()]
+            cmd_fmt = []
+            for i in range(0, 6):
+                check_box_name = f"cmd{i}"  # 체크박스의 이름을 동적으로 생성
+                check_box = getattr(self.grand_parent, check_box_name, None)  # 객체 가져오기
+                if check_box and check_box.isChecked():  # 체크박스가 존재하고 선택되었는지 확인
+                    cmd_fmt.append(check_box.text())  # 체크박스의 텍스트를 리스트에 추가
 
             start_T = time.time()
             for enntools_cmd in cmd_fmt:
@@ -258,7 +263,7 @@ class Model_Analyze_Thread(QThread):
 
                 "실시간 yaml 수정: init 후 생성되는 yaml에 대해서 src_config을 참고해서 수정"
                 failed_pairs = []
-                parameter_set = []
+                parameter_set = OrderedDict()
 
                 _directory_, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
                 _filename_, extension = separate_filename_and_extension(_model_)
@@ -304,8 +309,8 @@ class Model_Analyze_Thread(QThread):
                             ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
                                                             self.grand_parent.enntestcomboBox.currentText())
                             if not ret:
-                                out.append("Failed")
-                                error.append("Failed")
+                                out.append("Fail")
+                                error.append("Fail")
 
                         else:
                             out.append("Skip(No nnc or input_golden)")
@@ -445,12 +450,13 @@ class Model_Verify_Class(QObject):
             widget_ui.profiletextEdit.hide()
             widget_ui.enntesttextEdit.hide()
 
-             # 체크박스 신호 연결
+            # 체크박스 신호 연결
             widget_ui.logonoffcheckBox.stateChanged.connect(
                 lambda state, ui=widget_ui: self.toggle_text_edits(ui, state)
-                )
+            )
 
-    def toggle_text_edits(self, ui, state):
+    @staticmethod
+    def toggle_text_edits(ui, state):
         """체크박스 상태에 따라 위젯 숨기기/보이기"""
         if state == QtCore.Qt.Checked:
             ui.inittextEdit.show()
@@ -467,7 +473,6 @@ class Model_Verify_Class(QObject):
             ui.estimationtextEdit.hide()
             ui.analysistextEdit.hide()
             ui.profiletextEdit.hide()
-                
 
     def update_all_sub_widget(self):
         # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사
@@ -498,6 +503,10 @@ class Model_Verify_Class(QObject):
                 src_file = os.path.join(directory, f"{name}.prototxt")
                 target_file = os.path.join(target_dir, f"{name}.prototxt")
                 shutil.copy2(src_file, target_file)
+
+                # src_file = os.path.join(directory, f"{name}.protobin")
+                # target_file = os.path.join(target_dir, f"{name}.protobin")
+                # shutil.copy2(src_file, target_file)
 
         if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
             self.insert_widget_progress = ModalLess_ProgressDialog(message="Loading Scenario")
@@ -552,16 +561,16 @@ class Model_Verify_Class(QObject):
 
             if "init" in execute_cmd:
                 def convert_changed_items_to_text(changed_items):
-                    # changed_items 리스트를 텍스트 형식으로 변환
+                    # changed_items OrderedDict를 텍스트 형식으로 변환
                     result_text = ""
-                    for item in changed_items:
-                        section = item['section']
-                        key = item['key']
-                        old_value = item['old_value']
-                        new_value = item['new_value']
-
-                        # 텍스트 포맷: 섹션, 키, 이전 값, 새로운 값
-                        result_text += f"Section: {section}\nKey: {key}\nOld Value: {old_value}\nNew Value: {new_value}\n\n"
+                    for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
+                        result_text += f"Section: {section}\n"  # 섹션 이름 추가
+                        for key, values in keys.items():  # 각 섹션 내 키 순회
+                            old_value = values['old_value']
+                            new_value = values['new_value']
+                            result_text += f"  Key: {key}\n"
+                            result_text += f"    Old Value: {old_value}\n"
+                            result_text += f"    New Value: {new_value}\n\n"
 
                     return result_text
 
@@ -644,6 +653,19 @@ class Model_Verify_Class(QObject):
 
                     elif "compile" in execute_cmd:
                         sub_widget[0].compilelineEdit.setText("Fail")
+
+                        profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
+                        if os.path.exists(profile_log):
+                            # 파일이 있으면 열기
+                            text_to_display += f"\n\n[Profile Log]\n"
+                            with open(profile_log, 'r') as file:
+                                lines = file.readlines()
+
+                            # Unsupported가 포함된 라인 찾기
+                            for line in lines:
+                                if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
+                                    text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+
                         sub_widget[0].compilertextEdit.setText(text_to_display)
 
                     elif "estimation" in execute_cmd:
@@ -662,7 +684,7 @@ class Model_Verify_Class(QObject):
         if self.work_progress is not None:
             self.work_progress.onCountChanged(value=executed_cnt)
             sub_widget[0].elapsedlineEdit.setText(elapsed_time)
-            self.save(self_saving=True)            
+            self.save(self_saving=True)
 
     def error_update_test_result(self, error_message, sub_widget):
         if self.work_progress is not None:
@@ -936,9 +958,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         text_concatenation = ', '.join(element_list)
         self.mainFrame_ui.error_lineedit.setText(text_concatenation)
 
-        element_list = [fmt.strip() for fmt in keyword["op_exe_cmd"]]
-        text_concatenation = ', '.join(element_list)
-        self.mainFrame_ui.command_lineedit.setText(text_concatenation)
+        # element_list = [fmt.strip() for fmt in keyword["op_exe_cmd"]]
+        # text_concatenation = ', '.join(element_list)
+        # self.mainFrame_ui.command_lineedit.setText(text_concatenation)
 
         self.setWindowTitle(Version)
 
@@ -953,6 +975,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 label.setFont(font)
                 label.setAlignment(QtCore.Qt.AlignCenter)  # 가운데 정렬
                 self.mainFrame_ui.history_table.addWidget(label, cnt + 1, item_num)
+
+        self.mainFrame_ui.cmdlabel.hide()
+        self.mainFrame_ui.command_lineedit.hide()
 
     def closeEvent(self, event):
         answer = QtWidgets.QMessageBox.question(self,
@@ -1202,6 +1227,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
+    start_docker_desktop()
+
     import sys
 
     app = QtWidgets.QApplication(sys.argv)  # QApplication 생성 (필수)
@@ -1211,7 +1238,5 @@ if __name__ == "__main__":
     ui.showMaximized()
     ui.connectSlotSignal()
     ui.update_docker_imageList()
-
-    start_docker_desktop()
 
     sys.exit(app.exec_())

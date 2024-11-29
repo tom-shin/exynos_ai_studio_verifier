@@ -613,7 +613,7 @@ def remove_alldata_files_except_specific_extension(directory, extension):
         for name in files:
             file_path = os.path.join(root, name)
 
-            if name.endswith('.caffemodel') or name.endswith('.prototxt'):
+            if name.endswith('.caffemodel') or name.endswith('.prototxt'): #or name.endswith('.protobin'):
                 continue
 
             elif name.endswith(f'.{extension}'):

@@ -75,6 +75,7 @@ model_config:
       mi: true
       mo: true
       multi_vc: false
+    repo: customer[PFR]
 
   PFR_segmentation.onnx:
     converter:
@@ -94,6 +95,7 @@ model_config:
       mi: true
       mo: true
       multi_vc: false
+    repo: customer[PFR]
 
   depth_anything_vitb14.onnx:
     repo: pyranee https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
@@ -307,3 +309,6 @@ model_config:
     converter:
       quantize_type: qat
       output_dtype: uint8
+
+  inception-v3-uint8.tflite:
+    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v3-quant
