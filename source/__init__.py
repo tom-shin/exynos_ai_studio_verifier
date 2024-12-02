@@ -1,3 +1,4 @@
+import sys
 import os
 import subprocess
 import json
@@ -432,11 +433,13 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
     line_output = []
     error_output = []
     timeout_expired = False
-    # WSL 명령으로 변환
-    if not shell:
-        cmd.insert(0, "wsl")
-    else:
-        cmd = rf"wsl {cmd}"
+
+    if sys.platform == "win32":
+        # WSL 명령으로 변환
+        if not shell:
+            cmd.insert(0, "wsl")
+        else:
+            cmd = rf"wsl {cmd}"
 
     if run_time:
         try:
