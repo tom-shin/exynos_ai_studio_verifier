@@ -600,9 +600,9 @@ if __name__ == "__main__":
     # input_ = rf"{BASE_DIR}\nnc-model-tester\sample_model\NPU_EdgeTPU\Mobilenet_Edgetpu_O2_Multicore_input_data.bin"
     # gold = rf"{BASE_DIR}\nnc-model-tester\sample_model\NPU_EdgeTPU\Mobilenet_Edgetpu_O2_Multicore_golden_data.bin"
 
-    model = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\ai_studio_2_x\Result\PFR_segmentation\Compiler_result\PFR_segmentation_simplify_O2_SingleCore.nnc"
-    input_ = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\ai_studio_2_x\Result\PFR_segmentation\Converter_result\NPU_PFR_segmentation\testvector\inout\input_data_float32.bin"
-    gold = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\ai_studio_2_x\Result\PFR_segmentation\Converter_result\NPU_PFR_segmentation\testvector\inout\golden_data_float32.bin"
-    outdir = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\ai_studio_2_x"
+    model = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Compiler_result\resnet152-v1-7_simplify_O2_SingleCore.nnc"
+    input_ = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout\input_data_float32.bin"
+    gold = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout\golden_data_float32.bin"
+    outdir = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout"
     result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model, input_binary=input_, golden_binary=gold,
                                    result_dir=outdir, option=option)

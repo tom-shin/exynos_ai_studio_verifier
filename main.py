@@ -173,64 +173,12 @@ class Model_Analyze_Thread(QThread):
                 # For GPU
                 cmd = base_cmd[:3] + ["--gpus", "all"] + base_cmd[3:]  # Add GPU specific option
 
-            #     cmd = [
-            #         "docker",
-            #         "run",
-            #         "-d",
-            #         "--name",
-            #         container_name,
-            #         "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-            #         "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-            #         "--privileged",  # 권한 강화 (2번 항목)
-            #         "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-            #         "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-            #         # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-            #         "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-            #         "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-            #         "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-            #         self.container_repo_tag,
-            #         "/bin/bash",
-            #         "-c",
-            #         "tail -f /dev/null"
-            #     ]
-
-            # else:  # GPU
-            #     cmd = [
-            #         "docker",
-            #         "run",
-            #         "-d",
-            #         "--gpus",
-            #         "all",
-            #         "--name",
-            #         container_name,
-            #         "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-            #         "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-            #         "--privileged",  # 권한 강화 (2번 항목)
-            #         "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-            #         "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-            #         # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-            #         # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-            #         "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-            #         "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-            #         "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-            #         self.container_repo_tag,
-            #         "/bin/bash",
-            #         "-c",
-            #         "tail -f /dev/null"
-            #     ]
-
             out, error, _ = user_subprocess(cmd=cmd, run_time=False, log=False, shell=False)
 
             if error:
                 print("Error starting container:", error)
                 continue  # 다음 루프로 넘어감
 
-            # cmd_fmt = [fmt.strip() for fmt in self.grand_parent.command_lineedit.text().split(",") if fmt.strip()]
             cmd_fmt = []
             for i in range(0, 6):
                 check_box_name = f"cmd{i}"  # 체크박스의 이름을 동적으로 생성
@@ -239,6 +187,10 @@ class Model_Analyze_Thread(QThread):
                     cmd_fmt.append(check_box.text())  # 체크박스의 텍스트를 리스트에 추가
 
             start_T = time.time()
+            init_success = False
+            conversion_success = False
+            compile_success = False
+
             for enntools_cmd in cmd_fmt:
                 self.send_set_text_signal.emit(
                     rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})")
@@ -256,8 +208,10 @@ class Model_Analyze_Thread(QThread):
                 error = []
                 if "enntest" not in enntools_cmd:
                     out, error, timeout_expired = user_subprocess(cmd=cmd, run_time=False, timeout=self.timeout_expired,
-                                                                  shell=False)
+                                                                  shell=False, log=False)
+
                     if timeout_expired:
+                        print("timeout_expired")
                         self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
                         break
 
@@ -286,9 +240,13 @@ class Model_Analyze_Thread(QThread):
                                                          target_config=target_config,
                                                          model_name=_model_)
                 elif "enntest" in enntools_cmd:
-                    if target_widget[0].initlineEdit.text().strip().lower() == "success" and \
-                            target_widget[0].conversionlineEdit.text().strip().lower() == "success" and \
-                            target_widget[0].compilelineEdit.text().strip().lower() == "success":
+                    if init_success and conversion_success and compile_success:
+                        init_success = False
+                        conversion_success = False
+                        compile_success = False
+                    # if target_widget[0].initlineEdit.text().strip().lower() == "success" and \
+                    #         target_widget[0].conversionlineEdit.text().strip().lower() == "success" and \
+                    #         target_widget[0].compilelineEdit.text().strip().lower() == "success":
 
                         nnc_model_path = os.path.join(_directory_, "Compiler_result").replace("\\", "/")
                         nnc_files = []
@@ -320,6 +278,61 @@ class Model_Analyze_Thread(QThread):
                         error.append("Skip")
 
                 self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
+                ##################################################
+                if "init" in enntools_cmd:
+                    def convert_changed_items_to_text(changed_items):
+                        # changed_items OrderedDict를 텍스트 형식으로 변환
+                        result_text = ""
+                        for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
+                            result_text += f"Section: {section}\n"  # 섹션 이름 추가
+                            for key, values in keys.items():  # 각 섹션 내 키 순회
+                                old_value = values['old_value']
+                                new_value = values['new_value']
+                                result_text += f"  Key: {key}\n"
+                                result_text += f"    Old Value: {old_value}\n"
+                                result_text += f"    New Value: {new_value}\n\n"
+
+                        return result_text
+
+                            # 변경된 항목들을 텍스트로 변환
+                    directory, model_name = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+                    filename, extension = separate_filename_and_extension(model_name)
+
+                    check_DATA_dir = os.path.join(directory, "DATA")
+                    check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
+                    if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
+                        init_success = True
+                        print("init_success")
+
+                elif "conversion" in enntools_cmd:
+                    check_log = os.path.join(cwd, "Converter_result", ".log")
+                    error_keywords = keyword["error_keyword"]
+                    if os.path.exists(check_log):
+                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                              check_keywords=error_keywords)
+                        if len(ret) == 0:
+                            conversion_success = True
+                            print("conversion_success")
+
+                elif "compile" in enntools_cmd:
+                    check_log = os.path.join(cwd, "Compiler_result", ".log")
+                    error_keywords = keyword["error_keyword"]
+                    if os.path.exists(check_log):
+                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                                  check_keywords=error_keywords)
+                        if len(ret) == 0:
+                            compile_success = True
+                            print("compile_success")
+
+                ##################################################
+
+
+
+
+
+
+
+
                 time.sleep(3)
 
             for container_name in self.container_trace:

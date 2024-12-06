@@ -481,11 +481,15 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
 
     else:
         try:
-            result = subprocess.run(cmd, shell=shell, capture_output=True, text=True, timeout=timeout)
+            result = subprocess.run(cmd, shell=shell, capture_output=True, text=False, timeout=timeout)
 
-            # stdout과 stderr가 None이 아닌 경우에만 splitlines() 호출
-            line_output.extend(result.stdout.splitlines() if result.stdout else [])
-            error_output.extend(result.stderr.splitlines() if result.stderr else [])
+            # Decode stdout and stderr, handling encoding issues
+            encoding = "utf-8"
+            errors = "replace"
+            if result.stdout:
+                line_output.extend(result.stdout.decode(encoding, errors).splitlines())
+            if result.stderr:
+                error_output.extend(result.stderr.decode(encoding, errors).splitlines())
 
             if log:
                 for line in line_output:
@@ -509,6 +513,90 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
 
     return line_output, error_output, timeout_expired
 
+
+def X_user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True):
+    line_output = []
+    error_output = []
+    timeout_expired = False
+
+    if sys.platform == "win32":
+        # WSL 명령으로 변환
+        if not shell:
+            cmd.insert(0, "wsl")
+        else:
+            cmd = rf"wsl {cmd}"
+
+    if run_time:
+        try:
+            with subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  text=True) as process:
+                while True:
+                    # stdout, stderr에서 비동기적으로 읽기
+                    line = process.stdout.readline()
+                    if line:
+                        line_output.append(line.strip())
+                        cleaned_sentence = ANSI_ESCAPE.sub('', line)
+
+                        if log:
+                            print(cleaned_sentence.strip())  # 실시간 출력
+                        if "OPTYPE : DROPOUT" in line:
+                            if log:
+                                print("operror")
+
+                    err_line = process.stderr.readline()
+                    if err_line:
+                        error_output.append(err_line.strip())
+                        cleaned_sentence = ANSI_ESCAPE.sub('', err_line)
+                        if log:
+                            print("ERROR:", cleaned_sentence.strip())
+
+                    # 프로세스가 종료되었는지 확인
+                    if process.poll() is not None and not line and not err_line:
+                        break
+
+                # 프로세스 종료 코드 체크
+                process.wait(timeout=timeout)
+
+        except subprocess.TimeoutExpired:
+            process.kill()
+            if log:
+                print("Timeout occurred, process killed.")
+            error_output.append("Process terminated due to timeout.")
+            timeout_expired = True
+
+    else:
+        try:
+            result = subprocess.run(cmd, shell=shell, capture_output=True, text=False, timeout=timeout)
+
+            # Decode stdout and stderr, handling encoding issues
+            encoding = "utf-8"
+            errors = "replace"
+            if result.stdout:
+                line_output.extend(result.stdout.decode(encoding, errors).splitlines())
+            if result.stderr:
+                error_output.extend(result.stderr.decode(encoding, errors).splitlines())
+
+            if log:
+                for line in line_output:
+                    cleaned_sentence = ANSI_ESCAPE.sub('', line)
+                    print(cleaned_sentence)  # 디버깅을 위해 주석 해제
+
+                for err_line in error_output:
+                    cleaned_sentence = ANSI_ESCAPE.sub('', err_line)
+                    print("ERROR:", cleaned_sentence)  # 에러 메시지 구분을 위해 prefix 추가
+
+        except subprocess.TimeoutExpired:
+            if log:
+                print("Timeout occurred, command terminated.")
+            error_output.append("Command terminated due to timeout.")
+            timeout_expired = True
+        except Exception as e:
+            # 기타 예외 처리 추가
+            if log:
+                print(f"Error occurred: {str(e)}")
+            error_output.append(f"Command failed: {str(e)}")
+
+    return line_output, error_output, timeout_expired
 
 def Open_QMessageBox(message="", yes_b=True, no_b=True):
     msg_box = QMessageBox()
