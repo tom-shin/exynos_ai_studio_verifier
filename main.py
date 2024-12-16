@@ -138,9 +138,11 @@ class Model_Analyze_Thread(QThread):
             container_name = f"{container_pre_fix}_container_{executed_cnt}"
             self.container_trace.append(container_name)
 
-            for container_name in self.container_trace:
-                user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
-                user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
+            cmd = "docker rm -f $(docker ps -aq)"
+            user_subprocess(cmd=f"{cmd}", run_time=False, log=False)
+            # for container_name in self.container_trace:
+            #     user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
+            #     user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
 
             base_cmd = [
                 "docker",
@@ -159,7 +161,8 @@ class Model_Analyze_Thread(QThread):
                 # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
                 "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
                 "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-                "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
+                "-w", "/workspace",  # 작업 디렉터리 설정 (6번 항목)
+                # "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
                 self.container_repo_tag,
                 "/bin/bash",
                 "-c",
@@ -192,24 +195,17 @@ class Model_Analyze_Thread(QThread):
             compile_success = False
 
             for enntools_cmd in cmd_fmt:
-                self.send_set_text_signal.emit(
-                    rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})")
-
-                cmd = ["docker",
-                       "exec",
-                       "-i",
-                       container_name,
-                       "/bin/bash",
-                       "-c",
-                       f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"
-                       ]
-
                 out = []
                 error = []
+
+                message = rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})"
+                self.send_set_text_signal.emit(message)
+
+                cmd = ["docker", "exec", "-i", container_name, "/bin/bash", "-c",
+                       f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"]
                 if "enntest" not in enntools_cmd:
                     out, error, timeout_expired = user_subprocess(cmd=cmd, run_time=False, timeout=self.timeout_expired,
-                                                                  shell=False, log=False)
-
+                                                                  shell=False, log=True)
                     if timeout_expired:
                         print("timeout_expired")
                         self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
@@ -223,6 +219,15 @@ class Model_Analyze_Thread(QThread):
                 _filename_, extension = separate_filename_and_extension(_model_)
 
                 if "init" in enntools_cmd:
+                    # 변경된 항목들을 텍스트로 변환
+
+                    check_DATA_dir = os.path.join(_directory_, "DATA").replace("\\", "/")
+                    target_config = os.path.join(_directory_, f"{_filename_}.yaml").replace("\\", "/")
+
+                    if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
+                        init_success = True
+                        print("init_success")
+
                     if self.grand_parent.modifiedradioButton.isChecked():
                         repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
                         tag = int(repo_tag.split(":")[1].split(".")[0])
@@ -234,19 +239,34 @@ class Model_Analyze_Thread(QThread):
                             src_config = os.path.join(BASE_DIR, "model_configuration",
                                                       "Ver1.0_model_config_new.yaml").replace("\\", "/")
 
-                        target_config = os.path.join(_directory_, f"{_filename_}.yaml").replace("\\", "/")
-
                         parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
                                                          target_config=target_config,
                                                          model_name=_model_)
+                elif "conversion" in enntools_cmd:
+                    check_log = os.path.join(cwd, "Converter_result", ".log")
+                    error_keywords = keyword["error_keyword"]
+                    if os.path.exists(check_log):
+                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                              check_keywords=error_keywords)
+                        if len(ret) == 0:
+                            conversion_success = True
+                            print("conversion_success")
+
+                elif "compile" in enntools_cmd:
+                    check_log = os.path.join(cwd, "Compiler_result", ".log")
+                    error_keywords = keyword["error_keyword"]
+                    if os.path.exists(check_log):
+                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                              check_keywords=error_keywords)
+                        if len(ret) == 0:
+                            compile_success = True
+                            print("compile_success")
+
                 elif "enntest" in enntools_cmd:
                     if init_success and conversion_success and compile_success:
                         init_success = False
                         conversion_success = False
                         compile_success = False
-                    # if target_widget[0].initlineEdit.text().strip().lower() == "success" and \
-                    #         target_widget[0].conversionlineEdit.text().strip().lower() == "success" and \
-                    #         target_widget[0].compilelineEdit.text().strip().lower() == "success":
 
                         nnc_model_path = os.path.join(_directory_, "Compiler_result").replace("\\", "/")
                         nnc_files = []
@@ -256,7 +276,8 @@ class Model_Analyze_Thread(QThread):
                                 nnc_files.append(filename)
 
                         input_golden_path = os.path.join(_directory_, "Converter_result").replace("\\", "/")
-                        input_golden_pairs = find_paired_files(input_golden_path, mode=2)
+                        # input_golden_pairs = find_paired_files(input_golden_path, mode=2)
+                        input_golden_pairs = find_paired_files(input_golden_path, mode=1)
 
                         out_dir = os.path.join(_directory_, "Enntester_result").replace("\\", "/")
                         CheckDir(out_dir)
@@ -278,62 +299,7 @@ class Model_Analyze_Thread(QThread):
                         error.append("Skip")
 
                 self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
-                ##################################################
-                if "init" in enntools_cmd:
-                    def convert_changed_items_to_text(changed_items):
-                        # changed_items OrderedDict를 텍스트 형식으로 변환
-                        result_text = ""
-                        for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
-                            result_text += f"Section: {section}\n"  # 섹션 이름 추가
-                            for key, values in keys.items():  # 각 섹션 내 키 순회
-                                old_value = values['old_value']
-                                new_value = values['new_value']
-                                result_text += f"  Key: {key}\n"
-                                result_text += f"    Old Value: {old_value}\n"
-                                result_text += f"    New Value: {new_value}\n\n"
-
-                        return result_text
-
-                            # 변경된 항목들을 텍스트로 변환
-                    directory, model_name = separate_folders_and_files(target_widget[0].pathlineEdit.text())
-                    filename, extension = separate_filename_and_extension(model_name)
-
-                    check_DATA_dir = os.path.join(directory, "DATA")
-                    check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
-                    if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
-                        init_success = True
-                        print("init_success")
-
-                elif "conversion" in enntools_cmd:
-                    check_log = os.path.join(cwd, "Converter_result", ".log")
-                    error_keywords = keyword["error_keyword"]
-                    if os.path.exists(check_log):
-                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-                                                                                              check_keywords=error_keywords)
-                        if len(ret) == 0:
-                            conversion_success = True
-                            print("conversion_success")
-
-                elif "compile" in enntools_cmd:
-                    check_log = os.path.join(cwd, "Compiler_result", ".log")
-                    error_keywords = keyword["error_keyword"]
-                    if os.path.exists(check_log):
-                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-                                                                                                  check_keywords=error_keywords)
-                        if len(ret) == 0:
-                            compile_success = True
-                            print("compile_success")
-
-                ##################################################
-
-
-
-
-
-
-
-
-                time.sleep(3)
+                # time.sleep(3)
 
             for container_name in self.container_trace:
                 user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
@@ -387,9 +353,11 @@ class Model_Analyze_Thread(QThread):
         print("파일 업데이트 완료")
 
     def stop(self):
-        for container_name in self.container_trace:
-            user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
-            user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
+        cmd = "docker rm -f $(docker ps -aq)"
+        user_subprocess(cmd=f"{cmd}", run_time=False, log=False)
+        # for container_name in self.container_trace:
+        #     user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
+        #     user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
 
         self._running = False
         self.quit()

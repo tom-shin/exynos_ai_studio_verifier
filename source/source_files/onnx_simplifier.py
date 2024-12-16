@@ -3,6 +3,10 @@ import onnx
 import os
 import traceback
 from onnx import helper
+import onnxsim
+from typing import Tuple, List, Dict
+import numpy as np
+import onnxruntime
 
 
 class ONNX_INFO:
@@ -136,18 +140,9 @@ class ONNX_INFO:
             self.model = model_path
             self.model_path = model_path
 
-        # 입력 텐서의 이름 및 정보를 추출
-        # input_shapes = {}
-        # for input_tensor in self.model.graph.input:
-        #     tensor_name = input_tensor.name
-        #     # 예: 모든 입력 텐서를 (1, 3, 128, 128)으로 설정
-        #     input_shapes[tensor_name] = input_tensor_shape
-        #     print(f"Input Name: {tensor_name}, Shape Set to: {input_shapes[tensor_name]}")
-
         # 모델 간소화
         model_simplified, check = simplify(self.model, overwrite_input_shapes=input_tensor_shape,
                                            dynamic_input_shape=False)
-        # model_simplified, check = simplify(self.model, overwrite_input_shapes=input_shapes, dynamic_input_shape=False)
 
         # 검증 및 저장
         if check:
@@ -161,37 +156,70 @@ class ONNX_INFO:
         else:
             print("Simplification failed. The original model is retained.")
 
+    def test_model_integrity(self, model_path=None):
+        print("\n[ONNX Inference 테스트 실행 결과]")
+        try:
+            # ONNX Runtime 세션 생성
+            if model_path is not None:
+                self.model_path = model_path
+
+            session = onnxruntime.InferenceSession(self.model_path)
+
+            # 입력 텐서 정보 가져오기
+            input_tensors = session.get_inputs()
+
+            # 입력 데이터 생성 (zeros로 초기화)
+            input_data = []
+            for tensor in input_tensors:
+                shape = tuple(map(int, tensor.shape))  # 문자열을 정수로 변환
+                data = np.zeros(shape, dtype=np.float32)
+                input_data.append(data)
+
+            # 推论 수행
+            outputs = session.run(None, dict(zip([t.name for t in input_tensors], input_data)))
+
+            return True
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return False
+
 
 if __name__ == "__main__":
     model_instance = ONNX_INFO()
-    #
-    path = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\test_model_repo\ml_group\ml_group_all_checked_simplify\mobilenetv2-12-modify.onnx"
+
+    path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\ml_group_all_checked_simplify\mobilenetv2-10-modify.onnx"
     model_instance.load_onnx_model(model_path=path)
 
+    # check model version
+    model_instance.print_model_version_info()
 
+    # check model simplify
+    model_instance.execute_onnx_simplifier()
+
+    # model static/ dynamic check
     ret = model_instance.is_static_input()
     if ret:
         print("The model has static input shapes.")
     else:
         print("The model has dynamic input shapes.")
 
+    is_integrity_ok = model_instance.test_model_integrity()
+    if is_integrity_ok:
+        print("  → Model integrity test passed")
+    else:
+        print("  → Model integrity test failed")
 
-
-    # model_instance.print_input_shapes()
+    # check model input shape
+    model_instance.print_input_shapes()
 
     # python -m onnxsim mobilenetv2-10.onnx mobilenetv2-10_checked.onnx --overwrite-input-shape 1,3,224,224
     # shape = {"input": [1, 3, 416, 416], "image_shape": [416, 416]}   #yolo3
-    shape = {"input": [1, 3, 224, 224]}  # yolo4 보통 NCHW방식인데 이 모델은 보니 NHWC 방식으로 채널이 뒤에 있음. 이경우 보통 모델에 TRANSPOSE가 있어서
-                                             # 내부적으로 다시 NCHW방식으로 변경하는 경우가 많음.
+    # shape = {"input": [1, 3, 224, 224]}  # yolo4 보통 NCHW방식인데 이 모델은 보니 NHWC 방식으로 채널이 뒤에 있음. 이경우 보통 모델에 TRANSPOSE가 있어서
+    # 내부적으로 다시 NCHW방식으로 변경하는 경우가 많음.
+    # model_instance.modify_input_tensor(input_tensor_shape=shape)
 
-    model_instance.modify_input_tensor(input_tensor_shape=shape)
-
-    #
-    # model_instance.print_model_version_info()
-    # model_instance.print_input_shapes()
-    # model_instance.execute_onnx_simplifier()
-
-    # directory = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\test_model_repo\ml_group\ml_group_all_checked_simplify"
+    # directory = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\ml_group_all_checked_simplify"
     # cnt = 0
     # for root, dirs, files in os.walk(directory, topdown=False):
     #     for name in files:
@@ -201,7 +229,12 @@ if __name__ == "__main__":
     #             continue
     #
     #         cnt += 1
-    #         print(name, "==========================================================================")
+    #         # print(name, "==========================================================================")
     #         model_instance.load_onnx_model(model_path=file_path)
-    #         model_instance.print_input_shapes()
+    #         # model_instance.print_input_shapes()
+    #         is_integrity_ok = model_instance.test_model_integrity()
+    #         if is_integrity_ok:
+    #             print("  → Model integrity test passed")
+    #         else:
+    #             print("  → Model integrity test failed")
     #         print("\n")

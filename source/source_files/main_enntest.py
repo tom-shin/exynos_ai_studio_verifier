@@ -9,6 +9,7 @@ import logging
 import socket
 import stat
 import multiprocessing
+import shutil
 from colorama import Fore, Back, Style, init
 
 ############################################################################################################
@@ -530,6 +531,21 @@ class exynos:
 
         # PRINT_("++++++++++++++++++++++++++++++", local_output_path)
         # return local_output_path  # full local path to save generated output.json file
+
+        # 파일 이름 수정 및 이동
+        base_dir, original_filename = os.path.split(local_output_path)  # 디렉토리와 파일 이름 분리
+        filename_without_ext, ext = os.path.splitext(original_filename)  # 파일 이름과 확장자 분리
+
+        # Pass/Fail에 따라 파일 이름 수정
+        if Pass_:
+            new_filename = f"{filename_without_ext}_Pass{ext}"
+        else:
+            new_filename = f"{filename_without_ext}_Fail{ext}"
+
+        new_output_path = os.path.join(base_dir, new_filename)
+
+        # 파일 이름 변경
+        shutil.move(local_output_path, new_output_path)  # 기존 파일을 새 이름으로 이동
         return Pass_
 
 
@@ -562,7 +578,8 @@ def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
         in_filename, in_extension = os.path.splitext(os.path.basename(input_file))
         g_filename, g_extension = os.path.splitext(os.path.basename(golden_file))
 
-        result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model, input_binary=input_file,
+        result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model,
+                                       input_binary=input_file,
                                        golden_binary=golden_file,
                                        result_dir=out_dir, filename=f"{in_filename}_{g_filename}", option=option, target_board=target_board)
 
@@ -594,15 +611,17 @@ if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
     cmd = "EnnTest_v2_lib"
-    option = "--profile summary --monitor_iter 3 --iter 3 --useSNR"
+    option = "--profile summary --monitor_iter 1 --iter 1 --useSNR"
 
     # model = rf"{BASE_DIR}\nnc-model-tester\sample_model\NPU_EdgeTPU\Mobilenet_Edgetpu_O2_Multicore.nnc"
     # input_ = rf"{BASE_DIR}\nnc-model-tester\sample_model\NPU_EdgeTPU\Mobilenet_Edgetpu_O2_Multicore_input_data.bin"
     # gold = rf"{BASE_DIR}\nnc-model-tester\sample_model\NPU_EdgeTPU\Mobilenet_Edgetpu_O2_Multicore_golden_data.bin"
 
-    model = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Compiler_result\resnet152-v1-7_simplify_O2_SingleCore.nnc"
-    input_ = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout\input_data_float32.bin"
-    gold = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout\golden_data_float32.bin"
-    outdir = r"C:\Work\tom\python_project\exynos_ai_studio_verifier\Result\resnet152-v1-7\Converter_result\NPU_resnet152-v1-7\testvector\inout"
+    model = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Compiler_result\mobilenetv2-7_simplify_O2_SingleCore.nnc"
+    gold = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout\golden_data_float32.bin"
+    input_ = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout\input_data_float32.bin"
+    outdir = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout"
+
+
     result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model, input_binary=input_, golden_binary=gold,
                                    result_dir=outdir, option=option)
