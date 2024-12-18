@@ -6,6 +6,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 import os
 import sys
+import onnx
 import logging
 import easygui
 import platform
@@ -98,6 +99,7 @@ class Model_Analyze_Thread(QThread):
 
     send_max_progress_cnt = pyqtSignal(int)
     send_set_text_signal = pyqtSignal(str)
+    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str)
 
     def __init__(self, parent=None, grand_parent=None, ssh_client=None, repo_tag=None):
         super().__init__()
@@ -193,6 +195,59 @@ class Model_Analyze_Thread(QThread):
             init_success = False
             conversion_success = False
             compile_success = False
+
+            # onnx information
+            model = target_widget[0].pathlineEdit.text()
+            name, ext = os.path.splitext(model)
+            opset_ver = "Not ONNX Model"
+            model_domain = "Not ONNX Model"
+            onnx_validation = "Not ONNX Model"
+            onnx_model_type = "Not ONNX Model"
+            if ext.lower() == ".onnx":
+                model = onnx.load(target_widget[0].pathlineEdit.text())
+                opset_imports = model.opset_import
+                opset_ver = ""
+                model_domain = ""
+                onnx_validation = ""
+                onnx_model_type = ""
+
+                for opset in opset_imports:
+                    # s = f"{opset.version}\n"  # Operator set version
+                    domain = f"Domain: {opset.domain or 'ai.onnx'}\n"  # Operator set version
+                    model_domain += domain
+
+                    ver = f"opset ver.: {opset.version}\n"  # Operator set version
+                    opset_ver += ver
+
+                try:
+                    onnx.checker.check_model(model)
+                    onnx_validation = "Passed"
+                    # print("  • Model check passed ✓")
+                except onnx.checker.ValidationError as e:
+                    onnx_validation = f"[Error] {str(e)}"
+                    # print(f"  • Validation Error: {str(e)}")
+                except Exception as e:
+                    onnx_validation = f"[Error] {str(e)}"
+                    # print(f"  • Error: {str(e)}")
+
+                # Check quantization type
+                model_ops = set(node.op_type for node in model.graph.node)
+
+                # Determine model type
+                if "QLinearConv" in model_ops:
+                    onnx_model_type = "INT8"
+                    # print(f"  • Model Type: INT8 quantized model")
+                elif "QuantizeLinear" in model_ops and "DequantizeLinear" in model_ops:
+                    onnx_model_type = "QDQ"
+                    # print(f"  • Model Type: QDQ model")
+                elif not any(op for op in model_ops if "Q" in op):
+                    onnx_model_type = "FP32"
+                    # print(f"  • Model Type: FP32 model")
+                else:
+                    onnx_model_type = "Unknown quantization type"
+                    # print(f"  • Model Type: Unknown quantization type")
+
+            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_validation, model_domain, opset_ver, onnx_model_type)
 
             for enntools_cmd in cmd_fmt:
                 out = []
@@ -536,6 +591,13 @@ class Model_Verify_Class(QObject):
         elif "profiling" in execute_cmd:
             target_widget[0].profilinglineEdit.setText("Runtime Out")
 
+    @staticmethod
+    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type):
+        sub_widget[0].modelvalidaty.setText(validation)
+        sub_widget[0].onnxdomain.setText(model_domain)
+        sub_widget[0].onnxlineEdit.setText(opset_ver)
+        sub_widget[0].modeltype.setText(model_type)
+
     def update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
         if self.work_progress is not None:
 
@@ -729,6 +791,11 @@ class Model_Verify_Class(QObject):
             if target_widget[0].scenario_checkBox.isChecked():
                 check = True
 
+                target_widget[0].modelvalidaty.setText("")
+                target_widget[0].onnxdomain.setText("")
+                target_widget[0].onnxlineEdit.setText("")
+                target_widget[0].modeltype.setText("")
+
                 # success/ fail lineedit 초기화
                 target_widget[0].initlineEdit.setText("")
                 target_widget[0].inittextEdit.setText("")
@@ -789,6 +856,7 @@ class Model_Verify_Class(QObject):
         self.model_analyze_thread_instance = Model_Analyze_Thread(self, self.grand_parent, repo_tag=repo_tag)
         self.model_analyze_thread_instance.output_signal.connect(self.update_test_result)
         self.model_analyze_thread_instance.output_signal_2.connect(self.update_test_result_2)
+        self.model_analyze_thread_instance.send_onnx_opset_ver_signal.connect(self.update_onnx_info)
         self.model_analyze_thread_instance.timeout_output_signal.connect(self.update_timeout_result)
 
         self.model_analyze_thread_instance.send_set_text_signal.connect(self.set_text_progress)
@@ -828,6 +896,12 @@ class Model_Verify_Class(QObject):
                 "Model": clean_data(model),
                 "Framework": clean_data(framework.replace(".", "")),
                 "Set parameter": clean_data(target_widget[0].parametersetting_textEdit.toPlainText().strip()),
+
+                "Onnx_Opset Version": clean_data(target_widget[0].onnxlineEdit.text().strip()),
+                "Onnx_Domain": clean_data(target_widget[0].onnxdomain.text().strip()),
+                "Onnx_Model_Type": clean_data(target_widget[0].modeltype.text().strip()),
+                "Onnx_Model_Validation": clean_data(target_widget[0].modelvalidaty.text().strip()),
+
                 "init_Result": clean_data(target_widget[0].initlineEdit.text().strip()),
                 "init_log": clean_data(""),  # 초기화된 값이 비어 있다면
                 "conversion_Result": clean_data(target_widget[0].conversionlineEdit.text().strip()),
