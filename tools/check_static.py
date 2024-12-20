@@ -193,7 +193,7 @@ if __name__ == "__main__":
     # parser.add_argument("model_path", type=str, help="입력 ONNX 모델 파일 경로")
     # args = parser.parse_args()
 
-    directory = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\dropout\squeezenet1.0-3_opset13.onnx"
+    directory = rf"C:/Work/tom/python_project/exynos_ai_studio_verifier/Result/yolox_tiny/yolox_tiny.onnx"
     main(directory)
 
     # directory = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\dropout\squeezenet1.0-12-modified-modified.onnx"

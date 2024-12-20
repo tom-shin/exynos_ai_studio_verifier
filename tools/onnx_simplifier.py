@@ -212,13 +212,48 @@ class ONNX_INFO:
         onnx.save(converted_model, output_path)
         print(f"Converted model saved to {output_path}")
 
+    def check_input_tensor(self):
+
+        model_path = self.model_path
+
+        # ONNX 세션 생성
+        session = onnxruntime.InferenceSession(model_path)
+
+        # 입력 정보 출력
+        input_name = session.get_inputs()[0].name
+        print(f"Input Name: {input_name}")
+        print(f"Expected Shape: {session.get_inputs()[0].shape}")
+
+        # 올바른 입력 텐서 준비 (예: float32[1, 3, 224, 224])
+        dummy_input = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+        # 모델 실행
+        outputs = session.run(None, {input_name: dummy_input})
+
+    def force_change_input_tensor(self):
+        model_path = self.model_path
+        directory, file_name = os.path.split(model_path)
+        file_name, ext = os.path.splitext(file_name)
+
+        model = onnx.load(model_path)
+
+        # 모델 입력 수정
+        model.graph.input[0].type.tensor_type.shape.dim[0].dim_value = 1  # 배치 크기
+        model.graph.input[0].type.tensor_type.shape.dim[2].dim_value = 224
+        model.graph.input[0].type.tensor_type.shape.dim[3].dim_value = 224
+
+        # 수정된 모델 저장
+        output_path = os.path.join(directory, file_name + "_force_input_tensor_change" + ext)
+        onnx.save(model, rf"{output_path}")
+
 
 if __name__ == "__main__":
     IND_TEST = False
 
-    path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\ml_group_all_checked_simplify\opset_version_upgrade\squeezenet1.0-6_opset13_Dropout_removed.onnx"
+    path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\dropout\squeezenet1.0-3_opset13.onnx"
     model_instance = ONNX_INFO(model_path=path)
-    model_instance.remove_op(op_name="Softmax")  # LOG Dropout
+    model_instance.force_change_input_tensor()
+    # model_instance.remove_op(op_name="Log")  # LOG Dropout
 
     if IND_TEST:
         model_instance.onnx_version_converter()

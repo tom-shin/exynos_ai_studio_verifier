@@ -7,6 +7,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 import os
 import sys
 import onnx
+import onnxruntime
 import logging
 import easygui
 import platform
@@ -19,6 +20,7 @@ from openpyxl.utils import get_column_letter
 from ruamel.yaml import YAML
 from io import StringIO
 import re
+import numpy as np
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -99,7 +101,7 @@ class Model_Analyze_Thread(QThread):
 
     send_max_progress_cnt = pyqtSignal(int)
     send_set_text_signal = pyqtSignal(str)
-    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str)
+    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str, str, str)
 
     def __init__(self, parent=None, grand_parent=None, ssh_client=None, repo_tag=None):
         super().__init__()
@@ -110,6 +112,129 @@ class Model_Analyze_Thread(QThread):
         self.container_repo_tag = repo_tag
         self.timeout_expired = float(grand_parent.timeoutlineEdit.text().strip())
         self.container_trace = None
+
+    @staticmethod
+    def test_model_integrity(model_path: str) -> bool:
+        try:
+            # ONNX Runtime 세션 생성
+            session = onnxruntime.InferenceSession(model_path)
+
+            # 입력 텐서 정보 가져오기
+            input_tensors = session.get_inputs()
+
+            # 입력 데이터 생성 (zeros로 초기화)
+            input_data = []
+            for tensor in input_tensors:
+                shape = tuple(map(int, tensor.shape))  # 문자열을 정수로 변환
+                data = np.zeros(shape, dtype=np.float32)
+                input_data.append(data)
+
+            # 推论 수행
+            outputs = session.run(None, dict(zip([t.name for t in input_tensors], input_data)))
+
+            return True
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return False
+
+    @staticmethod
+    def check_opset_domain_version_f(p_model, extension):
+        opset_version = ""
+        opset_domain = ""
+
+        if extension.lower() != ".onnx":
+            return opset_domain, opset_version
+
+        model = onnx.load(p_model)
+        opset_imports = model.opset_import
+
+        for opset in opset_imports:
+            domain = f"Domain: {opset.domain or 'ai.onnx'}\n"  # Operator set version
+            opset_domain += domain
+
+            ver = f"opset ver.: {opset.version}\n"  # Operator set version
+            opset_version += ver
+
+        return opset_domain, opset_version
+
+    @staticmethod
+    def check_model_quantization_type_f(p_model, extension):
+        quantization_type = ""
+
+        if extension.lower() != ".onnx":
+            return quantization_type
+
+        model = onnx.load(p_model)
+        model_ops = set(node.op_type for node in model.graph.node)
+
+        # Determine model type
+        if "QLinearConv" in model_ops:
+            quantization_type = "INT8"
+
+        elif "QuantizeLinear" in model_ops and "DequantizeLinear" in model_ops:
+            quantization_type = "QDQ"
+
+        elif not any(op for op in model_ops if "Q" in op):
+            quantization_type = "FP32"
+
+        else:
+            quantization_type = "Unknown quantization type"
+
+        return quantization_type
+
+    @staticmethod
+    def check_model_validation_f(p_model, extension):
+        model_validation = ""
+        if extension.lower() != ".onnx":
+            return model_validation
+
+        # ONNX 모델이 구조적으로 ONNX 스팩을 만족하는지 점검
+        model = onnx.load(p_model)
+
+        try:
+            onnx.checker.check_model(model)
+            model_validation = "Passed"
+
+        except onnx.checker.ValidationError as e:
+            model_validation = f"[Error] {str(e)}"
+
+        except Exception as e:
+            model_validation = f"[Error] {str(e)}"
+
+        return model_validation
+
+    @staticmethod
+    def check_model_runtime_inferenceSession_f(p_model, extension):
+        onnx_model_runtime_inference_check = ""
+        onnx_model_runtime_inference_check_log = ""
+        if extension.lower() != ".onnx":
+            return onnx_model_runtime_inference_check, onnx_model_runtime_inference_check
+
+        try:
+            # ONNX Runtime 세션 생성
+            session = onnxruntime.InferenceSession(p_model)
+
+            # 입력 텐서 정보 가져오기
+            input_tensors = session.get_inputs()
+
+            # 입력 데이터 생성 (zeros로 초기화)
+            input_data = []
+            for tensor in input_tensors:
+                shape = tuple(map(int, tensor.shape))  # 문자열을 정수로 변환
+                data = np.zeros(shape, dtype=np.float32)
+                input_data.append(data)
+
+            # 推论 수행
+            outputs = session.run(None, dict(zip([t.name for t in input_tensors], input_data)))
+            onnx_model_runtime_inference_check = "Passed"
+
+        except Exception as e:
+            print(f"[Error]: {e}")
+            onnx_model_runtime_inference_check = "Failed"
+            onnx_model_runtime_inference_check_log = str(e)
+
+        return onnx_model_runtime_inference_check, onnx_model_runtime_inference_check_log
 
     def run(self):
         self.container_trace = []
@@ -199,55 +324,14 @@ class Model_Analyze_Thread(QThread):
             # onnx information
             model = target_widget[0].pathlineEdit.text()
             name, ext = os.path.splitext(model)
-            opset_ver = "Not ONNX Model"
-            model_domain = "Not ONNX Model"
-            onnx_validation = "Not ONNX Model"
-            onnx_model_type = "Not ONNX Model"
-            if ext.lower() == ".onnx":
-                model = onnx.load(target_widget[0].pathlineEdit.text())
-                opset_imports = model.opset_import
-                opset_ver = ""
-                model_domain = ""
-                onnx_validation = ""
-                onnx_model_type = ""
 
-                for opset in opset_imports:
-                    # s = f"{opset.version}\n"  # Operator set version
-                    domain = f"Domain: {opset.domain or 'ai.onnx'}\n"  # Operator set version
-                    model_domain += domain
+            model_domain, opset_ver = self.check_opset_domain_version_f(p_model=model, extension=ext)
+            onnx_model_type = self.check_model_quantization_type_f(p_model=model, extension=ext)
+            onnx_validation = self.check_model_validation_f(p_model=model, extension=ext)
+            onnx_model_runtime_inference_check, inference_log = self.check_model_runtime_inferenceSession_f(p_model=model, extension=ext)
 
-                    ver = f"opset ver.: {opset.version}\n"  # Operator set version
-                    opset_ver += ver
-
-                try:
-                    onnx.checker.check_model(model)
-                    onnx_validation = "Passed"
-                    # print("  • Model check passed ✓")
-                except onnx.checker.ValidationError as e:
-                    onnx_validation = f"[Error] {str(e)}"
-                    # print(f"  • Validation Error: {str(e)}")
-                except Exception as e:
-                    onnx_validation = f"[Error] {str(e)}"
-                    # print(f"  • Error: {str(e)}")
-
-                # Check quantization type
-                model_ops = set(node.op_type for node in model.graph.node)
-
-                # Determine model type
-                if "QLinearConv" in model_ops:
-                    onnx_model_type = "INT8"
-                    # print(f"  • Model Type: INT8 quantized model")
-                elif "QuantizeLinear" in model_ops and "DequantizeLinear" in model_ops:
-                    onnx_model_type = "QDQ"
-                    # print(f"  • Model Type: QDQ model")
-                elif not any(op for op in model_ops if "Q" in op):
-                    onnx_model_type = "FP32"
-                    # print(f"  • Model Type: FP32 model")
-                else:
-                    onnx_model_type = "Unknown quantization type"
-                    # print(f"  • Model Type: Unknown quantization type")
-
-            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_validation, model_domain, opset_ver, onnx_model_type)
+            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_validation, model_domain, opset_ver,
+                                                 onnx_model_type, onnx_model_runtime_inference_check, inference_log)
 
             for enntools_cmd in cmd_fmt:
                 out = []
@@ -485,6 +569,7 @@ class Model_Verify_Class(QObject):
             widget_ui.analysistextEdit.hide()
             widget_ui.profiletextEdit.hide()
             widget_ui.enntesttextEdit.hide()
+            widget_ui.onnxruntime_InferenceSessiontextEdit.hide()
 
             # 체크박스 신호 연결
             widget_ui.logonoffcheckBox.stateChanged.connect(
@@ -502,6 +587,7 @@ class Model_Verify_Class(QObject):
             ui.analysistextEdit.show()
             ui.profiletextEdit.show()
             ui.enntesttextEdit.show()
+            ui.onnxruntime_InferenceSessiontextEdit.show()
         else:
             ui.inittextEdit.hide()
             ui.conversiontextEdit.hide()
@@ -510,6 +596,7 @@ class Model_Verify_Class(QObject):
             ui.analysistextEdit.hide()
             ui.profiletextEdit.hide()
             ui.enntesttextEdit.hide()
+            ui.onnxruntime_InferenceSessiontextEdit.hide()
 
     def update_all_sub_widget(self):
         # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사
@@ -592,11 +679,13 @@ class Model_Verify_Class(QObject):
             target_widget[0].profilinglineEdit.setText("Runtime Out")
 
     @staticmethod
-    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type):
+    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type, model_inference_check, model_inference_check_log):
         sub_widget[0].modelvalidaty.setText(validation)
         sub_widget[0].onnxdomain.setText(model_domain)
         sub_widget[0].onnxlineEdit.setText(opset_ver)
         sub_widget[0].modeltype.setText(model_type)
+        sub_widget[0].onnxruntime_InferenceSession.setText(model_inference_check)
+        sub_widget[0].onnxruntime_InferenceSessiontextEdit.setText(model_inference_check_log)
 
     def update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
         if self.work_progress is not None:
@@ -795,6 +884,8 @@ class Model_Verify_Class(QObject):
                 target_widget[0].onnxdomain.setText("")
                 target_widget[0].onnxlineEdit.setText("")
                 target_widget[0].modeltype.setText("")
+                target_widget[0].onnxruntime_InferenceSession.setText("")
+                target_widget[0].onnxruntime_InferenceSessiontextEdit.setText("")
 
                 # success/ fail lineedit 초기화
                 target_widget[0].initlineEdit.setText("")
@@ -900,7 +991,10 @@ class Model_Verify_Class(QObject):
                 "Onnx_Opset Version": clean_data(target_widget[0].onnxlineEdit.text().strip()),
                 "Onnx_Domain": clean_data(target_widget[0].onnxdomain.text().strip()),
                 "Onnx_Model_Type": clean_data(target_widget[0].modeltype.text().strip()),
-                "Onnx_Model_Validation": clean_data(target_widget[0].modelvalidaty.text().strip()),
+                "Onnx_Model_Validation_Check": clean_data(target_widget[0].modelvalidaty.text().strip()),
+                "Onnx_Model_RuntimeInferenceSession_Check": clean_data(
+                    target_widget[0].onnxruntime_InferenceSession.text().strip()),
+                "Onnx_Model_RuntimeInferenceSession_Check_log": clean_data(target_widget[0].onnxruntime_InferenceSessiontextEdit.toPlainText()),
 
                 "init_Result": clean_data(target_widget[0].initlineEdit.text().strip()),
                 "init_log": clean_data(""),  # 초기화된 값이 비어 있다면
