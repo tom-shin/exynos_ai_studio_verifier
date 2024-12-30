@@ -8,6 +8,7 @@ import os
 import sys
 import onnx
 import onnxruntime
+import onnxsim
 import logging
 import easygui
 import platform
@@ -21,6 +22,8 @@ from ruamel.yaml import YAML
 from io import StringIO
 import re
 import numpy as np
+import uuid
+from typing import Tuple, List, Dict
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -101,7 +104,7 @@ class Model_Analyze_Thread(QThread):
 
     send_max_progress_cnt = pyqtSignal(int)
     send_set_text_signal = pyqtSignal(str)
-    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str, str, str)
+    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str, str, str, str, str)
 
     def __init__(self, parent=None, grand_parent=None, ssh_client=None, repo_tag=None):
         super().__init__()
@@ -111,7 +114,6 @@ class Model_Analyze_Thread(QThread):
         self.ssh_client = ssh_client
         self.container_repo_tag = repo_tag
         self.timeout_expired = float(grand_parent.timeoutlineEdit.text().strip())
-        self.container_trace = None
 
     @staticmethod
     def test_model_integrity(model_path: str) -> bool:
@@ -139,7 +141,7 @@ class Model_Analyze_Thread(QThread):
             return False
 
     @staticmethod
-    def check_opset_domain_version_f(p_model, extension):
+    def get_opset_version(p_model, extension):
         opset_version = ""
         opset_domain = ""
 
@@ -159,27 +161,153 @@ class Model_Analyze_Thread(QThread):
         return opset_domain, opset_version
 
     @staticmethod
-    def check_model_quantization_type_f(p_model, extension):
+    def check_model_precision(p_model, extension):
         quantization_type = ""
 
         if extension.lower() != ".onnx":
             return quantization_type
 
         model = onnx.load(p_model)
+
+        # 1. 초기화 파라미터(weights) 체크
+        initializer_types = set()
+        for initializer in model.graph.initializer:
+            initializer_types.add(initializer.data_type)
+
+        # 2. 입력/출력 텐서 체크
+        tensor_types = set()
+        for value_info in model.graph.value_info:
+            tensor_types.add(value_info.type.tensor_type.elem_type)
+
+        # 3. 모델 입력/출력 체크
+        for input_ in model.graph.input:
+            tensor_types.add(input_.type.tensor_type.elem_type)
+        for output in model.graph.output:
+            tensor_types.add(output.type.tensor_type.elem_type)
+
+        # ONNX의 데이터 타입 매핑
+        onnx_dtype_map = {
+            1: "FLOAT",
+            2: "UINT8",
+            3: "INT8",
+            4: "UINT16",
+            5: "INT16",
+            6: "INT32",
+            7: "INT64",
+            10: "FLOAT16",
+            11: "DOUBLE",
+            12: "UINT32",
+            13: "UINT64",
+        }
+
+        # ONNX의 데이터 타입 (1 = FLOAT)
+        is_fp32 = all(dtype == 1 for dtype in initializer_types) and \
+                  all(dtype == 1 for dtype in tensor_types)
+
+        # 모델 연산자 수집
         model_ops = set(node.op_type for node in model.graph.node)
 
-        # Determine model type
-        if "QLinearConv" in model_ops:
-            quantization_type = "INT8"
+        def get_quantization_type():
+            # 연산자 및 데이터 타입 기반 체크
+            quant_signatures = {
+                "INT8": {
+                    "ops": ["QLinearConv", "QuantizeLinear", "DequantizeLinear"],
+                    "dtype": 3  # INT8
+                },
+                "UINT8": {
+                    "ops": ["QLinearConv", "QuantizeLinear", "DequantizeLinear"],
+                    "dtype": 2  # UINT8
+                },
+                "INT4": {
+                    "ops": ["DequantizeLinear", "QuantizeLinear"],
+                    "dtype": 3,  # INT8 but with 4-bit quantization
+                    "extra_check": lambda node: any("nbits" in attr.name and attr.i == 4
+                                                    for attr in node.attribute)
+                },
+                "FP16": {
+                    "ops": [],  # FP16 모델은 특별한 양자화 연산자 없음
+                    "dtype": 10  # FLOAT16
+                },
+                "FP8": {
+                    "ops": ["FP8Conv", "FP8MatMul"],  # FP8 특화 연산자
+                    "dtype": None
+                }
+            }
 
-        elif "QuantizeLinear" in model_ops and "DequantizeLinear" in model_ops:
-            quantization_type = "QDQ"
+            def check_weight_bits():
+                # weight의 비트 수 확인
+                for node in model.graph.node:
+                    if hasattr(node, 'attribute'):
+                        for attr in node.attribute:
+                            if attr.name == 'weight_bits':
+                                return attr.i
+                return None
 
-        elif not any(op for op in model_ops if "Q" in op):
-            quantization_type = "FP32"
+            # 양자화 타입 판별
+            found_types = set()
 
+            # 데이터 타입 기반 체크
+            for dtype in initializer_types.union(tensor_types):
+                if dtype == 10:  # FLOAT16
+                    found_types.add("FP16")
+                elif dtype == 3:  # INT8
+                    bits = check_weight_bits()
+                    if bits == 4:
+                        found_types.add("INT4")
+                    else:
+                        found_types.add("INT8")
+                elif dtype == 2:  # UINT8
+                    found_types.add("UINT8")
+
+            # 연산자 기반 체크
+            if "QLinearConv" in model_ops:
+                for node in model.graph.node:
+                    if node.op_type == "QLinearConv":
+                        # 입력 텐서의 데이터 타입으로 판별
+                        for init in model.graph.initializer:
+                            if init.name in node.input:
+                                if init.data_type == 3:  # INT8
+                                    found_types.add("INT8")
+                                elif init.data_type == 2:  # UINT8
+                                    found_types.add("UINT8")
+
+            # FP8 특화 연산자 체크
+            if any(op.startswith("FP8") for op in model_ops):
+                found_types.add("FP8")
+
+            if not found_types:
+                return None
+            elif len(found_types) == 1:
+                quant_type = found_types.pop()
+                method = "QLinearConv-based" if "QLinearConv" in model_ops else \
+                    "QDQ-based" if "QuantizeLinear" in model_ops else \
+                        "Native"
+                return f"{quant_type} ({method} quantization)"
+            else:
+                return f"Mixed quantization types: {', '.join(sorted(found_types))}"
+
+        quant_type = get_quantization_type()
+
+        if is_fp32 and not quant_type:
+            quantization_type = "Confirmed FP32 model (all tensors are FP32)"
+        elif quant_type:
+            quantization_type = quant_type
+            # print(f"  • Model Type: {quant_type}")
+            # 추가 정보 출력
+            additional_msg = ", ".join(op for op in model_ops if op.startswith("Q") or "FP8" in op)
+            quantization_type += f"\n- Quantization operators found:  {additional_msg}"
+            # print("    - Quantization operators found:",
+            #       ", ".join(op for op in model_ops if op.startswith("Q") or "FP8" in op))
         else:
-            quantization_type = "Unknown quantization type"
+            additional_msg = ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in initializer_types)
+            additional_msg2 = ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in tensor_types)
+            quantization_type = f"Model Type: Mixed precision or unknown\n,  - Found initializer types: {additional_msg}\n,  - Found tensor types: {additional_msg2}"
+
+            # print("  • Model Type: Mixed precision or unknown")
+            # print("    - Found initializer types:",
+            #       ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in initializer_types))
+            # print("    - Found tensor types:",
+            #       ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in tensor_types))
 
         return quantization_type
 
@@ -205,11 +333,11 @@ class Model_Analyze_Thread(QThread):
         return model_validation
 
     @staticmethod
-    def check_model_runtime_inferenceSession_f(p_model, extension):
-        onnx_model_runtime_inference_check = ""
+    def test_model_integrity(p_model, extension):
+        is_integrity_ok = ""
         onnx_model_runtime_inference_check_log = ""
         if extension.lower() != ".onnx":
-            return onnx_model_runtime_inference_check, onnx_model_runtime_inference_check
+            return is_integrity_ok, onnx_model_runtime_inference_check_log
 
         try:
             # ONNX Runtime 세션 생성
@@ -227,23 +355,165 @@ class Model_Analyze_Thread(QThread):
 
             # 推论 수행
             outputs = session.run(None, dict(zip([t.name for t in input_tensors], input_data)))
-            onnx_model_runtime_inference_check = "Passed"
+            is_integrity_ok = "Passed"
 
         except Exception as e:
             print(f"[Error]: {e}")
-            onnx_model_runtime_inference_check = "Failed"
+            is_integrity_ok = "Failed"
             onnx_model_runtime_inference_check_log = str(e)
 
-        return onnx_model_runtime_inference_check, onnx_model_runtime_inference_check_log
+        return is_integrity_ok, onnx_model_runtime_inference_check_log
+
+    @staticmethod
+    def analyze_tensor_shapes(tensor) -> Dict[str, List]:
+        """텐서의 shape 정보를 분석합니다."""
+        shape_info = []
+        is_dynamic = False
+
+        for dim in tensor.type.tensor_type.shape.dim:
+            if dim.dim_param:  # 심볼릭 차원
+                shape_info.append(f"dynamic({dim.dim_param})")
+                is_dynamic = True
+            elif dim.dim_value:  # 고정 차원
+                shape_info.append(str(dim.dim_value))
+            else:  # 미정의 차원
+                shape_info.append("dynamic")
+                is_dynamic = True
+
+        return {
+            "name": tensor.name,
+            "shape": shape_info,
+            "is_dynamic": is_dynamic
+        }
+
+    def check_model_directly(self, model_path: str) -> Tuple[bool, List[Dict]]:
+        """모델을 직접 분석하여 동적 shape를 검사합니다."""
+        model = onnx.load(model_path)
+
+        try:
+            onnx.checker.check_model(model)
+            print("  • Model check passed ✓")
+        except onnx.checker.ValidationError as e:
+            print(f"  • Validation Error: {str(e)}")
+        except Exception as e:
+            print(f"  • Error: {str(e)}")
+
+        has_dynamic = False
+        tensor_info = []
+
+        # 입력 텐서 분석
+        for input in model.graph.input:
+            info = self.analyze_tensor_shapes(input)
+            info["type"] = "input"
+            tensor_info.append(info)
+            if info["is_dynamic"]:
+                has_dynamic = True
+
+        # 출력 텐서 분석
+        for output in model.graph.output:
+            info = self.analyze_tensor_shapes(output)
+            info["type"] = "output"
+            tensor_info.append(info)
+            if info["is_dynamic"]:
+                has_dynamic = True
+
+        return has_dynamic, tensor_info
+
+    @staticmethod
+    def run_simplifier(model_path: str) -> List[str]:
+        """ONNX Simplifier를 실행하고 발생하는 메시지를 수집합니다."""
+        try:
+            # simplified 폴더 생성 (현재 작업 디렉토리 기준)
+            output_dir = os.path.join(os.getcwd(), "Result", "simplified")
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+                messages = [f"Created 'simplified' Directory: {output_dir}"]
+            else:
+                messages = []
+
+            # 출력 파일 경로 생성
+            base_name = os.path.splitext(os.path.basename(model_path))[0]
+            output_path = os.path.join(output_dir, f"{base_name}_simplified.onnx")
+            # messages.append(f"단순화된 모델이 다음 경로에 저장될 예정: {output_path}")
+
+            model = onnx.load(model_path)
+
+            try:
+                simplified_model, check = onnxsim.simplify(
+                    model,
+                    skipped_optimizers=['eliminate_identity']
+                )
+
+                # 단순화된 모델 저장
+                onnx.save(simplified_model, output_path)
+                messages.append(f"Executed Simplifier: (Return Value: {check})")
+                messages.append(f"Saved Path: {output_path}")
+
+            except Exception as e:
+                messages.append(f"Exception Error: {str(e)}")
+
+            return messages
+
+        except Exception as e:
+            return [f"Exception Error: {str(e)}"]
+
+    @staticmethod
+    def remove_all_container():
+        cmd = "docker rm -f $(docker ps -aq)"
+        user_subprocess(cmd=f"{cmd}", run_time=False, log=False)
+        # for container_name in self.container_trace:
+        #     user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
+        #     user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
+
+    def create_container(self, target_widget=None):
+        cwd, _ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+
+        # 현재 경로를 WSL 경로로 변환
+        drive, path = os.path.splitdrive(os.path.dirname(cwd))
+        mnt_path = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
+
+        container_name = f"container_{uuid.uuid4().hex}"  # 고유값 필요요  
+
+        base_cmd = [
+            "docker",
+            "run",
+            "-d",
+            "--name",
+            container_name,
+            "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
+            "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
+            "--privileged",  # 권한 강화 (2번 항목)
+            "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
+            "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)           
+            "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+            "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
+            "-w", "/workspace",  # 작업 디렉터리 설정 (6번 항목)           
+            self.container_repo_tag,
+            "/bin/bash",
+            "-c",
+            "tail -f /dev/null"
+        ]
+
+        if self.grand_parent.cpuradioButton.isChecked():  # CPU
+            # For CPU
+            cmd = base_cmd[:3] + base_cmd[3:]  # No changes needed, just reuse the base command
+        else:
+            # For GPU
+            cmd = base_cmd[:3] + ["--gpus", "all"] + base_cmd[3:]  # Add GPU specific option
+
+        user_subprocess(cmd=cmd, run_time=False, log=False, shell=False)
+
+        return container_name, cwd
 
     def run(self):
-        self.container_trace = []
-
         max_cnt = sum(1 for widget in self.parent.added_scenario_widgets if widget[0].scenario_checkBox.isChecked())
         self.send_max_progress_cnt.emit(max_cnt)
 
         executed_cnt = 0
+
         for target_widget in self.parent.added_scenario_widgets:
+            self.remove_all_container()
+
             if not self._running:
                 break
 
@@ -251,64 +521,9 @@ class Model_Analyze_Thread(QThread):
                 continue
 
             executed_cnt += 1
-            cwd, _ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+            container_name, cwd = self.create_container(target_widget=target_widget)
 
-            # 현재 경로를 WSL 경로로 변환
-            drive, path = os.path.splitdrive(os.path.dirname(cwd))
-            mnt_path = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
-
-            try:
-                container_pre_fix = self.container_repo_tag.split("/")[-1].replace(".", "_").replace("-", "_").replace(
-                    ":", "_")
-            except:
-                container_pre_fix = "ai_studio"
-            container_name = f"{container_pre_fix}_container_{executed_cnt}"
-            self.container_trace.append(container_name)
-
-            cmd = "docker rm -f $(docker ps -aq)"
-            user_subprocess(cmd=f"{cmd}", run_time=False, log=False)
-            # for container_name in self.container_trace:
-            #     user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
-            #     user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
-
-            base_cmd = [
-                "docker",
-                "run",
-                "-d",
-                "--name",
-                container_name,
-                "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
-                "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
-                "--privileged",  # 권한 강화 (2번 항목)
-                "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
-                "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)
-                # "-e", f"http_proxy={http_proxy}",  # 환경 변수 전달 (4번 항목)
-                # "-e", f"https_proxy={https_proxy}",  # 환경 변수 전달 (4번 항목)
-                # "-e", f"DISPLAY={DISPLAY}",  # 환경 변수 전달 (4번 항목)
-                # "-e", f"LOCAL_USER_ID=$(id -u $USER)",  # 환경 변수 전달 (4번 항목)
-                "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
-                "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
-                "-w", "/workspace",  # 작업 디렉터리 설정 (6번 항목)
-                # "-w", "/home/user/",  # 작업 디렉터리 설정 (6번 항목)
-                self.container_repo_tag,
-                "/bin/bash",
-                "-c",
-                "tail -f /dev/null"
-            ]
-
-            if self.grand_parent.cpuradioButton.isChecked():  # CPU
-                # For CPU
-                cmd = base_cmd[:3] + base_cmd[3:]  # No changes needed, just reuse the base command
-            else:
-                # For GPU
-                cmd = base_cmd[:3] + ["--gpus", "all"] + base_cmd[3:]  # Add GPU specific option
-
-            out, error, _ = user_subprocess(cmd=cmd, run_time=False, log=False, shell=False)
-
-            if error:
-                print("Error starting container:", error)
-                continue  # 다음 루프로 넘어감
-
+            # Check된 enntools cmd
             cmd_fmt = []
             for i in range(0, 6):
                 check_box_name = f"cmd{i}"  # 체크박스의 이름을 동적으로 생성
@@ -325,13 +540,32 @@ class Model_Analyze_Thread(QThread):
             model = target_widget[0].pathlineEdit.text()
             name, ext = os.path.splitext(model)
 
-            model_domain, opset_ver = self.check_opset_domain_version_f(p_model=model, extension=ext)
-            onnx_model_type = self.check_model_quantization_type_f(p_model=model, extension=ext)
-            onnx_validation = self.check_model_validation_f(p_model=model, extension=ext)
-            onnx_model_runtime_inference_check, inference_log = self.check_model_runtime_inferenceSession_f(p_model=model, extension=ext)
+            # 0. Model Check 분석
+            onnx_validation = self.check_model_validation_f(p_model=model, extension=ext)  # check.model
+
+            # 1. Direct Shape 분석
+            is_dynamic = "Static shape"
+            has_dynamic_direct, tensor_info = self.check_model_directly(model_path=model)
+            if has_dynamic_direct:
+                is_dynamic = "Dynamic shape"
+
+            # 2. Simplifier 실행
+            sim_msg = ""
+            simplifier_messages = self.run_simplifier(model_path=model)
+            for msg in simplifier_messages:
+                sim_msg += f"{msg}\n"
+
+            # 3. 모델 무결성 테스트
+            is_integrity_ok, is_integrity_ok_log = self.test_model_integrity(p_model=model, extension=ext)
+
+            # 4. 모델 정밀도 분석 추가
+            onnx_model_type = self.check_model_precision(p_model=model, extension=ext)
+
+            # 5. 모델 domain, opset 버전 출력
+            model_domain, opset_ver = self.get_opset_version(p_model=model, extension=ext)
 
             self.send_onnx_opset_ver_signal.emit(target_widget, onnx_validation, model_domain, opset_ver,
-                                                 onnx_model_type, onnx_model_runtime_inference_check, inference_log)
+                                                 onnx_model_type, is_integrity_ok, is_integrity_ok_log, is_dynamic, sim_msg)
 
             for enntools_cmd in cmd_fmt:
                 out = []
@@ -438,25 +672,28 @@ class Model_Analyze_Thread(QThread):
                         error.append("Skip")
 
                 self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
-                # time.sleep(3)
 
-            for container_name in self.container_trace:
-                user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
-                user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
+            self.remove_all_container()
 
-            # 전체 실행 시간 측정 종료
-            elapsed_time = time.time() - start_T
-            days = elapsed_time // (24 * 3600)
-            remaining_secs = elapsed_time % (24 * 3600)
-            hours = remaining_secs // 3600
-            remaining_secs %= 3600
-            minutes = remaining_secs // 60
-            seconds = remaining_secs % 60
-            total_time = f"{int(days)}day {int(hours)}h {int(minutes)}m {int(seconds)}s"
-
-            self.output_signal.emit(total_time, target_widget, executed_cnt, cwd)
+            # 전체 실행 시간 측정 종료           
+            elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
+            self.output_signal.emit(elapsed_time, target_widget, executed_cnt, cwd)
 
         self.finish_output_signal.emit(self._running)
+
+    @staticmethod
+    def convert_elapsedTime(start, finish):
+        elapsed_time = finish - start
+
+        days = elapsed_time // (24 * 3600)
+        remaining_secs = elapsed_time % (24 * 3600)
+        hours = remaining_secs // 3600
+        remaining_secs %= 3600
+        minutes = remaining_secs // 60
+        seconds = remaining_secs % 60
+        total_time = f"{int(days)}day {int(hours)}h {int(minutes)}m {int(seconds)}s"
+
+        return total_time
 
     def re_config_yaml_file(self, target_widget):
         device = self.grand_parent.devicecomboBox.currentText()
@@ -492,14 +729,10 @@ class Model_Analyze_Thread(QThread):
         print("파일 업데이트 완료")
 
     def stop(self):
-        cmd = "docker rm -f $(docker ps -aq)"
-        user_subprocess(cmd=f"{cmd}", run_time=False, log=False)
-        # for container_name in self.container_trace:
-        #     user_subprocess(cmd=f"docker stop {container_name}", run_time=False, log=False)
-        #     user_subprocess(cmd=f"docker rm {container_name}", run_time=False, log=False)
-
         self._running = False
         self.quit()
+
+        self.remove_all_container()
         self.wait(3000)
 
 
@@ -679,13 +912,16 @@ class Model_Verify_Class(QObject):
             target_widget[0].profilinglineEdit.setText("Runtime Out")
 
     @staticmethod
-    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type, model_inference_check, model_inference_check_log):
+    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type, model_inference_check,
+                         model_inference_check_log, is_dynamic, sim_msg):
         sub_widget[0].modelvalidaty.setText(validation)
         sub_widget[0].onnxdomain.setText(model_domain)
         sub_widget[0].onnxlineEdit.setText(opset_ver)
         sub_widget[0].modeltype.setText(model_type)
         sub_widget[0].onnxruntime_InferenceSession.setText(model_inference_check)
         sub_widget[0].onnxruntime_InferenceSessiontextEdit.setText(model_inference_check_log)
+        sub_widget[0].directshape.setText(is_dynamic)
+        sub_widget[0].simplifier.setText(sim_msg)
 
     def update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
         if self.work_progress is not None:
@@ -886,6 +1122,8 @@ class Model_Verify_Class(QObject):
                 target_widget[0].modeltype.setText("")
                 target_widget[0].onnxruntime_InferenceSession.setText("")
                 target_widget[0].onnxruntime_InferenceSessiontextEdit.setText("")
+                target_widget[0].directshape.setText("")
+                target_widget[0].simplifier.setText("")
 
                 # success/ fail lineedit 초기화
                 target_widget[0].initlineEdit.setText("")
@@ -988,13 +1226,16 @@ class Model_Verify_Class(QObject):
                 "Framework": clean_data(framework.replace(".", "")),
                 "Set parameter": clean_data(target_widget[0].parametersetting_textEdit.toPlainText().strip()),
 
-                "Onnx_Opset Version": clean_data(target_widget[0].onnxlineEdit.text().strip()),
-                "Onnx_Domain": clean_data(target_widget[0].onnxdomain.text().strip()),
-                "Onnx_Model_Type": clean_data(target_widget[0].modeltype.text().strip()),
-                "Onnx_Model_Validation_Check": clean_data(target_widget[0].modelvalidaty.text().strip()),
+                "Check Model": clean_data(target_widget[0].modelvalidaty.text().strip()),
+                "Direct Shape": clean_data(target_widget[0].directshape.text().strip()),
+                "Simplifier": clean_data(target_widget[0].simplifier.text().strip()),
                 "Onnx_Model_RuntimeInferenceSession_Check": clean_data(
                     target_widget[0].onnxruntime_InferenceSession.text().strip()),
-                "Onnx_Model_RuntimeInferenceSession_Check_log": clean_data(target_widget[0].onnxruntime_InferenceSessiontextEdit.toPlainText()),
+                "Onnx_Model_RuntimeInferenceSession_Check_log": clean_data(
+                    target_widget[0].onnxruntime_InferenceSessiontextEdit.toPlainText()),
+                "Onnx_Model_Precision": clean_data(target_widget[0].modeltype.text().strip()),
+                "Onnx_Domain": clean_data(target_widget[0].onnxdomain.text().strip()),
+                "Onnx_Opset Version": clean_data(target_widget[0].onnxlineEdit.text().strip()),
 
                 "init_Result": clean_data(target_widget[0].initlineEdit.text().strip()),
                 "init_log": clean_data(""),  # 초기화된 값이 비어 있다면
