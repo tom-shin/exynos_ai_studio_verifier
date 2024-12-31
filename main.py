@@ -1274,7 +1274,7 @@ class Model_Verify_Class(QObject):
             for cell in row:
                 if cell.value:  # 셀 값이 존재할 경우에만 작업 수행
                     cell.value = str(cell.value).replace("\\n", "\n")  # 줄 바꿈 문자 처리
-                    cell.alignment = Alignment(wrap_text=True)  # 줄 바꿈 설정
+                    cell.alignment = Alignment(wrap_text=True, vertical='top')  # 줄 바꿈 설정
 
         # Auto-adjust column width
         for col in range(1, len(df.columns) + 1):
