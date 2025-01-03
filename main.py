@@ -33,7 +33,7 @@ from source.__init__ import *
 from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, \
     start_docker_desktop, set_model_config
 
-from source.source_files.main_enntest import run_enntest
+from source.source_files.main_enntest import run_enntest, local_run_enntest
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
@@ -631,7 +631,7 @@ class Model_Analyze_Thread(QThread):
         return result, error_contents_dict
 
     def execute_enntest_ondevice(self, TestResult=None, cwd=None):
-        failed_pairs = []
+        failed_pairs = ""
         nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
         nnc_files = []
 
@@ -648,8 +648,12 @@ class Model_Analyze_Thread(QThread):
             CheckDir(out_dir)
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
-                ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
-                                                self.grand_parent.enntestcomboBox.currentText())
+                if self.grand_parent.remoteradioButton.isChecked():
+                    ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
+                                                    self.grand_parent.enntestcomboBox.currentText())
+                else:
+                    ret, failed_pairs = local_run_enntest(nnc_files, input_golden_pairs, out_dir,
+                                                          self.grand_parent.enntestcomboBox.currentText())
 
                 if ret:
                     result = "Success"
@@ -712,7 +716,10 @@ class Model_Analyze_Thread(QThread):
 
             if "enntest" in enntools_cmd:
                 result, error_pair = self.execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
-                log = list2string(failed_pair=error_pair)
+                if result == "Success":
+                    log = ""
+                else:
+                    log = error_pair[-1]
                 TestResult[enntools_cmd] = [result, log]
 
             else:

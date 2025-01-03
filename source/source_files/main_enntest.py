@@ -11,6 +11,7 @@ import stat
 import multiprocessing
 import shutil
 from colorama import Fore, Back, Style, init
+import subprocess
 
 ############################################################################################################
 
@@ -461,26 +462,27 @@ class exynos:
         input_binary = self._normalize_path(user_input_path=input_binary)
         golden_binary = self._normalize_path(user_input_path=golden_binary)
         result_dir = self._normalize_path(user_input_path=result_dir)
+        cleaned_result = ""
 
         if not self.ssh:
             PRINT_("No SSH connection. Model upload aborted.")
-            return False
+            return False, cleaned_result
 
         if device == '':
             PRINT_("No selected device")
-            return False
+            return False, cleaned_result
         elif nnc_model == '':
             PRINT_("No selected nnc model")
-            return False
+            return False, cleaned_result
         elif input_binary == '':
             PRINT_("No selected input_binary")
             return False
         elif golden_binary == '':
             PRINT_("No selected golden_binary")
-            return False
+            return False, cleaned_result
         elif exe_cmd == '':
             PRINT_("No EnnTest Command")
-            return False
+            return False, cleaned_result
 
         self._device_root_remount(device=device)
 
@@ -509,7 +511,7 @@ class exynos:
 
         if enntest_error:
             PRINT_(f"Error:\n{enntest_error}")
-            return False
+            return False, cleaned_result
 
         # formatted_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
         rename_output = f"{filename}_enntest_result.txt"
@@ -520,6 +522,7 @@ class exynos:
 
         # save enntest result
         Pass_ = False
+
         if enntest_result:
             # ANSI escape codes 제거
             ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
@@ -546,10 +549,97 @@ class exynos:
 
         # 파일 이름 변경
         shutil.move(local_output_path, new_output_path)  # 기존 파일을 새 이름으로 이동
-        return Pass_
+        return Pass_, cleaned_result
+
+
+def local_run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
+    DeviceTargetDir = "/data/vendor/enn"
+    ProfileCMD = "EnnTest_v2_lib"
+    ProfileOption = "--profile summary --monitor_iter 1 --iter 1 --useSNR"
+    ANSI_Escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+
+    DeviceId = None  # "0000100d0f246013"
+    NNC_Model = nnc_files[0]
+
+    # Device 권한 설정
+    if DeviceId is None:
+        auth = [f"adb root", f"adb remount"]
+    else:
+        auth = [f"adb -s {DeviceId} root", f"adb -s {DeviceId} remount"]
+
+    for cmd in auth:
+        subprocess.run(cmd)
+
+    # Model Binary push
+    if DeviceId is None:
+        subprocess.run(rf"adb push {NNC_Model} .{DeviceTargetDir}")
+    else:
+        subprocess.run(rf"adb -s {DeviceId} push {NNC_Model} .{DeviceTargetDir}")
+
+    # print(input_golden_pairs)
+    CHECK_ENNTEST = []
+    failed_pairs = []  # 실패한 파일 쌍을 저장할 리스트
+    ANSI_Escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # ANSI 이스케이프 코드 제거용 정규식
+
+    for paired_list in input_golden_pairs:
+        InputBinary = paired_list[0]
+        GoldenBinary = paired_list[1]
+        # print("++", InputBinary)
+        # print("++", GoldenBinary)
+
+        if DeviceId is None:
+            subprocess.run(rf"adb push {InputBinary} .{DeviceTargetDir}")
+            subprocess.run(rf"adb push {GoldenBinary} .{DeviceTargetDir}")
+        else:
+            subprocess.run(rf"adb -s {DeviceId} push {InputBinary} .{DeviceTargetDir}")
+            subprocess.run(rf"adb -s {DeviceId} push {GoldenBinary} .{DeviceTargetDir}")
+
+        # Profile 시작
+        nnc_model = os.path.join(DeviceTargetDir, os.path.basename(NNC_Model)).replace('\\', '/')
+        input_binary = os.path.join(DeviceTargetDir, os.path.basename(InputBinary)).replace('\\', '/')
+        golden_binary = os.path.join(DeviceTargetDir, os.path.basename(GoldenBinary)).replace('\\', '/')
+
+        execute_cmd = [
+            "adb", *(["-s", DeviceId] if DeviceId else []), "shell",
+            ProfileCMD,
+            "--model", nnc_model,
+            "--input", input_binary,
+            "--golden", golden_binary,
+            ProfileOption
+        ]
+        result = subprocess.run(execute_cmd, capture_output=True, text=True)
+
+        # 출력값을 파일로 저장
+        filename = f"{os.path.basename(InputBinary)}_{os.path.basename(GoldenBinary)}_result_enntest.txt"
+        SaveOutput = os.path.join(out_dir, filename).replace('\\', '/')
+
+        with open(SaveOutput, "w", encoding="utf-8") as f:
+            cleaned_result = ANSI_Escape.sub('', result.stdout)  # ANSI 이스케이프 코드 제거
+            f.write(cleaned_result)
+
+        # 결과 확인
+        if "PASSED" in cleaned_result.split("\n")[-2]:
+            CHECK_ENNTEST.append(True)
+        else:
+            CHECK_ENNTEST.append(False)
+            failed_pairs.append(cleaned_result)
+
+        print(f"Saved: {SaveOutput}")
+
+    if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
+        return True, failed_pairs  # 실패한 쌍도 반환
+    else:
+        return False, failed_pairs  # 실패한 쌍도 반환
 
 
 def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
+    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    # print(nnc_files)
+    # for i in input_golden_pairs:
+    #     print(i)
+    # print(out_dir)
+    # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
     CHECK_ENNTEST = []
     failed_pairs = []  # 실패한 파일 쌍을 저장할 리스트
 
@@ -570,7 +660,7 @@ def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
     # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
     cmd = "EnnTest_v2_lib"
-    option = "--profile summary --monitor_iter 3 --iter 3 --useSNR"
+    option = "--profile summary --monitor_iter 1 --iter 1 --useSNR"
 
     model = nnc_files[0]
 
@@ -578,16 +668,17 @@ def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
         in_filename, in_extension = os.path.splitext(os.path.basename(input_file))
         g_filename, g_extension = os.path.splitext(os.path.basename(golden_file))
 
-        result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model,
-                                       input_binary=input_file,
-                                       golden_binary=golden_file,
-                                       result_dir=out_dir, filename=f"{in_filename}_{g_filename}", option=option,
-                                       target_board=target_board)
+        result_file, err_log = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model,
+                                                input_binary=input_file,
+                                                golden_binary=golden_file,
+                                                result_dir=out_dir, filename=f"{in_filename}_{g_filename}",
+                                                option=option,
+                                                target_board=target_board)
 
         CHECK_ENNTEST.append(result_file)
 
         if not result_file:  # result_file이 False인 경우
-            failed_pairs.append((input_file, golden_file))  # 실패한 쌍을 저장
+            failed_pairs.append(err_log)  # 실패한 쌍을 저장
 
     if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
         return True, failed_pairs  # 실패한 쌍도 반환
