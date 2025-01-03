@@ -18,7 +18,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.1.0.0 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.2.0.0_20250103 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -610,49 +610,49 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
     return check_files, context_data
 
 
-def X_upgrade_check_for_specific_string_in_files(directory, check_keywords):
-    check_files = []  # 에러가 발견된 파일 목록을 저장할 리스트
-    context_data = {}  # 파일별로 키워드 발견 시 해당 줄 주변 내용을 저장할 딕셔너리
+# def X_upgrade_check_for_specific_string_in_files(directory, check_keywords):
+#     check_files = []  # 에러가 발견된 파일 목록을 저장할 리스트
+#     context_data = {}  # 파일별로 키워드 발견 시 해당 줄 주변 내용을 저장할 딕셔너리
 
-    # 디렉터리 내의 모든 파일 검사
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
+#     # 디렉터리 내의 모든 파일 검사
+#     for filename in os.listdir(directory):
+#         file_path = os.path.join(directory, filename)
 
-        # 파일인지 확인
-        if os.path.isfile(file_path):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    lines = file.readlines()  # 파일 내용을 줄 단위로 모두 읽음
+#         # 파일인지 확인
+#         if os.path.isfile(file_path):
+#             try:
+#                 with open(file_path, 'r', encoding='utf-8') as file:
+#                     lines = file.readlines()  # 파일 내용을 줄 단위로 모두 읽음
 
-                for i, line in enumerate(lines):
-                    # 키워드가 현재 줄에 포함되어 있는지 확인
-                    if any(re.search(keyword, line) for keyword in check_keywords):
-                        check_files.append(filename)  # 에러가 발견된 파일 추가
+#                 for i, line in enumerate(lines):
+#                     # 키워드가 현재 줄에 포함되어 있는지 확인
+#                     if any(re.search(keyword, line) for keyword in check_keywords):
+#                         check_files.append(filename)  # 에러가 발견된 파일 추가
 
-                        # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
-                        # start_index = max(0, i - 4)
-                        # end_index = min(len(lines), i + 4)
-                        # context = lines[start_index:end_index]  # 주변 줄 추출
+#                         # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
+#                         # start_index = max(0, i - 4)
+#                         # end_index = min(len(lines), i + 4)
+#                         # context = lines[start_index:end_index]  # 주변 줄 추출
 
-                        # # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
-                        start_index = max(0, i - 4)
-                        end_index = min(len(lines), i + 2)
-                        # end_index = min(len(lines), i + 4)
+#                         # # 주변 줄(위로 4줄, 아래로 3줄) 가져오기
+#                         start_index = max(0, i - 4)
+#                         end_index = min(len(lines), i + 2)
+#                         # end_index = min(len(lines), i + 4)
 
-                        # 각 라인의 끝에 줄바꿈 추가
-                        context = [line + "\n" if not line.endswith("\n") else line for line in
-                                   lines[start_index:end_index]]
+#                         # 각 라인의 끝에 줄바꿈 추가
+#                         context = [line + "\n" if not line.endswith("\n") else line for line in
+#                                    lines[start_index:end_index]]
 
-                        # 파일 이름을 키로 사용하여 해당 내용 저장
-                        if filename not in context_data:
-                            context_data[filename] = []
-                        context_data[filename].append(''.join(context))
-                        break  # 한 번 발견되면 해당 파일에 대한 검사는 종료
+#                         # 파일 이름을 키로 사용하여 해당 내용 저장
+#                         if filename not in context_data:
+#                             context_data[filename] = []
+#                         context_data[filename].append(''.join(context))
+#                         break  # 한 번 발견되면 해당 파일에 대한 검사는 종료
 
-            except Exception as e:
-                print(f"Error reading file {file_path}: {e}")
+#             except Exception as e:
+#                 print(f"Error reading file {file_path}: {e}")
 
-    return check_files, context_data
+#     return check_files, context_data
 
 
 def remove_dir(folder_path):

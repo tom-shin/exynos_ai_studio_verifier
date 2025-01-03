@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1348</width>
-    <height>962</height>
+    <width>1344</width>
+    <height>953</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,8 +62,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>901</width>
-                   <height>507</height>
+                   <width>897</width>
+                   <height>498</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -633,6 +633,19 @@
                </font>
               </property>
               <property name="text">
+               <string>enntools profiling</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cmd6">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
                <string>enntest execute</string>
               </property>
              </widget>
@@ -801,7 +814,7 @@
                </font>
               </property>
               <property name="text">
-               <string>600</string>
+               <string>3600</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -847,7 +860,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1348</width>
+     <width>1344</width>
      <height>26</height>
     </rect>
    </property>

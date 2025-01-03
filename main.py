@@ -97,14 +97,14 @@ class ImageLoadThread(QThread):
 
 class Model_Analyze_Thread(QThread):
     output_signal = pyqtSignal(str, tuple, int, str)
-    output_signal_2 = pyqtSignal(tuple, str, str, list, list, OrderedDict, list)
+    output_signal_2 = pyqtSignal(tuple, str, dict)
 
     timeout_output_signal = pyqtSignal(str, tuple, float)
     finish_output_signal = pyqtSignal(bool)
 
     send_max_progress_cnt = pyqtSignal(int)
     send_set_text_signal = pyqtSignal(str)
-    send_onnx_opset_ver_signal = pyqtSignal(tuple, str, str, str, str, str, str, str, str)
+    send_onnx_opset_ver_signal = pyqtSignal(tuple, dict)
 
     def __init__(self, parent=None, grand_parent=None, ssh_client=None, repo_tag=None):
         super().__init__()
@@ -112,7 +112,7 @@ class Model_Analyze_Thread(QThread):
         self.grand_parent = grand_parent
         self._running = True
         self.ssh_client = ssh_client
-        self.container_repo_tag = repo_tag
+        self.DockerImg = repo_tag
         self.timeout_expired = float(grand_parent.timeoutlineEdit.text().strip())
 
     @staticmethod
@@ -390,13 +390,13 @@ class Model_Analyze_Thread(QThread):
         """모델을 직접 분석하여 동적 shape를 검사합니다."""
         model = onnx.load(model_path)
 
-        try:
-            onnx.checker.check_model(model)
-            print("  • Model check passed ✓")
-        except onnx.checker.ValidationError as e:
-            print(f"  • Validation Error: {str(e)}")
-        except Exception as e:
-            print(f"  • Error: {str(e)}")
+        # try:
+        #     onnx.checker.check_model(model)
+        #     print("  • Model check passed ✓")
+        # except onnx.checker.ValidationError as e:
+        #     print(f"  • Validation Error: {str(e)}")
+        # except Exception as e:
+        #     print(f"  • Error: {str(e)}")
 
         has_dynamic = False
         tensor_info = []
@@ -470,25 +470,25 @@ class Model_Analyze_Thread(QThread):
 
         # 현재 경로를 WSL 경로로 변환
         drive, path = os.path.splitdrive(os.path.dirname(cwd))
-        mnt_path = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
+        Shared_Volume = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
 
-        container_name = f"container_{uuid.uuid4().hex}"  # 고유값 필요요  
+        ContainerName = f"container_{uuid.uuid4().hex}"  # 고유값 필요요
 
         base_cmd = [
             "docker",
             "run",
             "-d",
             "--name",
-            container_name,
+            ContainerName,
             "--security-opt", "seccomp:unconfined",  # 보안 프로필 해제 (2번 항목)
             "--cap-add=ALL",  # 모든 리눅스 기능 추가 (2번 항목)
             "--privileged",  # 권한 강화 (2번 항목)
             "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
             "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)           
-            "-v", f"{mnt_path}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+            "-v", f"{Shared_Volume}:/workspace",  # 볼륨 마운트 (이미 포함됨)
             "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
             "-w", "/workspace",  # 작업 디렉터리 설정 (6번 항목)           
-            self.container_repo_tag,
+            self.DockerImg,
             "/bin/bash",
             "-c",
             "tail -f /dev/null"
@@ -503,181 +503,438 @@ class Model_Analyze_Thread(QThread):
 
         user_subprocess(cmd=cmd, run_time=False, log=False, shell=False)
 
-        return container_name, cwd
+        return ContainerName, cwd
+
+    def get_thread_status(self):
+        return self._running
+
+    @staticmethod
+    def get_model_execute(model=None):
+        return model[0].scenario_checkBox.isChecked()
+
+    def get_checked_model_lists(self):
+        CommandLists = []
+        for i in range(0, 7):
+            check_box_name = f"cmd{i}"  # 체크박스의 이름을 동적으로 생성
+            check_box = getattr(self.grand_parent, check_box_name, None)  # 객체 가져오기
+            if check_box and check_box.isChecked():  # 체크박스가 존재하고 선택되었는지 확인
+                CommandLists.append(check_box.text())  # 체크박스의 텍스트를 리스트에 추가
+        # print("++++++++++++++\n", CommandLists)
+        return CommandLists
+
+    def get_basic_onnx_model_information(self, model=None, extension=None):
+        onnx_info = {}
+
+        # 0. Model Check 분석
+        onnx_validation = self.check_model_validation_f(p_model=model, extension=extension)  # check.model
+        onnx_info["model check"] = [onnx_validation, ""]
+
+        # 1. Direct Shape 분석
+        is_dynamic = "Static shape"
+        has_dynamic_direct, tensor_info = self.check_model_directly(model_path=model)
+        if has_dynamic_direct:
+            is_dynamic = "Dynamic shape"
+        onnx_info["direct shape"] = [is_dynamic, tensor_info]
+
+        # 2. Simplifier 실행
+        sim_msg = ""
+        simplifier_messages = self.run_simplifier(model_path=model)
+        for msg in simplifier_messages:
+            sim_msg += f"{msg}\n"
+        onnx_info["simplifier"] = [sim_msg, ""]
+
+        # 3. 모델 무결성 테스트
+        is_integrity_ok, is_integrity_ok_log = self.test_model_integrity(p_model=model, extension=extension)
+        onnx_info["integrity"] = [is_integrity_ok, is_integrity_ok_log]
+
+        # 4. 모델 정밀도 분석 추가
+        onnx_model_type = self.check_model_precision(p_model=model, extension=extension)
+        onnx_info["precision"] = [onnx_model_type, ""]
+
+        # 5. 모델 domain, opset 버전 출력
+        model_domain, opset_ver = self.get_opset_version(p_model=model, extension=extension)
+        onnx_info["domain"] = [model_domain, ""]
+        onnx_info["opset_version"] = [opset_ver, ""]
+
+        return onnx_info
+
+    def check_enntools_init(self, init_log_path=None, model=None, filename=None):
+        result = 'Fail'
+        parameter_set = OrderedDict()
+
+        check_DATA_dir = os.path.join(init_log_path, "DATA").replace("\\", "/")
+        target_config = os.path.join(init_log_path, f"{filename}.yaml").replace("\\", "/")
+
+        if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
+            result = "Success"
+
+        if self.grand_parent.modifiedradioButton.isChecked():
+            repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
+            tag = int(repo_tag.split(":")[1].split(".")[0])
+
+            if tag >= 7:
+                src_config = os.path.join(BASE_DIR, "model_configuration",
+                                          "Ver2.0_model_config_new.yaml").replace("\\", "/")
+            else:
+                src_config = os.path.join(BASE_DIR, "model_configuration",
+                                          "Ver1.0_model_config_new.yaml").replace("\\", "/")
+
+            parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
+                                             target_config=target_config,
+                                             model_name=model)
+        return result, parameter_set
+
+    @staticmethod
+    def check_enntools_conversion(cwd=None):
+        result = 'Fail'
+        error_contents_dict = ''
+        check_log = os.path.join(cwd, "Converter_result", ".log")
+        error_keywords = keyword["error_keyword"]
+
+        if os.path.exists(check_log):
+            ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                  check_keywords=error_keywords)
+            if len(ret) == 0:
+                result = "Success"
+
+        return result, error_contents_dict
+
+    @staticmethod
+    def check_enntools_compile(cwd=None):
+        result = 'Fail'
+        error_contents_dict = ''
+        check_log = os.path.join(cwd, "Compiler_result", ".log")
+        error_keywords = keyword["error_keyword"]
+
+        if os.path.exists(check_log):
+            ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                  check_keywords=error_keywords)
+            if len(ret) == 0:
+                result = "Success"
+
+        return result, error_contents_dict
+
+    @staticmethod
+    def check_enntools_cmd_result(check_log=''):
+        result = 'Fail'
+        error_contents_dict = {}
+        error_keywords = keyword["error_keyword"]
+
+        if os.path.exists(check_log):
+            ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+                                                                                  check_keywords=error_keywords)
+            if len(ret) == 0:
+                result = "Success"
+        else:
+            result = "Result directory not existed"
+
+        return result, error_contents_dict
+
+    def execute_enntest_ondevice(self, TestResult=None, cwd=None):
+        failed_pairs = []
+        nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
+        nnc_files = []
+
+        if TestResult["enntools compile"][0] == "Success":
+            for file in os.listdir(nnc_model_path):
+                if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
+                    filename = os.path.join(nnc_model_path, file).replace("\\", "/")
+                    nnc_files.append(filename)
+
+            input_golden_path = os.path.join(cwd, "Converter_result").replace("\\", "/")
+            input_golden_pairs = find_paired_files(input_golden_path, mode=1)  # mode=2
+
+            out_dir = os.path.join(cwd, "Enntester_result").replace("\\", "/")
+            CheckDir(out_dir)
+
+            if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
+                ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
+                                                self.grand_parent.enntestcomboBox.currentText())
+
+                if ret:
+                    result = "Success"
+                else:
+                    result = "Fail"
+            else:
+                result = "No nnc or input_golden"
+        else:
+            result = "Skip"
+
+        return result, failed_pairs
+
+    def model_ai_studio_test(self, CommandLists=[], target_widget=None, executed_cnt=0, max_cnt=0):
+        def convert_changed_items_to_text(changed_items):
+            # changed_items OrderedDict를 텍스트 형식으로 변환
+            result_text = ""
+            for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
+                result_text += f"Section: {section}\n"  # 섹션 이름 추가
+                for key, values in keys.items():  # 각 섹션 내 키 순회
+                    old_value = values['old_value']
+                    new_value = values['new_value']
+                    result_text += f"  Key: {key}\n"
+                    result_text += f"    Old Value: {old_value}\n"
+                    result_text += f"    New Value: {new_value}\n\n"
+
+            return result_text
+
+        def dict2string(err_log=None):
+            text_to_display = ""
+            for file, contexts in err_log.items():
+                text_to_display += f"File: {file}\n"
+                for context in contexts:
+                    text_to_display += f"{context}\n{'-' * 40}\n"
+
+            return text_to_display
+
+        def list2string(failed_pair=None):
+            string_ = ""
+            for _in_bin, _golden_bin in failed_pair:
+                string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
+
+            return string_
+
+        TestResult = {
+            # "enntools init": ["", ""],
+            # "enntools conversion": ["", ""],
+            # "enntools compile":["", ""],
+            # "enntools estimation": ["", ""],
+            # "enntools analysis": ["", ""],
+            # "enntools profiling": ["", ""],
+            # "enntest_ondevice": ["", ""]
+        }
+
+        ContainerName, cwd = self.create_container(target_widget=target_widget)
+
+        start_T = time.time()
+        for enntools_cmd in CommandLists:
+            message = rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})"
+            self.send_set_text_signal.emit(message)
+
+            if "enntest" in enntools_cmd:
+                result, error_pair = self.execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
+                log = list2string(failed_pair=error_pair)
+                TestResult[enntools_cmd] = [result, log]
+
+            else:
+
+                CMD = [
+                    "docker",
+                    "exec",
+                    "-i",
+                    ContainerName,
+                    "/bin/bash",
+                    "-c",
+                    f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"
+                ]
+
+                out, error, timeout_expired = user_subprocess(cmd=CMD, run_time=False, timeout=self.timeout_expired,
+                                                              shell=False, log=True)
+
+                if timeout_expired:
+                    self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
+                    break
+
+                if "init" in enntools_cmd:
+                    _, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+                    _filename_, extension = separate_filename_and_extension(_model_)
+
+                    result, parameter_set = self.check_enntools_init(init_log_path=cwd, model=_model_,
+                                                                     filename=_filename_)
+                    TestResult[enntools_cmd] = [result, convert_changed_items_to_text(parameter_set)]
+                else:
+                    check_log = None
+                    profile_log = None
+
+                    if "conversion" in enntools_cmd:
+                        check_log = os.path.join(cwd, "Converter_result", ".log")
+
+                    elif "compile" in enntools_cmd:
+                        check_log = os.path.join(cwd, "Compiler_result", ".log")
+                        profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
+
+                    elif "estimation" in enntools_cmd:
+                        check_log = os.path.join(cwd, "Estimator_result", ".log")
+
+                    elif "analysis" in enntools_cmd:
+                        check_log = os.path.join(cwd, "Analyzer_result", ".log")
+
+                    elif "profiling" in enntools_cmd:
+                        check_log = os.path.join(cwd, "Profiler_result", ".log")
+
+                    if check_log is not None:
+                        # print(check_log)
+                        result, dict_log = self.check_enntools_cmd_result(check_log=check_log)
+                        log = dict2string(dict_log)
+
+                        if profile_log is not None and os.path.exists(profile_log):
+                            log += f"\n\n[Profile Log]\n"
+
+                            with open(profile_log, 'r') as file:
+                                lines = file.readlines()
+                            for line in lines:
+                                if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
+                                    log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+
+                        TestResult[enntools_cmd] = [result, log]
+
+            #  enntools cmd 실행될 때마다 update
+            self.output_signal_2.emit(target_widget, enntools_cmd, TestResult)
+
+        elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
+
+        return elapsed_time, cwd
+
+    # def X_model_ai_studio_test(self, CommandLists=[], target_widget=None, executed_cnt=0, max_cnt=0):
+    #     init_success = False
+    #     conversion_success = False
+    #     compile_success = False
+
+    #     ContainerName, cwd = self.create_container(target_widget=target_widget)
+
+    #     start_T = time.time()
+    #     for enntools_cmd in CommandLists:
+    #         out = []
+    #         error = []
+
+    #         message = rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})"
+    #         self.send_set_text_signal.emit(message)
+
+    #         cmd = ["docker", "exec", "-i", ContainerName, "/bin/bash", "-c",
+    #                f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"]
+
+    #         if "enntest" not in enntools_cmd:
+    #             out, error, timeout_expired = user_subprocess(cmd=cmd, run_time=False, timeout=self.timeout_expired,
+    #                                                           shell=False, log=True)
+    #             if timeout_expired:
+    #                 print("timeout_expired")
+    #                 self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
+    #                 break
+
+    #         "실시간 yaml 수정: init 후 생성되는 yaml에 대해서 src_config을 참고해서 수정"
+    #         failed_pairs = []
+    #         parameter_set = OrderedDict()
+
+    #         _directory_, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+    #         _filename_, extension = separate_filename_and_extension(_model_)
+
+    #         if "init" in enntools_cmd:
+    #             # 변경된 항목들을 텍스트로 변환
+    #             check_DATA_dir = os.path.join(_directory_, "DATA").replace("\\", "/")
+    #             target_config = os.path.join(_directory_, f"{_filename_}.yaml").replace("\\", "/")
+
+    #             if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
+    #                 init_success = True
+    #                 print("init_success")
+
+    #             if self.grand_parent.modifiedradioButton.isChecked():
+    #                 repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
+    #                 tag = int(repo_tag.split(":")[1].split(".")[0])
+
+    #                 if tag >= 7:
+    #                     src_config = os.path.join(BASE_DIR, "model_configuration",
+    #                                               "Ver2.0_model_config_new.yaml").replace("\\", "/")
+    #                 else:
+    #                     src_config = os.path.join(BASE_DIR, "model_configuration",
+    #                                               "Ver1.0_model_config_new.yaml").replace("\\", "/")
+
+    #                 parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
+    #                                                  target_config=target_config,
+    #                                                  model_name=_model_)
+    #         elif "conversion" in enntools_cmd:
+    #             check_log = os.path.join(cwd, "Converter_result", ".log")
+    #             error_keywords = keyword["error_keyword"]
+    #             if os.path.exists(check_log):
+    #                 ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+    #                                                                                       check_keywords=error_keywords)
+    #                 if len(ret) == 0:
+    #                     conversion_success = True
+    #                     print("conversion_success")
+
+    #         elif "compile" in enntools_cmd:
+    #             check_log = os.path.join(cwd, "Compiler_result", ".log")
+    #             error_keywords = keyword["error_keyword"]
+    #             if os.path.exists(check_log):
+    #                 ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+    #                                                                                       check_keywords=error_keywords)
+    #                 if len(ret) == 0:
+    #                     compile_success = True
+    #                     print("compile_success")
+
+    #         elif "enntest" in enntools_cmd:
+    #             if init_success and conversion_success and compile_success:
+    #                 init_success = False
+    #                 conversion_success = False
+    #                 compile_success = False
+
+    #                 nnc_model_path = os.path.join(_directory_, "Compiler_result").replace("\\", "/")
+    #                 nnc_files = []
+    #                 for file in os.listdir(nnc_model_path):
+    #                     if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
+    #                         filename = os.path.join(nnc_model_path, file).replace("\\", "/")
+    #                         nnc_files.append(filename)
+
+    #                 input_golden_path = os.path.join(_directory_, "Converter_result").replace("\\", "/")
+    #                 # input_golden_pairs = find_paired_files(input_golden_path, mode=2)
+    #                 input_golden_pairs = find_paired_files(input_golden_path, mode=1)
+
+    #                 out_dir = os.path.join(_directory_, "Enntester_result").replace("\\", "/")
+    #                 CheckDir(out_dir)
+
+    #                 out = []
+    #                 error = []
+    #                 if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
+    #                     ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
+    #                                                     self.grand_parent.enntestcomboBox.currentText())
+    #                     if not ret:
+    #                         out.append("Fail")
+    #                         error.append("Fail")
+
+    #                 else:
+    #                     out.append("Skip(No nnc or input_golden)")
+    #                     error.append("Skip(No nnc or input_golden)")
+    #             else:
+    #                 out.append("Skip")
+    #                 error.append("Skip")
+
+    #         self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
+
+    #     elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
+
+    #     return elapsed_time, cwd
+
+    def core_ai_studio_test(self, target_widget=None, CommandLists=[], executed_cnt=0, max_cnt=0):
+        model = target_widget[0].pathlineEdit.text()
+        name, ext = os.path.splitext(model)
+
+        # 최재훈님 전달한 파일
+        onnx_info = self.get_basic_onnx_model_information(model=model, extension=ext)
+        self.send_onnx_opset_ver_signal.emit(target_widget, onnx_info)
+
+        # enntools cmd test
+        elapsed_time, cwd = self.model_ai_studio_test(CommandLists=CommandLists, target_widget=target_widget,
+                                                      executed_cnt=executed_cnt, max_cnt=max_cnt)
+        self.output_signal.emit(elapsed_time, target_widget, executed_cnt, cwd)
 
     def run(self):
         max_cnt = sum(1 for widget in self.parent.added_scenario_widgets if widget[0].scenario_checkBox.isChecked())
         self.send_max_progress_cnt.emit(max_cnt)
 
         executed_cnt = 0
+        CommandLists = self.get_checked_model_lists()
+        self.remove_all_container()
 
         for target_widget in self.parent.added_scenario_widgets:
-            self.remove_all_container()
-
-            if not self._running:
+            if not self.get_thread_status():
                 break
 
-            if not target_widget[0].scenario_checkBox.isChecked():
+            if not self.get_model_execute(model=target_widget):
                 continue
 
             executed_cnt += 1
-            container_name, cwd = self.create_container(target_widget=target_widget)
-
-            # Check된 enntools cmd
-            cmd_fmt = []
-            for i in range(0, 6):
-                check_box_name = f"cmd{i}"  # 체크박스의 이름을 동적으로 생성
-                check_box = getattr(self.grand_parent, check_box_name, None)  # 객체 가져오기
-                if check_box and check_box.isChecked():  # 체크박스가 존재하고 선택되었는지 확인
-                    cmd_fmt.append(check_box.text())  # 체크박스의 텍스트를 리스트에 추가
-
-            start_T = time.time()
-            init_success = False
-            conversion_success = False
-            compile_success = False
-
-            # onnx information
-            model = target_widget[0].pathlineEdit.text()
-            name, ext = os.path.splitext(model)
-
-            # 0. Model Check 분석
-            onnx_validation = self.check_model_validation_f(p_model=model, extension=ext)  # check.model
-
-            # 1. Direct Shape 분석
-            is_dynamic = "Static shape"
-            has_dynamic_direct, tensor_info = self.check_model_directly(model_path=model)
-            if has_dynamic_direct:
-                is_dynamic = "Dynamic shape"
-
-            # 2. Simplifier 실행
-            sim_msg = ""
-            simplifier_messages = self.run_simplifier(model_path=model)
-            for msg in simplifier_messages:
-                sim_msg += f"{msg}\n"
-
-            # 3. 모델 무결성 테스트
-            is_integrity_ok, is_integrity_ok_log = self.test_model_integrity(p_model=model, extension=ext)
-
-            # 4. 모델 정밀도 분석 추가
-            onnx_model_type = self.check_model_precision(p_model=model, extension=ext)
-
-            # 5. 모델 domain, opset 버전 출력
-            model_domain, opset_ver = self.get_opset_version(p_model=model, extension=ext)
-
-            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_validation, model_domain, opset_ver,
-                                                 onnx_model_type, is_integrity_ok, is_integrity_ok_log, is_dynamic, sim_msg)
-
-            for enntools_cmd in cmd_fmt:
-                out = []
-                error = []
-
-                message = rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})"
-                self.send_set_text_signal.emit(message)
-
-                cmd = ["docker", "exec", "-i", container_name, "/bin/bash", "-c",
-                       f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"]
-                if "enntest" not in enntools_cmd:
-                    out, error, timeout_expired = user_subprocess(cmd=cmd, run_time=False, timeout=self.timeout_expired,
-                                                                  shell=False, log=True)
-                    if timeout_expired:
-                        print("timeout_expired")
-                        self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
-                        break
-
-                "실시간 yaml 수정: init 후 생성되는 yaml에 대해서 src_config을 참고해서 수정"
-                failed_pairs = []
-                parameter_set = OrderedDict()
-
-                _directory_, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
-                _filename_, extension = separate_filename_and_extension(_model_)
-
-                if "init" in enntools_cmd:
-                    # 변경된 항목들을 텍스트로 변환
-
-                    check_DATA_dir = os.path.join(_directory_, "DATA").replace("\\", "/")
-                    target_config = os.path.join(_directory_, f"{_filename_}.yaml").replace("\\", "/")
-
-                    if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
-                        init_success = True
-                        print("init_success")
-
-                    if self.grand_parent.modifiedradioButton.isChecked():
-                        repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
-                        tag = int(repo_tag.split(":")[1].split(".")[0])
-
-                        if tag >= 7:
-                            src_config = os.path.join(BASE_DIR, "model_configuration",
-                                                      "Ver2.0_model_config_new.yaml").replace("\\", "/")
-                        else:
-                            src_config = os.path.join(BASE_DIR, "model_configuration",
-                                                      "Ver1.0_model_config_new.yaml").replace("\\", "/")
-
-                        parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
-                                                         target_config=target_config,
-                                                         model_name=_model_)
-                elif "conversion" in enntools_cmd:
-                    check_log = os.path.join(cwd, "Converter_result", ".log")
-                    error_keywords = keyword["error_keyword"]
-                    if os.path.exists(check_log):
-                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-                                                                                              check_keywords=error_keywords)
-                        if len(ret) == 0:
-                            conversion_success = True
-                            print("conversion_success")
-
-                elif "compile" in enntools_cmd:
-                    check_log = os.path.join(cwd, "Compiler_result", ".log")
-                    error_keywords = keyword["error_keyword"]
-                    if os.path.exists(check_log):
-                        ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-                                                                                              check_keywords=error_keywords)
-                        if len(ret) == 0:
-                            compile_success = True
-                            print("compile_success")
-
-                elif "enntest" in enntools_cmd:
-                    if init_success and conversion_success and compile_success:
-                        init_success = False
-                        conversion_success = False
-                        compile_success = False
-
-                        nnc_model_path = os.path.join(_directory_, "Compiler_result").replace("\\", "/")
-                        nnc_files = []
-                        for file in os.listdir(nnc_model_path):
-                            if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
-                                filename = os.path.join(nnc_model_path, file).replace("\\", "/")
-                                nnc_files.append(filename)
-
-                        input_golden_path = os.path.join(_directory_, "Converter_result").replace("\\", "/")
-                        # input_golden_pairs = find_paired_files(input_golden_path, mode=2)
-                        input_golden_pairs = find_paired_files(input_golden_path, mode=1)
-
-                        out_dir = os.path.join(_directory_, "Enntester_result").replace("\\", "/")
-                        CheckDir(out_dir)
-
-                        out = []
-                        error = []
-                        if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
-                            ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
-                                                            self.grand_parent.enntestcomboBox.currentText())
-                            if not ret:
-                                out.append("Fail")
-                                error.append("Fail")
-
-                        else:
-                            out.append("Skip(No nnc or input_golden)")
-                            error.append("Skip(No nnc or input_golden)")
-                    else:
-                        out.append("Skip")
-                        error.append("Skip")
-
-                self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
-
             self.remove_all_container()
-
-            # 전체 실행 시간 측정 종료           
-            elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
-            self.output_signal.emit(elapsed_time, target_widget, executed_cnt, cwd)
+            self.core_ai_studio_test(target_widget=target_widget, CommandLists=CommandLists, executed_cnt=executed_cnt,
+                                     max_cnt=max_cnt)
+            self.remove_all_container()
 
         self.finish_output_signal.emit(self._running)
 
@@ -776,7 +1033,7 @@ class Model_Verify_Class(QObject):
             self.insert_widget_progress.close()
             print(f"total loaded models: {len(self.added_scenario_widgets)}")
 
-    def insert_each_widget(self, cnt, target_model_path, repo_src):
+    def insert_each_widget(self, cnt, target_model_path, repo_src, License="unknown"):
         if self.insert_widget_progress is not None:
             rt = load_module_func(module_name="source.ui_designer.main_widget")
             widget_ui = rt.Ui_Form()
@@ -786,6 +1043,7 @@ class Model_Verify_Class(QObject):
             model = os.path.basename(target_model_path)
             widget_ui.scenario_checkBox.setText(model)
             widget_ui.srclineEdit.setText(repo_src)
+            widget_ui.licenselineEdit.setText(License)
 
             widget_ui.pathlineEdit.setText(f"{target_model_path}")
             widget_ui.parametersetting_textEdit.setMinimumHeight(200)
@@ -912,142 +1170,261 @@ class Model_Verify_Class(QObject):
             target_widget[0].profilinglineEdit.setText("Runtime Out")
 
     @staticmethod
-    def update_onnx_info(sub_widget, validation, model_domain, opset_ver, model_type, model_inference_check,
-                         model_inference_check_log, is_dynamic, sim_msg):
-        sub_widget[0].modelvalidaty.setText(validation)
-        sub_widget[0].onnxdomain.setText(model_domain)
-        sub_widget[0].onnxlineEdit.setText(opset_ver)
-        sub_widget[0].modeltype.setText(model_type)
-        sub_widget[0].onnxruntime_InferenceSession.setText(model_inference_check)
-        sub_widget[0].onnxruntime_InferenceSessiontextEdit.setText(model_inference_check_log)
-        sub_widget[0].directshape.setText(is_dynamic)
-        sub_widget[0].simplifier.setText(sim_msg)
+    def update_onnx_info(sub_widget, onnx_info):
+        sub_widget[0].modelvalidaty.setText(onnx_info["model check"][0])
+        sub_widget[0].directshape.setText(onnx_info["direct shape"][0])
+        sub_widget[0].simplifier.setText(onnx_info["simplifier"][0])
+        sub_widget[0].onnxruntime_InferenceSession.setText(onnx_info["integrity"][0])
+        sub_widget[0].onnxruntime_InferenceSessiontextEdit.setText(onnx_info["integrity"][1])
+        sub_widget[0].modeltype.setText(onnx_info["precision"][0])
+        sub_widget[0].onnxdomain.setText(onnx_info["domain"][0])
+        sub_widget[0].onnxlineEdit.setText(onnx_info["opset_version"][0])
 
-    def update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
+    def update_test_result_2(self, sub_widget, execute_cmd, TestResult):
         if self.work_progress is not None:
-
-            check_log = ""
+            PRINT_(execute_cmd)
+            result = TestResult[execute_cmd][0]
+            log = TestResult[execute_cmd][1]
 
             if "init" in execute_cmd:
-                def convert_changed_items_to_text(changed_items):
-                    # changed_items OrderedDict를 텍스트 형식으로 변환
-                    result_text = ""
-                    for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
-                        result_text += f"Section: {section}\n"  # 섹션 이름 추가
-                        for key, values in keys.items():  # 각 섹션 내 키 순회
-                            old_value = values['old_value']
-                            new_value = values['new_value']
-                            result_text += f"  Key: {key}\n"
-                            result_text += f"    Old Value: {old_value}\n"
-                            result_text += f"    New Value: {new_value}\n\n"
-
-                    return result_text
-
-                # 변경된 항목들을 텍스트로 변환
-                changed_items_text = convert_changed_items_to_text(parameter_setting)
-                sub_widget[0].parametersetting_textEdit.setText(changed_items_text)
-
-                directory, model_name = separate_folders_and_files(sub_widget[0].pathlineEdit.text())
-                filename, extension = separate_filename_and_extension(model_name)
-
-                check_DATA_dir = os.path.join(directory, "DATA")
-                check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
-                if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
-                    sub_widget[0].initlineEdit.setText("Success")
-                else:
-                    sub_widget[0].initlineEdit.setText("Fail")
-
-                # if len(out) == 0 and len(error) == 0:
-                #     sub_widget[0].initlineEdit.setText("Success")
-                # else:
-                #     sub_widget[0].initlineEdit.setText("Fail")
-                return
-
-            elif "enntest" in execute_cmd:
-                if len(out) == 0 and len(error) == 0:
-                    sub_widget[0].enntestlineEdit.setText("Success")
-                else:
-                    sub_widget[0].enntestlineEdit.setText(out[0])
-                    string_ = ""
-                    for _in_bin, _golden_bin in failed_pairs:
-                        string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
-                    sub_widget[0].enntesttextEdit.setText(string_)
-
-                return
+                sub_widget[0].initlineEdit.setText(result)
+                sub_widget[0].parametersetting_textEdit.setText(log)
 
             elif "conversion" in execute_cmd:
-                check_log = os.path.join(cwd, "Converter_result", ".log")
+                sub_widget[0].conversionlineEdit.setText(result)
+                sub_widget[0].conversiontextEdit.setText(log)
 
             elif "compile" in execute_cmd:
-                check_log = os.path.join(cwd, "Compiler_result", ".log")
+                sub_widget[0].compilelineEdit.setText(result)
+                sub_widget[0].compilertextEdit.setText(log)
 
             elif "estimation" in execute_cmd:
-                check_log = os.path.join(cwd, "Estimator_result", ".log")
+                sub_widget[0].estimationlineEdit.setText(result)
+                sub_widget[0].estimationtextEdit.setText(log)
 
             elif "analysis" in execute_cmd:
-                check_log = os.path.join(cwd, "Analyzer_result", ".log")
+                sub_widget[0].analysislineEdit.setText(result)
+                sub_widget[0].analysistextEdit.setText(log)
 
             elif "profiling" in execute_cmd:
-                check_log = os.path.join(cwd, "Profiler_result", ".log")
+                sub_widget[0].profilinglineEdit.setText(result)
+                sub_widget[0].profiletextEdit.setText(log)
 
-            error_keywords = keyword["error_keyword"]
+            elif "enntest" in execute_cmd:
+                sub_widget[0].enntestlineEdit.setText(result)
+                sub_widget[0].enntesttextEdit.setText(log)
 
-            if os.path.exists(check_log):
-                ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-                                                                                      check_keywords=error_keywords)
+            # elif "enntest" in execute_cmd:
+            #     if len(out) == 0 and len(error) == 0:
+            #         sub_widget[0].enntestlineEdit.setText("Success")
+            #     else:
+            #         sub_widget[0].enntestlineEdit.setText(out[0])
+            #         string_ = ""
+            #         for _in_bin, _golden_bin in failed_pairs:
+            #             string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
+            #         sub_widget[0].enntesttextEdit.setText(string_)
+            #
+            #     return
+            #
+            # elif "conversion" in execute_cmd:
+            #     check_log = os.path.join(cwd, "Converter_result", ".log")
+            #
+            # elif "compile" in execute_cmd:
+            #     check_log = os.path.join(cwd, "Compiler_result", ".log")
+            #
+            # elif "estimation" in execute_cmd:
+            #     check_log = os.path.join(cwd, "Estimator_result", ".log")
+            #
+            # elif "analysis" in execute_cmd:
+            #     check_log = os.path.join(cwd, "Analyzer_result", ".log")
+            #
+            # elif "profiling" in execute_cmd:
+            #     check_log = os.path.join(cwd, "Profiler_result", ".log")
+            #
+            # error_keywords = keyword["error_keyword"]
+            #
+            # if os.path.exists(check_log):
+            #     ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+            #                                                                           check_keywords=error_keywords)
+            #
+            #     if len(ret) == 0:
+            #         if "conversion" in execute_cmd:
+            #             sub_widget[0].conversionlineEdit.setText("Success")
+            #         elif "compile" in execute_cmd:
+            #             sub_widget[0].compilelineEdit.setText("Success")
+            #         elif "estimation" in execute_cmd:
+            #             sub_widget[0].estimationlineEdit.setText("Success")
+            #         elif "analysis" in execute_cmd:
+            #             sub_widget[0].analysislineEdit.setText("Success")
+            #         elif "profiling" in execute_cmd:
+            #             sub_widget[0].profilinglineEdit.setText("Success")
+            #     else:
+            #         text_to_display = ""
+            #
+            #         # context_data 내용을 문자열로 변환
+            #         for file, contexts in error_contents_dict.items():
+            #             text_to_display += f"File: {file}\n"
+            #             for context in contexts:
+            #                 text_to_display += f"{context}\n{'-' * 40}\n"
+            #
+            #         if "conversion" in execute_cmd:
+            #             sub_widget[0].conversionlineEdit.setText("Fail")
+            #             sub_widget[0].conversiontextEdit.setText(text_to_display)
+            #
+            #         elif "compile" in execute_cmd:
+            #             sub_widget[0].compilelineEdit.setText("Fail")
+            #
+            #             profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
+            #             if os.path.exists(profile_log):
+            #                 # 파일이 있으면 열기
+            #                 text_to_display += f"\n\n[Profile Log]\n"
+            #                 with open(profile_log, 'r') as file:
+            #                     lines = file.readlines()
+            #
+            #                 # Unsupported가 포함된 라인 찾기
+            #                 for line in lines:
+            #                     if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
+            #                         text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+            #
+            #             sub_widget[0].compilertextEdit.setText(text_to_display)
+            #
+            #         elif "estimation" in execute_cmd:
+            #             sub_widget[0].estimationlineEdit.setText("Fail")
+            #             sub_widget[0].estimationtextEdit.setText(text_to_display)
+            #
+            #         elif "analysis" in execute_cmd:
+            #             sub_widget[0].analysislineEdit.setText("Fail")
+            #             sub_widget[0].analysistextEdit.setText(text_to_display)
+            #
+            #         elif "profiling" in execute_cmd:
+            #             sub_widget[0].profilinglineEdit.setText("Fail")
+            #             sub_widget[0].profiletextEdit.setText(text_to_display)
 
-                if len(ret) == 0:
-                    if "conversion" in execute_cmd:
-                        sub_widget[0].conversionlineEdit.setText("Success")
-                    elif "compile" in execute_cmd:
-                        sub_widget[0].compilelineEdit.setText("Success")
-                    elif "estimation" in execute_cmd:
-                        sub_widget[0].estimationlineEdit.setText("Success")
-                    elif "analysis" in execute_cmd:
-                        sub_widget[0].analysislineEdit.setText("Success")
-                    elif "profiling" in execute_cmd:
-                        sub_widget[0].profilinglineEdit.setText("Success")
-                else:
-                    text_to_display = ""
+    # def X_update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
+    #     if self.work_progress is not None:
 
-                    # context_data 내용을 문자열로 변환
-                    for file, contexts in error_contents_dict.items():
-                        text_to_display += f"File: {file}\n"
-                        for context in contexts:
-                            text_to_display += f"{context}\n{'-' * 40}\n"
+    #         check_log = ""
 
-                    if "conversion" in execute_cmd:
-                        sub_widget[0].conversionlineEdit.setText("Fail")
-                        sub_widget[0].conversiontextEdit.setText(text_to_display)
+    #         if "init" in execute_cmd:
+    #             def convert_changed_items_to_text(changed_items):
+    #                 # changed_items OrderedDict를 텍스트 형식으로 변환
+    #                 result_text = ""
+    #                 for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
+    #                     result_text += f"Section: {section}\n"  # 섹션 이름 추가
+    #                     for key, values in keys.items():  # 각 섹션 내 키 순회
+    #                         old_value = values['old_value']
+    #                         new_value = values['new_value']
+    #                         result_text += f"  Key: {key}\n"
+    #                         result_text += f"    Old Value: {old_value}\n"
+    #                         result_text += f"    New Value: {new_value}\n\n"
 
-                    elif "compile" in execute_cmd:
-                        sub_widget[0].compilelineEdit.setText("Fail")
+    #                 return result_text
 
-                        profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
-                        if os.path.exists(profile_log):
-                            # 파일이 있으면 열기
-                            text_to_display += f"\n\n[Profile Log]\n"
-                            with open(profile_log, 'r') as file:
-                                lines = file.readlines()
+    #             # 변경된 항목들을 텍스트로 변환
+    #             changed_items_text = convert_changed_items_to_text(parameter_setting)
+    #             sub_widget[0].parametersetting_textEdit.setText(changed_items_text)
 
-                            # Unsupported가 포함된 라인 찾기
-                            for line in lines:
-                                if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
-                                    text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+    #             directory, model_name = separate_folders_and_files(sub_widget[0].pathlineEdit.text())
+    #             filename, extension = separate_filename_and_extension(model_name)
 
-                        sub_widget[0].compilertextEdit.setText(text_to_display)
+    #             check_DATA_dir = os.path.join(directory, "DATA")
+    #             check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
+    #             if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
+    #                 sub_widget[0].initlineEdit.setText("Success")
+    #             else:
+    #                 sub_widget[0].initlineEdit.setText("Fail")
 
-                    elif "estimation" in execute_cmd:
-                        sub_widget[0].estimationlineEdit.setText("Fail")
-                        sub_widget[0].estimationtextEdit.setText(text_to_display)
+    #             # if len(out) == 0 and len(error) == 0:
+    #             #     sub_widget[0].initlineEdit.setText("Success")
+    #             # else:
+    #             #     sub_widget[0].initlineEdit.setText("Fail")
+    #             return
 
-                    elif "analysis" in execute_cmd:
-                        sub_widget[0].analysislineEdit.setText("Fail")
-                        sub_widget[0].analysistextEdit.setText(text_to_display)
+    #         elif "enntest" in execute_cmd:
+    #             if len(out) == 0 and len(error) == 0:
+    #                 sub_widget[0].enntestlineEdit.setText("Success")
+    #             else:
+    #                 sub_widget[0].enntestlineEdit.setText(out[0])
+    #                 string_ = ""
+    #                 for _in_bin, _golden_bin in failed_pairs:
+    #                     string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
+    #                 sub_widget[0].enntesttextEdit.setText(string_)
 
-                    elif "profiling" in execute_cmd:
-                        sub_widget[0].profilinglineEdit.setText("Fail")
-                        sub_widget[0].profiletextEdit.setText(text_to_display)
+    #             return
+
+    #         elif "conversion" in execute_cmd:
+    #             check_log = os.path.join(cwd, "Converter_result", ".log")
+
+    #         elif "compile" in execute_cmd:
+    #             check_log = os.path.join(cwd, "Compiler_result", ".log")
+
+    #         elif "estimation" in execute_cmd:
+    #             check_log = os.path.join(cwd, "Estimator_result", ".log")
+
+    #         elif "analysis" in execute_cmd:
+    #             check_log = os.path.join(cwd, "Analyzer_result", ".log")
+
+    #         elif "profiling" in execute_cmd:
+    #             check_log = os.path.join(cwd, "Profiler_result", ".log")
+
+    #         error_keywords = keyword["error_keyword"]
+
+    #         if os.path.exists(check_log):
+    #             ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
+    #                                                                                   check_keywords=error_keywords)
+
+    #             if len(ret) == 0:
+    #                 if "conversion" in execute_cmd:
+    #                     sub_widget[0].conversionlineEdit.setText("Success")
+    #                 elif "compile" in execute_cmd:
+    #                     sub_widget[0].compilelineEdit.setText("Success")
+    #                 elif "estimation" in execute_cmd:
+    #                     sub_widget[0].estimationlineEdit.setText("Success")
+    #                 elif "analysis" in execute_cmd:
+    #                     sub_widget[0].analysislineEdit.setText("Success")
+    #                 elif "profiling" in execute_cmd:
+    #                     sub_widget[0].profilinglineEdit.setText("Success")
+    #             else:
+    #                 text_to_display = ""
+
+    #                 # context_data 내용을 문자열로 변환
+    #                 for file, contexts in error_contents_dict.items():
+    #                     text_to_display += f"File: {file}\n"
+    #                     for context in contexts:
+    #                         text_to_display += f"{context}\n{'-' * 40}\n"
+
+    #                 if "conversion" in execute_cmd:
+    #                     sub_widget[0].conversionlineEdit.setText("Fail")
+    #                     sub_widget[0].conversiontextEdit.setText(text_to_display)
+
+    #                 elif "compile" in execute_cmd:
+    #                     sub_widget[0].compilelineEdit.setText("Fail")
+
+    #                     profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
+    #                     if os.path.exists(profile_log):
+    #                         # 파일이 있으면 열기
+    #                         text_to_display += f"\n\n[Profile Log]\n"
+    #                         with open(profile_log, 'r') as file:
+    #                             lines = file.readlines()
+
+    #                         # Unsupported가 포함된 라인 찾기
+    #                         for line in lines:
+    #                             if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
+    #                                 text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+
+    #                     sub_widget[0].compilertextEdit.setText(text_to_display)
+
+    #                 elif "estimation" in execute_cmd:
+    #                     sub_widget[0].estimationlineEdit.setText("Fail")
+    #                     sub_widget[0].estimationtextEdit.setText(text_to_display)
+
+    #                 elif "analysis" in execute_cmd:
+    #                     sub_widget[0].analysislineEdit.setText("Fail")
+    #                     sub_widget[0].analysistextEdit.setText(text_to_display)
+
+    #                 elif "profiling" in execute_cmd:
+    #                     sub_widget[0].profilinglineEdit.setText("Fail")
+    #                     sub_widget[0].profiletextEdit.setText(text_to_display)
 
     def update_test_result(self, elapsed_time, sub_widget, executed_cnt, cwd):
         if self.work_progress is not None:
@@ -1224,8 +1601,8 @@ class Model_Verify_Class(QObject):
             widget_result = {
                 "Model": clean_data(model),
                 "Framework": clean_data(framework.replace(".", "")),
+                "License": clean_data(target_widget[0].licenselineEdit.text().strip()),
                 "Set parameter": clean_data(target_widget[0].parametersetting_textEdit.toPlainText().strip()),
-
                 "Check Model": clean_data(target_widget[0].modelvalidaty.text().strip()),
                 "Direct Shape": clean_data(target_widget[0].directshape.text().strip()),
                 "Simplifier": clean_data(target_widget[0].simplifier.text().strip()),
@@ -1370,6 +1747,25 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.cmdlabel.hide()
         self.mainFrame_ui.command_lineedit.hide()
 
+    @staticmethod
+    def kill_docker_desktop():
+        L_processor = ["Docker Desktop.exe"]
+
+        for proc in L_processor:
+            try:
+                # taskkill 명령어 실행
+                result = subprocess.run(
+                    ["taskkill", "/F", "/IM", rf"{proc}"],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    PRINT_("'Docker Desktop.exe' has been terminated successfully.")
+                else:
+                    PRINT_(f"Failed to terminate 'Docker Desktop.exe': {result.stderr}")
+            except Exception as e:
+                PRINT_(f"An error occurred: {e}")
+
     def closeEvent(self, event):
         answer = QtWidgets.QMessageBox.question(self,
                                                 "Confirm Exit...",
@@ -1377,6 +1773,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                                                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         if answer == QtWidgets.QMessageBox.Yes:
+            # self.kill_docker_desktop()
             event.accept()
         else:
             event.ignore()
@@ -1618,7 +2015,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
-    start_docker_desktop()
+    # start_docker_desktop()
 
     import sys
 

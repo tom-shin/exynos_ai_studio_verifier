@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1248</width>
-    <height>2457</height>
+    <width>1244</width>
+    <height>2814</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,6 +70,23 @@
       <widget class="QLineEdit" name="srclineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>License</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="licenselineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -438,7 +455,7 @@
           <property name="title">
            <string>enntools compile</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <layout class="QVBoxLayout" name="verticalLayout_12">
            <item>
             <layout class="QGridLayout" name="gridLayout_3">
              <item row="0" column="0">
@@ -454,8 +471,8 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="compilelineEdit">
+             <item row="1" column="1">
+              <widget class="QTextEdit" name="compilertextEdit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -464,8 +481,8 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QTextEdit" name="compilertextEdit">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="compilelineEdit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>

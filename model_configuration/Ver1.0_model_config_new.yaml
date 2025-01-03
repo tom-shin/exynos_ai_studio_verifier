@@ -51,11 +51,13 @@ model_config:
     compiler:
       enable_stm: true
     repo: v1.0(pamir)
+    license: unknown
 
   mobilenet-v2-int8.tflite:
     converter:
       quantize_type: qat
     repo: v1.0(pamir)
+    license: unknown
 
   PFR_detector.onnx:
     converter:
@@ -76,6 +78,7 @@ model_config:
       mo: true
       multi_vc: false
     repo: customer[PFR]
+    license: unknown
 
   PFR_segmentation.onnx:
     converter:
@@ -96,214 +99,253 @@ model_config:
       mo: true
       multi_vc: false
     repo: customer[PFR]
+    license: unknown
 
   depth_anything_vitb14.onnx:
     repo: pyranee https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+    license: unknown
 
   depth_anything_vitl14.onnx:
     repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+    license: unknown
 
   depth_anything_vits14.onnx:
     repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
+    license: unknown
 
   yolox_darknet.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   yolox_m.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   yolox_nano.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   yolox_s.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   yolox_tiny.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   yolox_x.onnx:
     repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
+    license: unknown
 
   caffeFP_sample.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   caffeQAT_sample.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Q_MV2_Deeplab_V3_plus_MLPerf.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   asr_kor_joint.tflite:
     repo: SDK_V1.0
+    license: unknown
 
   nfd_qvga.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Q_aic_detector_cnn.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Q_inception_v3_pamir.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Q_mobilenet_edgetpu.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   onnx_sample.onnx:
     repo: SDK_V1.0
+    license: unknown
 
   SCaffe_SQE.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   sdlp_sample.tflite:
     repo: SDK_V1.0
+    license: unknown
 
   tflite_sample_float.tflite:
     repo: SDK_V1.0
+    license: unknown
 
   tflite_sample_fp16.tflite:
     repo: SDK_V1.0
+    license: unknown
 
   tflite_sample_uint8.tflite:
     converter:
       quantize_type: qat
 
     repo: SDK_V1.0
+    license: unknown
 
   01_aic_classifier_cnn.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   07_LF_segmenter_cnn.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Efficientnet_Lite4.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Mobiledet_SSD.tflite:
     converter:
       SSD: true
       output_dtype: uint8
     repo: SDK_V1.0
+    license: unknown
 
   Mobilenet_Edgetpu.tflite:
     repo: SDK_V1.0
+    license: unknown
 
   YolACT.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   Q_vdsr_antutu.caffemodel:
     repo: SDK_V1.0
+    license: unknown
 
   efficientnet-lite4-11-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    license: unknown
 
   efficientnet-lite4-11-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    license: unknown
 
   efficientnet-lite4-11.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    license: unknown
 
   mobilenetv2-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    license: unknown
 
   mobilenetv2-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    license: unknown
 
   mobilenetv2-12-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    license: unknown
 
   mobilenetv2-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    license: unknown
 
   mobilenetv2-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    license: unknown
 
   resnet101-v1-7.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet152-v1-7.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet18-v1-7.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet34-v1-7.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet50-v1-12-int8.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet50-v1-12-qdq.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet50-v1-12.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   resnet50-v1-7.onnx:
     repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
+    license: unknown
 
   squeezenet1.0-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-13-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-3.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-6.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.0-9.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   squeezenet1.1-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    license: unknown
 
   super-resolution-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    license: unknown
 
   yolov3-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    license: unknown
 
   yolov3-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    license: unknown
 
   yolov3-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    license: unknown
 
   yolov4.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    license: unknown
 
   inception-tflite-v4-quant-v1.tflite:
     converter:
@@ -315,3 +357,4 @@ model_config:
       quantize_type: asymm
       use_randomdb: false
     repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v3-quant
+    license: unknown

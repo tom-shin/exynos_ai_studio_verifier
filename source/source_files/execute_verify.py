@@ -6,7 +6,7 @@ import subprocess
 from collections import OrderedDict
 from ruamel.yaml import YAML
 import re
-
+import psutil
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 
 from .. import CheckDir, separate_folders_and_files, separate_filename_and_extension
@@ -26,7 +26,7 @@ def get_image_info_from_dockerImg(image_path):
 
 
 class Load_Target_Dir_Thread(QThread):
-    send_scenario_update_ui_sig = pyqtSignal(int, str, str)
+    send_scenario_update_ui_sig = pyqtSignal(int, str, str, str)
     send_finish_scenario_update_ui_sig = pyqtSignal()
 
     def __init__(self, file_path, grand_parent, model_config_data):
@@ -43,14 +43,34 @@ class Load_Target_Dir_Thread(QThread):
             try:
                 repo_src = self.model_config_data["model_config"][model]["repo"]
             except KeyError:
-                repo_src = "Un-Known"  # 키가 없을 경우 기본값 설정 (필요에 따라 다른 값 설정 가능)
+                repo_src = "unknown"  # 키가 없을 경우 기본값 설정 (필요에 따라 다른 값 설정 가능)
 
-            self.send_scenario_update_ui_sig.emit(cnt, target_model_path, repo_src)
+            try:
+                License = self.model_config_data["model_config"][model]["license"]
+            except KeyError:
+                License = "unknown"  # 키가 없을 경우 기본값 설정 (필요에 따라 다른 값 설정 가능)
+
+            self.send_scenario_update_ui_sig.emit(cnt, target_model_path, repo_src, License)
 
         self.send_finish_scenario_update_ui_sig.emit()
 
 
 def start_docker_desktop():
+    def check_docker_desktop():
+        for process in psutil.process_iter(['pid', 'name']):
+            try:
+                # 프로세스 이름 확인
+                if process.info['name'] and 'Docker Desktop.exe' in process.info['name']:
+                    print(f"'Docker Desktop.exe' is running (PID: {process.info['pid']}).")
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+        print("'Docker Desktop.exe' is not running.")
+        return False
+
+    if check_docker_desktop():
+        return
+
     docker_desktop_path = r"C:\Program Files\Docker\Docker\Docker Desktop.exe"
 
     try:

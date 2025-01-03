@@ -581,7 +581,8 @@ def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
         result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model,
                                        input_binary=input_file,
                                        golden_binary=golden_file,
-                                       result_dir=out_dir, filename=f"{in_filename}_{g_filename}", option=option, target_board=target_board)
+                                       result_dir=out_dir, filename=f"{in_filename}_{g_filename}", option=option,
+                                       target_board=target_board)
 
         CHECK_ENNTEST.append(result_file)
 
@@ -621,7 +622,6 @@ if __name__ == "__main__":
     gold = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout\golden_data_float32.bin"
     input_ = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout\input_data_float32.bin"
     outdir = r"C:\Work\tom\python_project\ai_studio_verifier\ai_studio_2_x\test_model_repo\test_model\mobilenetv2-7\Converter_result\NPU_mobilenetv2-7\testvector\inout"
-
 
     result_file = ssh_test.analyze(device=device, exe_cmd=cmd, nnc_model=model, input_binary=input_, golden_binary=gold,
                                    result_dir=outdir, option=option)
