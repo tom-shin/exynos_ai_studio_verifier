@@ -631,7 +631,7 @@ class Model_Analyze_Thread(QThread):
         return result, error_contents_dict
 
     def execute_enntest_ondevice(self, TestResult=None, cwd=None):
-        failed_pairs = ""
+        failed_pairs = []
         nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
         nnc_files = []
 
@@ -719,7 +719,12 @@ class Model_Analyze_Thread(QThread):
                 if result == "Success":
                     log = ""
                 else:
-                    log = error_pair[-1]
+                    print("+++++++++++++++++++++++++++++", error_pair)
+                    if len(error_pair) != 0:
+                        log = error_pair[-1]
+                    else:
+                        log = ""
+
                 TestResult[enntools_cmd] = [result, log]
 
             else:
