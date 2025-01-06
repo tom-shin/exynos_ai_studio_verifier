@@ -387,7 +387,7 @@ model_config:
     license: unknown
 
   convnext-base.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/convnext_base
+    repo: https://github.com/pytorch/vision/tree/main/torchvision/models
     license: BSD 3-Clause
 
   densenet121.onnx:
@@ -399,11 +399,11 @@ model_config:
     license: BSD 3-Clause
 
   inception-v3.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/inception_v3
+    repo: https://github.com/pytorch/vision/tree/main/torchvision/models
     license: BSD 3-Clause
 
   mobilenet-v2.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/mobilenet_v2
+    repo: https://github.com/tonylins/pytorch-mobilenet-v2/tree/master
     license: Apache 2.0
 
   resnet50.onnx:
