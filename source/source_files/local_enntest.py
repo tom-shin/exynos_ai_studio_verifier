@@ -9,6 +9,8 @@ ANSI_Escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
 
 def main(DeviceId=None, NNC_Model=None, InputBinary=None, GoldenBinary=None, SaveOutput=None):
+
+    # 혹시 윈도우 스타일로 경로되어 있다면 리눅스 스타일로 경로 변경
     Binary = [NNC_Model.replace("\\", "/"), InputBinary.replace("\\", "/"), GoldenBinary.replace("\\", "/")]
 
     # Device 권한 설정
