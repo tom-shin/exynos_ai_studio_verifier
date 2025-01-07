@@ -523,6 +523,9 @@ class Model_Analyze_Thread(QThread):
         return CommandLists
 
     def get_basic_onnx_model_information(self, model=None, extension=None):
+        if extension.lower() != ".onnx":
+            return None
+
         onnx_info = {}
 
         # 0. Model Check 분석
@@ -920,7 +923,8 @@ class Model_Analyze_Thread(QThread):
 
         # 최재훈님 전달한 파일
         onnx_info = self.get_basic_onnx_model_information(model=model, extension=ext)
-        self.send_onnx_opset_ver_signal.emit(target_widget, onnx_info)
+        if onnx_info is not None:
+            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_info)
 
         # enntools cmd test
         elapsed_time, cwd = self.model_ai_studio_test(CommandLists=CommandLists, target_widget=target_widget,
@@ -2027,7 +2031,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
-    # start_docker_desktop()
+    start_docker_desktop()
 
     import sys
 
