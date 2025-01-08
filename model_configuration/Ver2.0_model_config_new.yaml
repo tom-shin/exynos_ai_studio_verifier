@@ -593,3 +593,49 @@ model_config:
   decoder_postnet_and_vocoder.onnx:
     repo: https://huggingface.co/Xenova/speecht5_tts
     license: unknown
+
+  inception-v4-quant.tflite:
+    converter:
+      quantize_type: qat
+      output_dtype: uint8
+    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
+    license: Apache 2.0
+
+    inception-tflite-v4-v1.tflite:
+      converter:
+        quantize_type: qat
+        output_dtype: uint8
+      repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
+      license: Apache 2.0
+
+    posenet_mobilenet.onnx:
+      repo: https://huggingface.co/qualcomm/Posenet-Mobilenet/blob/98d0f2a44e7d01e7a821366a6283f627412823dc/Posenet-Mobilenet.onnx
+      license: Apache 2.0
+
+    midas_v2.onnx:
+      repo: https://aihub.qualcomm.com/models/midas --> download model --> onnx runtime
+        selection
+      license: MIT
+
+    deeplabv3.tflite:
+      repo: https://www.kaggle.com/models/tensorflow/deeplabv3
+      license: Apache 2.0
+
+    zero_dce_lite_160x160_iter8_30.tflite:
+      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+      license: MIT
+
+    zero-dce.pth:
+      repo: https://github.com/bsun0802/Zero-DCE/blob/master/train-jobs/ckpt/8LE-color-loss2_best_model.pth
+      license: MIT
+
+    zero_dce_lite_160x160_iter8_30.onnx:
+      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+      license: MIT
+      #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
+
+    zero_dce_lite_160x160_iter8_30_dynamic2static.onnx:
+      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+      license: MIT
+      #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
+      #dynamic to static conversion

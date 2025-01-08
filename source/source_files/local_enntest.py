@@ -23,14 +23,20 @@ def main(DeviceId=None, NNC_Model=None, InputBinary=None, GoldenBinary=None, Sav
         subprocess.run(rf"adb -s {DeviceId} push {b_file} .{DeviceTargetDir}")
 
     # Profile 시작
+    # 윈도우 경로와 리눅스에서 실행하는 경로 호환성
+    model = os.path.join(f'{DeviceTargetDir}', os.path.basename(NNC_Model)).replace("\\", "/")
+    input_binary = os.path.join(f'{DeviceTargetDir}', os.path.basename(InputBinary)).replace("\\", "/")
+    golden_binary = os.path.join(f'{DeviceTargetDir}', os.path.basename(GoldenBinary)).replace("\\", "/")
+    
     execute_cmd = [
         "adb", "-s", DeviceId, "shell",
         f"{ProfileCMD}",
-        "--model", f"{os.path.join(f'{DeviceTargetDir}', os.path.basename(NNC_Model))}",
-        "--input", f"{os.path.join(f'{DeviceTargetDir}', os.path.basename(InputBinary))}",
-        "--golden", f"{os.path.join(f'{DeviceTargetDir}', os.path.basename(GoldenBinary))}",
+        "--model", model,
+        "--input", input_binary,
+        "--golden", golden_binary,
         f"{ProfileOption}"
     ]
+
     result = subprocess.run(execute_cmd, capture_output=True, text=True)
 
     # 출력값을 파일로 저장
@@ -45,10 +51,10 @@ def main(DeviceId=None, NNC_Model=None, InputBinary=None, GoldenBinary=None, Sav
 if __name__ == "__main__":
     # User 설정 값
     DeviceId = "0000100d0f246013"
-    NNC_Model = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\v2_license_Result\squeezenet1.0-12-dropout_softmax_removed\Compiler_result\squeezenet1.0-12-dropout_softmax_removed_simplify_O2_SingleCore.nnc"
-    InputBinary = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\v2_license_Result\squeezenet1.0-12-dropout_softmax_removed\Converter_result\NPU_squeezenet1.0-12-dropout_softmax_removed\testvector\inout\input_data_float32.bin"
-    GoldenBinary = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\v2_license_Result\squeezenet1.0-12-dropout_softmax_removed\Converter_result\NPU_squeezenet1.0-12-dropout_softmax_removed\testvector\inout\golden_data_float32.bin"
-    SaveOutput = os.path.join(os.getcwd(), "result_enntest.txt")
+    NNC_Model = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\webportalResult\midas_v2\Compiler_result\midas_v2_simplify_O2_SingleCore.nnc"
+    InputBinary = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\webportalResult\midas_v2\Converter_result\NPU_midas_v2\testvector\inout\input_data_float32_fp32.bin"
+    GoldenBinary = rf"C:\Work\tom\python_project\exynos_ai_studio_verifier\webportalResult\midas_v2\Converter_result\NPU_midas_v2\testvector\inout\golden_data_float32_fp32.bin"
+    SaveOutput = os.path.join(r"C:\Work\tom\python_project\exynos_ai_studio_verifier\webportalResult\midas_v2\Compiler_result", "result_enntest.txt")
 
     main(DeviceId=DeviceId, NNC_Model=NNC_Model, InputBinary=InputBinary, GoldenBinary=GoldenBinary,
          SaveOutput=SaveOutput)
