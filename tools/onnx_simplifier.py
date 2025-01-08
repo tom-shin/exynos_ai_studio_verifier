@@ -7,8 +7,15 @@ import onnxsim
 from typing import Tuple, List, Dict
 import numpy as np
 import onnxruntime
-
+import tflite2onnx
 from onnx import version_converter
+
+
+def tflite2onnxF():
+    tflite_path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\v_1_0_model_pamir\auto_portal\request\zero_dce_lite_160x160_iter8_30.tflite"
+    onnx_path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\v_1_0_model_pamir\auto_portal\request\zero_dce_lite_160x160_iter8_30.onnx"
+
+    tflite2onnx.convert(tflite_path, onnx_path)
 
 
 class ONNX_INFO:
