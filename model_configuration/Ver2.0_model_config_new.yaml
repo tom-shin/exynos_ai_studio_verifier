@@ -175,7 +175,7 @@ model_config:
 
   tflite_sample_float.tflite:
     repo: SDK_V1.0
-    license: unknown
+    license: unknown  
 
   tflite_sample_fp16.tflite:
     repo: SDK_V1.0
@@ -220,47 +220,58 @@ model_config:
     license: unknown
 
   efficientnet-lite4-11-int8.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
     license: unknown
 
   efficientnet-lite4-11-qdq.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
     license: unknown
 
   efficientnet-lite4-11.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
     license: MIT
 
   mobilenetv2-10.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-10-modify.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-10-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-12-int8.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-12-qdq.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-12.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-12-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   mobilenetv2-7.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
     license: Apache 2.0
 
   resnet101-v1-7.onnx:
@@ -296,83 +307,103 @@ model_config:
     license: Apache 2.0
 
   squeezenet1.0-12-int8.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-12.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-13-qdq.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-3.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-6.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-7.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-8.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-9.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.1-7.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.0-12-dropout_softmax_removed.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   squeezenet1.1-7-dropout_removed.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
     license: Apache 2.0
 
   super-resolution-10.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
     license: Apache 2.0
 
   super-resolution-10-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
     license: Apache 2.0
 
   yolov3-10.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
     license: MIT
 
   yolov3-10-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
     license: MIT
 
   yolov3-12-int8.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
     license: MIT
 
   yolov3-12.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
     license: MIT
 
   yolov3-12-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
     license: MIT
 
   yolov4.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
     license: MIT
 
   yolov4-dynamic2static.onnx:
-    repo: (ML_Group) https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
+    repo: (ML_Group) 
+      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
     license: MIT
 
   inception-tflite-v4-quant-v1.tflite:
@@ -391,11 +422,13 @@ model_config:
     license: BSD 3-Clause
 
   densenet121.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/densenet121
+    repo: 
+      https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/densenet121
     license: BSD 3-Clause
 
   efficientnet_b4.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/efficientnet_b4
+    repo: 
+      https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/efficientnet_b4
     license: BSD 3-Clause
 
   inception-v3.onnx:
@@ -415,7 +448,8 @@ model_config:
     license: Apache 2.0
 
   quicksrnetlarge.onnx:
-    repo: https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/quicksrnetlarge
+    repo: 
+      https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/quicksrnetlarge
     license: Aimet
 
   sesr_m5.onnx:
@@ -423,8 +457,8 @@ model_config:
     license: Aimet
 
   Xenova_vit_base_patch16_224_model.onnx:
-      repo: https://huggingface.co/Xenova/vit-base-patch16-224
-      license: unknown
+    repo: https://huggingface.co/Xenova/vit-base-patch16-224
+    license: unknown
 
   Qdrant_resnet50_model_13.onnx:
     repo: https://huggingface.co/Qdrant/resnet50-onnx
@@ -601,41 +635,64 @@ model_config:
     repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
     license: Apache 2.0
 
-    inception-tflite-v4-v1.tflite:
-      converter:
-        quantize_type: qat
-        output_dtype: uint8
-      repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-      license: Apache 2.0
+  inception-v4-quant.onnx:
+    converter:
+      quantize_type: qat
+      output_dtype: uint8
+    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
+    license: Apache 2.0
+    #python -m tf2onnx.convert --opset 13 --tflite inception-v4-quant.tflite --output inception-v4-quant.onnx
 
-    posenet_mobilenet.onnx:
-      repo: https://huggingface.co/qualcomm/Posenet-Mobilenet/blob/98d0f2a44e7d01e7a821366a6283f627412823dc/Posenet-Mobilenet.onnx
-      license: Apache 2.0
+  inception-tflite-v4-v1.tflite:
+    converter:
+      quantize_type: qat
+      output_dtype: uint8
+    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
+    license: Apache 2.0    
 
-    midas_v2.onnx:
-      repo: https://aihub.qualcomm.com/models/midas --> download model --> onnx runtime
-        selection
-      license: MIT
+  inception-tflite-v4-v1.onnx:
+    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
+    license: Apache 2.0
+    #python -m tf2onnx.convert --opset 13 --tflite inception-tflite-v4-v1.tflite --output inception-tflite-v4-v1.onnx
 
-    deeplabv3.tflite:
-      repo: https://www.kaggle.com/models/tensorflow/deeplabv3
-      license: Apache 2.0
+  posenet_mobilenet.onnx:
+    repo: 
+      https://huggingface.co/qualcomm/Posenet-Mobilenet/blob/98d0f2a44e7d01e7a821366a6283f627412823dc/Posenet-Mobilenet.onnx
+    license: Apache 2.0
 
-    zero_dce_lite_160x160_iter8_30.tflite:
-      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-      license: MIT
+  midas_v2.onnx:
+    repo: https://aihub.qualcomm.com/models/midas --> download model --> onnx runtime
+      selection
+    license: MIT
 
-    zero-dce.pth:
-      repo: https://github.com/bsun0802/Zero-DCE/blob/master/train-jobs/ckpt/8LE-color-loss2_best_model.pth
-      license: MIT
+  deeplabv3.tflite:
+    repo: https://www.kaggle.com/models/tensorflow/deeplabv3
+    license: Apache 2.0
 
-    zero_dce_lite_160x160_iter8_30.onnx:
-      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-      license: MIT
-      #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
+  deeplabv3.onnx:
+    repo: https://www.kaggle.com/models/tensorflow/deeplabv3
+    license: Apache 2.0
+    #python -m tf2onnx.convert --opset 13 --tflite deeplabv3.tflite --output deeplabv3.onnx
 
-    zero_dce_lite_160x160_iter8_30_dynamic2static.onnx:
-      repo: https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-      license: MIT
-      #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
-      #dynamic to static conversion
+  zero_dce_lite_160x160_iter8_30.tflite:
+    repo: 
+      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+    license: MIT
+
+  zero-dce.pth:
+    repo: 
+      https://github.com/bsun0802/Zero-DCE/blob/master/train-jobs/ckpt/8LE-color-loss2_best_model.pth
+    license: MIT
+
+  zero_dce_lite_160x160_iter8_30.onnx:
+    repo: 
+      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+    license: MIT
+    #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
+
+  zero_dce_lite_160x160_iter8_30_dynamic2static.onnx:
+    repo: 
+      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
+    license: MIT
+    #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
+    #dynamic to static conversion
