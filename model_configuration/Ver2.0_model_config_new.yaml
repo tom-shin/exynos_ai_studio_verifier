@@ -175,7 +175,7 @@ model_config:
 
   tflite_sample_float.tflite:
     repo: SDK_V1.0
-    license: unknown  
+    license: unknown
 
   tflite_sample_fp16.tflite:
     repo: SDK_V1.0
@@ -648,7 +648,7 @@ model_config:
       quantize_type: qat
       output_dtype: uint8
     repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-    license: Apache 2.0    
+    license: Apache 2.0
 
   inception-tflite-v4-v1.onnx:
     repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
@@ -696,3 +696,9 @@ model_config:
     license: MIT
     #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
     #dynamic to static conversion
+
+  yolov5s.onnx:
+    converter:
+      do_quantize: false
+    repo: https://github.com/ultralytics/yolov5
+    license: AGPL-3.0

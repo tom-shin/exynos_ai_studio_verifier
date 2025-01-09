@@ -111,7 +111,7 @@ if __name__ == "__main__":
     
     DockerImg = "ubuntu-22.04/enntools-rel:7.11.22.21"
     Shared_Volume = f"/mnt/c/Work/tom/python_project/ai_studio_verifier/ai_studio_2_x/test_model_repo/test_model"
-    Model = "mobilenetv2-7"    
+    Model = "yolov5s"    
     # Model = "efficientnet-lite4-11-int8"
 
     CMD = [

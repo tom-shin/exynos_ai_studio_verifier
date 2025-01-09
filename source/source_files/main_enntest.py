@@ -632,6 +632,91 @@ def local_run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
         return False, failed_pairs  # 실패한 쌍도 반환
 
 
+def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board):
+    """
+    # 작업 중 ---아직 사용하지 말것.
+    """
+
+    DeviceTargetDir = "/data/vendor/enn"
+    ProfileCMD = "EnnTest_v2_lib"
+    ProfileOption = "--profile summary --monitor_iter 1 --iter 1 --useSNR"
+    ANSI_Escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+
+    DeviceId = None  # "0000100d0f246013"
+    NNC_Model = nnc_files[0]
+
+    # Device 권한 설정
+    if DeviceId is None:
+        auth = [f"adb root", f"adb remount"]
+    else:
+        auth = [f"adb -s {DeviceId} root", f"adb -s {DeviceId} remount"]
+
+    for cmd in auth:
+        subprocess.run(cmd)
+
+    # Model Binary push
+    if DeviceId is None:
+        subprocess.run(rf"adb push {NNC_Model} .{DeviceTargetDir}")
+    else:
+        subprocess.run(rf"adb -s {DeviceId} push {NNC_Model} .{DeviceTargetDir}")
+
+    # print(input_golden_pairs)
+    CHECK_ENNTEST = []
+    failed_pairs = []  # 실패한 파일 쌍을 저장할 리스트
+    ANSI_Escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # ANSI 이스케이프 코드 제거용 정규식
+
+    for input_b, golden_bins in input_golden_pairs.items():
+        full_input_b = os.path.join(current_binary_pos, input_b).replace("\\", "/")
+        if DeviceId is None:
+            subprocess.run(rf"adb push {full_input_b} .{DeviceTargetDir}")
+        else:
+            subprocess.run(rf"adb -s {DeviceId} push {full_input_b} .{DeviceTargetDir}")
+
+        for golden_b in golden_bins:
+            full_golden_bin = os.path.join(current_binary_pos, golden_b).replace("\\", "/")
+            if DeviceId is None:
+                subprocess.run(rf"adb push {full_golden_bin} .{DeviceTargetDir}")
+            else:
+                subprocess.run(rf"adb -s {DeviceId} push {full_golden_bin} .{DeviceTargetDir}")
+
+        nnc_model = os.path.join(DeviceTargetDir, os.path.basename(NNC_Model)).replace('\\', '/')
+        input_binary = os.path.join(DeviceTargetDir, os.path.basename(InputBinary)).replace('\\', '/')
+        golden_binary = os.path.join(DeviceTargetDir, os.path.basename(GoldenBinary)).replace('\\', '/')
+
+    #
+    #     execute_cmd = [
+    #         "adb", *(["-s", DeviceId] if DeviceId else []), "shell",
+    #         ProfileCMD,
+    #         "--model", nnc_model,
+    #         "--input", input_binary,
+    #         "--golden", golden_binary,
+    #         ProfileOption
+    #     ]
+    #     result = subprocess.run(execute_cmd, capture_output=True, text=True)
+    #
+    #     # 출력값을 파일로 저장
+    #     filename = f"{os.path.basename(InputBinary)}_{os.path.basename(GoldenBinary)}_result_enntest.txt"
+    #     SaveOutput = os.path.join(out_dir, filename).replace('\\', '/')
+    #
+    #     with open(SaveOutput, "w", encoding="utf-8") as f:
+    #         cleaned_result = ANSI_Escape.sub('', result.stdout)  # ANSI 이스케이프 코드 제거
+    #         f.write(cleaned_result)
+    #
+    #     # 결과 확인
+    #     if "PASSED" in cleaned_result.split("\n")[-2]:
+    #         CHECK_ENNTEST.append(True)
+    #     else:
+    #         CHECK_ENNTEST.append(False)
+    #         failed_pairs.append(cleaned_result)
+    #
+    #     print(f"Saved: {SaveOutput}")
+    #
+    # if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
+    #     return True, failed_pairs  # 실패한 쌍도 반환
+    # else:
+    #     return False, failed_pairs  # 실패한 쌍도 반환
+
+
 def run_enntest(nnc_files, input_golden_pairs, out_dir, target_board):
     # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     # print(nnc_files)

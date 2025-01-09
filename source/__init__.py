@@ -18,7 +18,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.2.1.1_20250106 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.2.1.2_20250109 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -826,6 +826,36 @@ def find_paired_files(directory, mode=2):
         paired_files = list(itertools.product(input_binary, golden_binary))
 
     return paired_files
+
+
+def upgrade_find_paired_files(directory):
+    paired_files = {}
+    inout_dir = None
+
+    # `_fp` 여부에 따라 파일 분리 및 `input`과 `golden` 분리
+    def categorize_files(file_list):
+        input_files = [f for f in file_list if f.startswith("input_data")]
+        golden_files = [f for f in file_list if f.startswith("golden_data")]
+        return input_files[0], golden_files
+
+    for root, dirs, files in os.walk(directory):
+        if 'inout' in dirs:
+            inout_dir = os.path.join(root, 'inout').replace("\\", "/")
+
+            fp_files = []
+            non_fp_files = []
+
+            for filename in os.listdir(inout_dir):
+                if filename.endswith(".bin"):  # `.bin` 확장자만 처리
+                    (fp_files if "_fp" in filename else non_fp_files).append(filename)
+
+            non_fp_input_files, non_fp_golden_files = categorize_files(non_fp_files)
+            fp_input_files, fp_golden_files = categorize_files(fp_files)
+
+            paired_files = {non_fp_input_files: sorted(non_fp_golden_files), fp_input_files: sorted(fp_golden_files)}
+            break
+
+    return paired_files, inout_dir
 
 
 def separate_folders_and_files(directory_path):

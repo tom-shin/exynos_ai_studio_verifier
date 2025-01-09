@@ -33,7 +33,7 @@ from source.__init__ import *
 from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, \
     start_docker_desktop, set_model_config
 
-from source.source_files.main_enntest import run_enntest, local_run_enntest
+from source.source_files.main_enntest import run_enntest, local_run_enntest, upgrade_local_run_enntest
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
@@ -664,6 +664,43 @@ class Model_Analyze_Thread(QThread):
                     result = "Fail"
             else:
                 result = "No nnc or input_golden"
+        else:
+            result = "Skip"
+
+        return result, failed_pairs
+
+    def new_execute_enntest_ondevice(self, TestResult=None, cwd=None):
+        failed_pairs = []
+        nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
+        nnc_files = []
+
+        if TestResult["enntools compile"][0] == "Success":
+            for file in os.listdir(nnc_model_path):
+                if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
+                    filename = os.path.join(nnc_model_path, file).replace("\\", "/")
+                    nnc_files.append(filename)
+
+            input_golden_path = os.path.join(cwd, "Converter_result").replace("\\", "/")
+            input_golden_pairs, current_binary_pos = upgrade_find_paired_files(input_golden_path)
+
+            out_dir = os.path.join(cwd, "Enntester_result").replace("\\", "/")
+            CheckDir(out_dir)
+
+            if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
+                if self.grand_parent.remoteradioButton.isChecked():
+                    ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
+                                                    self.grand_parent.enntestcomboBox.currentText())
+                else:
+                    ret, failed_pairs = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
+                                                                  out_dir,
+                                                                  self.grand_parent.enntestcomboBox.currentText())
+
+                if ret:
+                    result = "Success"
+                else:
+                    result = "Fail"
+            else:
+                result = "[Warning !] Check Manually"
         else:
             result = "Skip"
 
