@@ -1694,17 +1694,21 @@ class Model_Verify_Class(QObject):
         # df = pd.DataFrame(result).applymap(clean_data)
         # 엑셀 파일로 저장
         excel_file = result_path.replace("json", "xlsx")
-        df.to_excel(excel_file, index=False, engine='openpyxl')
+        df.to_excel(excel_file, index=False, engine='openpyxl', startrow=1)
         # Load the workbook and access the active sheet
         wb = load_workbook(excel_file)
         ws = wb.active
 
-        # Set wrap text for all cells and auto adjust column width and row height
-        for row in ws.iter_rows():
+        # 첫 번째 셀(A1)에 "Hello" 추가
+        repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
+        ws.cell(row=1, column=1, value=str(repo_tag))
+
+        # 줄 바꿈 설정 및 열 너비 자동 조정
+        for row in ws.iter_rows(min_row=2):  # 데이터는 두 번째 줄부터 시작
             for cell in row:
-                if cell.value:  # 셀 값이 존재할 경우에만 작업 수행
-                    cell.value = str(cell.value).replace("\\n", "\n")  # 줄 바꿈 문자 처리
-                    cell.alignment = Alignment(wrap_text=True, vertical='top')  # 줄 바꿈 설정
+                if cell.value:
+                    cell.value = str(cell.value).replace("\\n", "\n")
+                    cell.alignment = Alignment(wrap_text=True, vertical='top')
 
         # Auto-adjust column width
         for col in range(1, len(df.columns) + 1):
@@ -1719,7 +1723,7 @@ class Model_Verify_Class(QObject):
             ws.column_dimensions[column].width = max_length + 5  # Add padding to prevent truncation
 
         # Auto-adjust row height based on content (to ensure proper wrap)
-        for row in ws.iter_rows():
+        for row in ws.iter_rows(min_row=2):
             max_row_height = 0
             for cell in row:
                 if cell.alignment.wrap_text and cell.value:  # 줄 바꿈이 설정된 셀에 대해 높이 조정
