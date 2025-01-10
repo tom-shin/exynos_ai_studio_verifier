@@ -18,7 +18,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.2.1.2_20250109 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.0.0_20250110 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -41,7 +41,7 @@ class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main g
         super().__init__(parent)
         self.setWindowTitle(message)
 
-        self.resize(400, 100)  # 원하는 크기로 조절
+        self.resize(700, 100)  # 원하는 크기로 조절
 
         self.progress_bar = QProgressBar(self)
         self.label = QLabel("", self)
@@ -128,7 +128,7 @@ class Modal_ProgressDialog(QDialog):  # popup 메뉴가 있으면 뒤 main gui�
         self.setWindowTitle(message)
         self.setModal(True)
 
-        self.resize(400, 100)  # 원하는 크기로 조절
+        self.resize(700, 100)  # 원하는 크기로 조절
 
         self.progress_bar = QProgressBar(self)
         self.label = QLabel("", self)

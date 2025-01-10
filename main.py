@@ -4,8 +4,6 @@ import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-import os
-import sys
 import onnx
 import onnxruntime
 import onnxsim
@@ -14,13 +12,11 @@ import easygui
 import platform
 import time
 import pandas as pd
-from collections import OrderedDict
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 from openpyxl.utils import get_column_letter
 from ruamel.yaml import YAML
 from io import StringIO
-import re
 import numpy as np
 import uuid
 from typing import Tuple, List, Dict
@@ -33,7 +29,7 @@ from source.__init__ import *
 from source.source_files.execute_verify import get_image_info_from_dockerImg, Load_Target_Dir_Thread, \
     start_docker_desktop, set_model_config
 
-from source.source_files.main_enntest import run_enntest, local_run_enntest, upgrade_local_run_enntest
+from source.source_files.run_enntest import upgrade_local_run_enntest, upgrade_remote_run_enntest
 
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
@@ -633,43 +629,7 @@ class Model_Analyze_Thread(QThread):
 
         return result, error_contents_dict
 
-    def execute_enntest_ondevice(self, TestResult=None, cwd=None):
-        failed_pairs = []
-        nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
-        nnc_files = []
-
-        if TestResult["enntools compile"][0] == "Success":
-            for file in os.listdir(nnc_model_path):
-                if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
-                    filename = os.path.join(nnc_model_path, file).replace("\\", "/")
-                    nnc_files.append(filename)
-
-            input_golden_path = os.path.join(cwd, "Converter_result").replace("\\", "/")
-            input_golden_pairs = find_paired_files(input_golden_path, mode=1)  # mode=2
-
-            out_dir = os.path.join(cwd, "Enntester_result").replace("\\", "/")
-            CheckDir(out_dir)
-
-            if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
-                if self.grand_parent.remoteradioButton.isChecked():
-                    ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
-                                                    self.grand_parent.enntestcomboBox.currentText())
-                else:
-                    ret, failed_pairs = local_run_enntest(nnc_files, input_golden_pairs, out_dir,
-                                                          self.grand_parent.enntestcomboBox.currentText())
-
-                if ret:
-                    result = "Success"
-                else:
-                    result = "Fail"
-            else:
-                result = "No nnc or input_golden"
-        else:
-            result = "Skip"
-
-        return result, failed_pairs
-
-    def new_execute_enntest_ondevice(self, TestResult=None, cwd=None):
+    def upgrade_execute_enntest_ondevice(self, TestResult=None, cwd=None):
         failed_pairs = []
         nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
         nnc_files = []
@@ -688,8 +648,9 @@ class Model_Analyze_Thread(QThread):
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
                 if self.grand_parent.remoteradioButton.isChecked():
-                    ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
-                                                    self.grand_parent.enntestcomboBox.currentText())
+                    ret, failed_pairs = upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
+                                                                   out_dir,
+                                                                   self.grand_parent.enntestcomboBox.currentText())
                 else:
                     ret, failed_pairs = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
                                                                   out_dir,
@@ -699,6 +660,8 @@ class Model_Analyze_Thread(QThread):
                     result = "Success"
                 else:
                     result = "Fail"
+                    if len(failed_pairs) == 0:
+                        result = "Server Connection Error"  # remote server failed
             else:
                 result = "[Warning !] Check Manually"
         else:
@@ -755,7 +718,8 @@ class Model_Analyze_Thread(QThread):
             self.send_set_text_signal.emit(message)
 
             if "enntest" in enntools_cmd:
-                result, error_pair = self.execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
+                result, error_pair = self.upgrade_execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
+
                 if result == "Success":
                     log = ""
                 else:
@@ -835,124 +799,6 @@ class Model_Analyze_Thread(QThread):
         elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
 
         return elapsed_time, cwd
-
-    # def X_model_ai_studio_test(self, CommandLists=[], target_widget=None, executed_cnt=0, max_cnt=0):
-    #     init_success = False
-    #     conversion_success = False
-    #     compile_success = False
-
-    #     ContainerName, cwd = self.create_container(target_widget=target_widget)
-
-    #     start_T = time.time()
-    #     for enntools_cmd in CommandLists:
-    #         out = []
-    #         error = []
-
-    #         message = rf"{os.path.basename(cwd)} Executing {enntools_cmd} ...({executed_cnt}/{max_cnt})"
-    #         self.send_set_text_signal.emit(message)
-
-    #         cmd = ["docker", "exec", "-i", ContainerName, "/bin/bash", "-c",
-    #                f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"]
-
-    #         if "enntest" not in enntools_cmd:
-    #             out, error, timeout_expired = user_subprocess(cmd=cmd, run_time=False, timeout=self.timeout_expired,
-    #                                                           shell=False, log=True)
-    #             if timeout_expired:
-    #                 print("timeout_expired")
-    #                 self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
-    #                 break
-
-    #         "실시간 yaml 수정: init 후 생성되는 yaml에 대해서 src_config을 참고해서 수정"
-    #         failed_pairs = []
-    #         parameter_set = OrderedDict()
-
-    #         _directory_, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
-    #         _filename_, extension = separate_filename_and_extension(_model_)
-
-    #         if "init" in enntools_cmd:
-    #             # 변경된 항목들을 텍스트로 변환
-    #             check_DATA_dir = os.path.join(_directory_, "DATA").replace("\\", "/")
-    #             target_config = os.path.join(_directory_, f"{_filename_}.yaml").replace("\\", "/")
-
-    #             if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
-    #                 init_success = True
-    #                 print("init_success")
-
-    #             if self.grand_parent.modifiedradioButton.isChecked():
-    #                 repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
-    #                 tag = int(repo_tag.split(":")[1].split(".")[0])
-
-    #                 if tag >= 7:
-    #                     src_config = os.path.join(BASE_DIR, "model_configuration",
-    #                                               "Ver2.0_model_config_new.yaml").replace("\\", "/")
-    #                 else:
-    #                     src_config = os.path.join(BASE_DIR, "model_configuration",
-    #                                               "Ver1.0_model_config_new.yaml").replace("\\", "/")
-
-    #                 parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
-    #                                                  target_config=target_config,
-    #                                                  model_name=_model_)
-    #         elif "conversion" in enntools_cmd:
-    #             check_log = os.path.join(cwd, "Converter_result", ".log")
-    #             error_keywords = keyword["error_keyword"]
-    #             if os.path.exists(check_log):
-    #                 ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-    #                                                                                       check_keywords=error_keywords)
-    #                 if len(ret) == 0:
-    #                     conversion_success = True
-    #                     print("conversion_success")
-
-    #         elif "compile" in enntools_cmd:
-    #             check_log = os.path.join(cwd, "Compiler_result", ".log")
-    #             error_keywords = keyword["error_keyword"]
-    #             if os.path.exists(check_log):
-    #                 ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-    #                                                                                       check_keywords=error_keywords)
-    #                 if len(ret) == 0:
-    #                     compile_success = True
-    #                     print("compile_success")
-
-    #         elif "enntest" in enntools_cmd:
-    #             if init_success and conversion_success and compile_success:
-    #                 init_success = False
-    #                 conversion_success = False
-    #                 compile_success = False
-
-    #                 nnc_model_path = os.path.join(_directory_, "Compiler_result").replace("\\", "/")
-    #                 nnc_files = []
-    #                 for file in os.listdir(nnc_model_path):
-    #                     if file.endswith('.nnc') and os.path.isfile(os.path.join(nnc_model_path, file)):
-    #                         filename = os.path.join(nnc_model_path, file).replace("\\", "/")
-    #                         nnc_files.append(filename)
-
-    #                 input_golden_path = os.path.join(_directory_, "Converter_result").replace("\\", "/")
-    #                 # input_golden_pairs = find_paired_files(input_golden_path, mode=2)
-    #                 input_golden_pairs = find_paired_files(input_golden_path, mode=1)
-
-    #                 out_dir = os.path.join(_directory_, "Enntester_result").replace("\\", "/")
-    #                 CheckDir(out_dir)
-
-    #                 out = []
-    #                 error = []
-    #                 if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
-    #                     ret, failed_pairs = run_enntest(nnc_files, input_golden_pairs, out_dir,
-    #                                                     self.grand_parent.enntestcomboBox.currentText())
-    #                     if not ret:
-    #                         out.append("Fail")
-    #                         error.append("Fail")
-
-    #                 else:
-    #                     out.append("Skip(No nnc or input_golden)")
-    #                     error.append("Skip(No nnc or input_golden)")
-    #             else:
-    #                 out.append("Skip")
-    #                 error.append("Skip")
-
-    #         self.output_signal_2.emit(target_widget, enntools_cmd, cwd, out, error, parameter_set, failed_pairs)
-
-    #     elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
-
-    #     return elapsed_time, cwd
 
     def core_ai_studio_test(self, target_widget=None, CommandLists=[], executed_cnt=0, max_cnt=0):
         model = target_widget[0].pathlineEdit.text()
@@ -1172,10 +1018,6 @@ class Model_Verify_Class(QObject):
                 target_file = os.path.join(target_dir, f"{name}.prototxt")
                 shutil.copy2(src_file, target_file)
 
-                # src_file = os.path.join(directory, f"{name}.protobin")
-                # target_file = os.path.join(target_dir, f"{name}.protobin")
-                # shutil.copy2(src_file, target_file)
-
         if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
             self.insert_widget_progress = ModalLess_ProgressDialog(message="Loading Scenario")
         else:
@@ -1266,218 +1108,6 @@ class Model_Verify_Class(QObject):
             elif "enntest" in execute_cmd:
                 sub_widget[0].enntestlineEdit.setText(result)
                 sub_widget[0].enntesttextEdit.setText(log)
-
-            # elif "enntest" in execute_cmd:
-            #     if len(out) == 0 and len(error) == 0:
-            #         sub_widget[0].enntestlineEdit.setText("Success")
-            #     else:
-            #         sub_widget[0].enntestlineEdit.setText(out[0])
-            #         string_ = ""
-            #         for _in_bin, _golden_bin in failed_pairs:
-            #             string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
-            #         sub_widget[0].enntesttextEdit.setText(string_)
-            #
-            #     return
-            #
-            # elif "conversion" in execute_cmd:
-            #     check_log = os.path.join(cwd, "Converter_result", ".log")
-            #
-            # elif "compile" in execute_cmd:
-            #     check_log = os.path.join(cwd, "Compiler_result", ".log")
-            #
-            # elif "estimation" in execute_cmd:
-            #     check_log = os.path.join(cwd, "Estimator_result", ".log")
-            #
-            # elif "analysis" in execute_cmd:
-            #     check_log = os.path.join(cwd, "Analyzer_result", ".log")
-            #
-            # elif "profiling" in execute_cmd:
-            #     check_log = os.path.join(cwd, "Profiler_result", ".log")
-            #
-            # error_keywords = keyword["error_keyword"]
-            #
-            # if os.path.exists(check_log):
-            #     ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-            #                                                                           check_keywords=error_keywords)
-            #
-            #     if len(ret) == 0:
-            #         if "conversion" in execute_cmd:
-            #             sub_widget[0].conversionlineEdit.setText("Success")
-            #         elif "compile" in execute_cmd:
-            #             sub_widget[0].compilelineEdit.setText("Success")
-            #         elif "estimation" in execute_cmd:
-            #             sub_widget[0].estimationlineEdit.setText("Success")
-            #         elif "analysis" in execute_cmd:
-            #             sub_widget[0].analysislineEdit.setText("Success")
-            #         elif "profiling" in execute_cmd:
-            #             sub_widget[0].profilinglineEdit.setText("Success")
-            #     else:
-            #         text_to_display = ""
-            #
-            #         # context_data 내용을 문자열로 변환
-            #         for file, contexts in error_contents_dict.items():
-            #             text_to_display += f"File: {file}\n"
-            #             for context in contexts:
-            #                 text_to_display += f"{context}\n{'-' * 40}\n"
-            #
-            #         if "conversion" in execute_cmd:
-            #             sub_widget[0].conversionlineEdit.setText("Fail")
-            #             sub_widget[0].conversiontextEdit.setText(text_to_display)
-            #
-            #         elif "compile" in execute_cmd:
-            #             sub_widget[0].compilelineEdit.setText("Fail")
-            #
-            #             profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
-            #             if os.path.exists(profile_log):
-            #                 # 파일이 있으면 열기
-            #                 text_to_display += f"\n\n[Profile Log]\n"
-            #                 with open(profile_log, 'r') as file:
-            #                     lines = file.readlines()
-            #
-            #                 # Unsupported가 포함된 라인 찾기
-            #                 for line in lines:
-            #                     if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
-            #                         text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
-            #
-            #             sub_widget[0].compilertextEdit.setText(text_to_display)
-            #
-            #         elif "estimation" in execute_cmd:
-            #             sub_widget[0].estimationlineEdit.setText("Fail")
-            #             sub_widget[0].estimationtextEdit.setText(text_to_display)
-            #
-            #         elif "analysis" in execute_cmd:
-            #             sub_widget[0].analysislineEdit.setText("Fail")
-            #             sub_widget[0].analysistextEdit.setText(text_to_display)
-            #
-            #         elif "profiling" in execute_cmd:
-            #             sub_widget[0].profilinglineEdit.setText("Fail")
-            #             sub_widget[0].profiletextEdit.setText(text_to_display)
-
-    # def X_update_test_result_2(self, sub_widget, execute_cmd, cwd, out, error, parameter_setting, failed_pairs):
-    #     if self.work_progress is not None:
-
-    #         check_log = ""
-
-    #         if "init" in execute_cmd:
-    #             def convert_changed_items_to_text(changed_items):
-    #                 # changed_items OrderedDict를 텍스트 형식으로 변환
-    #                 result_text = ""
-    #                 for section, keys in changed_items.items():  # OrderedDict의 섹션 순회
-    #                     result_text += f"Section: {section}\n"  # 섹션 이름 추가
-    #                     for key, values in keys.items():  # 각 섹션 내 키 순회
-    #                         old_value = values['old_value']
-    #                         new_value = values['new_value']
-    #                         result_text += f"  Key: {key}\n"
-    #                         result_text += f"    Old Value: {old_value}\n"
-    #                         result_text += f"    New Value: {new_value}\n\n"
-
-    #                 return result_text
-
-    #             # 변경된 항목들을 텍스트로 변환
-    #             changed_items_text = convert_changed_items_to_text(parameter_setting)
-    #             sub_widget[0].parametersetting_textEdit.setText(changed_items_text)
-
-    #             directory, model_name = separate_folders_and_files(sub_widget[0].pathlineEdit.text())
-    #             filename, extension = separate_filename_and_extension(model_name)
-
-    #             check_DATA_dir = os.path.join(directory, "DATA")
-    #             check_init_yaml_file = os.path.join(directory, f"{filename}.yaml")
-    #             if os.path.isdir(check_DATA_dir) and os.path.isfile(check_init_yaml_file):
-    #                 sub_widget[0].initlineEdit.setText("Success")
-    #             else:
-    #                 sub_widget[0].initlineEdit.setText("Fail")
-
-    #             # if len(out) == 0 and len(error) == 0:
-    #             #     sub_widget[0].initlineEdit.setText("Success")
-    #             # else:
-    #             #     sub_widget[0].initlineEdit.setText("Fail")
-    #             return
-
-    #         elif "enntest" in execute_cmd:
-    #             if len(out) == 0 and len(error) == 0:
-    #                 sub_widget[0].enntestlineEdit.setText("Success")
-    #             else:
-    #                 sub_widget[0].enntestlineEdit.setText(out[0])
-    #                 string_ = ""
-    #                 for _in_bin, _golden_bin in failed_pairs:
-    #                     string_ += f"[{os.path.basename(_in_bin)}, {os.path.basename(_golden_bin)}]\n"
-    #                 sub_widget[0].enntesttextEdit.setText(string_)
-
-    #             return
-
-    #         elif "conversion" in execute_cmd:
-    #             check_log = os.path.join(cwd, "Converter_result", ".log")
-
-    #         elif "compile" in execute_cmd:
-    #             check_log = os.path.join(cwd, "Compiler_result", ".log")
-
-    #         elif "estimation" in execute_cmd:
-    #             check_log = os.path.join(cwd, "Estimator_result", ".log")
-
-    #         elif "analysis" in execute_cmd:
-    #             check_log = os.path.join(cwd, "Analyzer_result", ".log")
-
-    #         elif "profiling" in execute_cmd:
-    #             check_log = os.path.join(cwd, "Profiler_result", ".log")
-
-    #         error_keywords = keyword["error_keyword"]
-
-    #         if os.path.exists(check_log):
-    #             ret, error_contents_dict = upgrade_check_for_specific_string_in_files(check_log,
-    #                                                                                   check_keywords=error_keywords)
-
-    #             if len(ret) == 0:
-    #                 if "conversion" in execute_cmd:
-    #                     sub_widget[0].conversionlineEdit.setText("Success")
-    #                 elif "compile" in execute_cmd:
-    #                     sub_widget[0].compilelineEdit.setText("Success")
-    #                 elif "estimation" in execute_cmd:
-    #                     sub_widget[0].estimationlineEdit.setText("Success")
-    #                 elif "analysis" in execute_cmd:
-    #                     sub_widget[0].analysislineEdit.setText("Success")
-    #                 elif "profiling" in execute_cmd:
-    #                     sub_widget[0].profilinglineEdit.setText("Success")
-    #             else:
-    #                 text_to_display = ""
-
-    #                 # context_data 내용을 문자열로 변환
-    #                 for file, contexts in error_contents_dict.items():
-    #                     text_to_display += f"File: {file}\n"
-    #                     for context in contexts:
-    #                         text_to_display += f"{context}\n{'-' * 40}\n"
-
-    #                 if "conversion" in execute_cmd:
-    #                     sub_widget[0].conversionlineEdit.setText("Fail")
-    #                     sub_widget[0].conversiontextEdit.setText(text_to_display)
-
-    #                 elif "compile" in execute_cmd:
-    #                     sub_widget[0].compilelineEdit.setText("Fail")
-
-    #                     profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
-    #                     if os.path.exists(profile_log):
-    #                         # 파일이 있으면 열기
-    #                         text_to_display += f"\n\n[Profile Log]\n"
-    #                         with open(profile_log, 'r') as file:
-    #                             lines = file.readlines()
-
-    #                         # Unsupported가 포함된 라인 찾기
-    #                         for line in lines:
-    #                             if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
-    #                                 text_to_display += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
-
-    #                     sub_widget[0].compilertextEdit.setText(text_to_display)
-
-    #                 elif "estimation" in execute_cmd:
-    #                     sub_widget[0].estimationlineEdit.setText("Fail")
-    #                     sub_widget[0].estimationtextEdit.setText(text_to_display)
-
-    #                 elif "analysis" in execute_cmd:
-    #                     sub_widget[0].analysislineEdit.setText("Fail")
-    #                     sub_widget[0].analysistextEdit.setText(text_to_display)
-
-    #                 elif "profiling" in execute_cmd:
-    #                     sub_widget[0].profilinglineEdit.setText("Fail")
-    #                     sub_widget[0].profiletextEdit.setText(text_to_display)
 
     def update_test_result(self, elapsed_time, sub_widget, executed_cnt, cwd):
         if self.work_progress is not None:
@@ -1842,11 +1472,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         # 기본 글자 색상 설정
         color_format = cursor.charFormat()
 
-        keywords = ["enntools init", "enntools conversion", "enntools compile", "enntools estimation",
-                    "enntools analysis",
-                    "enntools profiling"]
+        keywords = ['Error Code:', 'Error code:', 'Error msg:']
         color_format.setForeground(
-            QtCore.Qt.red if any(keyword in text.lower() for keyword in keywords) else QtCore.Qt.black)
+            QtCore.Qt.red if any(keyword in text for keyword in keywords) else QtCore.Qt.black)
 
         cursor.setCharFormat(color_format)
         cursor.insertText(text)
