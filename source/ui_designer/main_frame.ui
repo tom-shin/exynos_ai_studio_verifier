@@ -646,7 +646,7 @@
                </font>
               </property>
               <property name="text">
-               <string>    * profile only support local device !</string>
+               <string>    * only support Linux &amp;&amp; local device !</string>
               </property>
              </widget>
             </item>

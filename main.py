@@ -1530,6 +1530,10 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
 
     def on_radio_button_toggled(self):
+        env = check_environment()
+        if env == "Windows":
+            return
+
         if self.mainFrame_ui.remoteradioButton.isChecked():
             self.mainFrame_ui.cmd5.setChecked(False)
             self.mainFrame_ui.cmd5.setEnabled(False)

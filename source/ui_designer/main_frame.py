@@ -585,7 +585,7 @@ class Ui_MainWindow(object):
         self.cmd3.setText(_translate("MainWindow", "enntools estimation"))
         self.cmd4.setText(_translate("MainWindow", "enntools analysis"))
         self.cmd5.setText(_translate("MainWindow", "enntools profiling"))
-        self.label.setText(_translate("MainWindow", "    * profile only support local device !"))
+        self.label.setText(_translate("MainWindow", "    * only support Linux && local device !"))
         self.cmd6.setText(_translate("MainWindow", "enntest execute"))
         self.remoteradioButton.setText(_translate("MainWindow", "Remote Device"))
         self.localradioButton.setText(_translate("MainWindow", "Local Device"))
