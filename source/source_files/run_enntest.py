@@ -252,7 +252,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         auth = [f"adb -s {DeviceId} root", f"adb -s {DeviceId} remount"]
 
     for cmd in auth:
-        subprocess.run(cmd)
+        subprocess.run(cmd, shell=True)
 
     check_enn_directory_exist(DeviceId=DeviceId, android_device_path=DeviceTargetDir)
 
@@ -261,9 +261,9 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
     arg_nnc_model = os.path.join(DeviceTargetDir, os.path.basename(NNC_Model)).replace("\\", "/")
 
     if DeviceId is None:
-        subprocess.run(rf"adb push {NNC_Model} .{DeviceTargetDir}")
+        subprocess.run(rf"adb push {NNC_Model} .{DeviceTargetDir}", shell=True)
     else:
-        subprocess.run(rf"adb -s {DeviceId} push {NNC_Model} .{DeviceTargetDir}")
+        subprocess.run(rf"adb -s {DeviceId} push {NNC_Model} .{DeviceTargetDir}", shell=True)
 
     # print(input_golden_pairs)
     CHECK_ENNTEST = []
@@ -316,7 +316,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
             "--golden", arg_golden_bin.rstrip(),
             ProfileOption
         ]
-        result = subprocess.run(execute_cmd, capture_output=True, text=True)
+        result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
 
         # 출력값을 파일로 저장
         filename = f"result_enntest_{cnt}.txt"
