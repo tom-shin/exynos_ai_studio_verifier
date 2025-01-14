@@ -62,8 +62,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>897</width>
-                   <height>498</height>
+                   <width>973</width>
+                   <height>541</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -638,6 +638,19 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="label">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>    * profile only support local device !</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QCheckBox" name="cmd6">
               <property name="font">
                <font>
@@ -906,7 +919,7 @@
      <x>0</x>
      <y>0</y>
      <width>1344</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBrowser">

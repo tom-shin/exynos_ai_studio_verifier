@@ -9,7 +9,7 @@ import re
 import psutil
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 
-from .. import CheckDir, separate_folders_and_files, separate_filename_and_extension
+from .. import separate_folders_and_files
 
 
 def get_image_info_from_dockerImg(image_path):

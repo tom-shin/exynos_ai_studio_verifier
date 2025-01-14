@@ -34,6 +34,11 @@ global_config:
     tv_input: DATA/database.h5
     use_randomdb: true
     userdb: DATA/database.txt
+    enable_stm: true
+
+  profiler:
+    device: Gen-6npu
+    device_id: 0000100d0f246013
 
 model_config:
   mobilenet-v1-quant.tflite:

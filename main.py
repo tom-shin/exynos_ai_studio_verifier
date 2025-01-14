@@ -466,7 +466,12 @@ class Model_Analyze_Thread(QThread):
 
         # 현재 경로를 WSL 경로로 변환
         drive, path = os.path.splitdrive(os.path.dirname(cwd))
-        Shared_Volume = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
+
+        env = check_environment()
+        if env == "Windows":
+            self.Shared_Volume = "/mnt/" + drive.lower().replace(":", "") + path.replace("\\", "/")
+        else:
+            self.Shared_Volume = path.replace("\\", "/")
 
         ContainerName = f"container_{uuid.uuid4().hex}"  # 고유값 필요요
 
@@ -481,7 +486,7 @@ class Model_Analyze_Thread(QThread):
             "--privileged",  # 권한 강화 (2번 항목)
             "--net", "host",  # 호스트 네트워크 사용 (3번 항목)
             "--ipc", "host",  # 호스트 IPC 네임스페이스 사용 (3번 항목)           
-            "-v", f"{Shared_Volume}:/workspace",  # 볼륨 마운트 (이미 포함됨)
+            "-v", f"{self.Shared_Volume}:/workspace",  # 볼륨 마운트 (이미 포함됨)
             "-v", "/etc/timezone:/etc/timezone",  # 타임존 설정 (6번 항목)
             "-w", "/workspace",  # 작업 디렉터리 설정 (6번 항목)           
             self.DockerImg,
@@ -740,11 +745,24 @@ class Model_Analyze_Thread(QThread):
                     ContainerName,
                     "/bin/bash",
                     "-c",
+                    # "ls -l /workspace"
                     f"cd /workspace/{os.path.basename(cwd)} && {enntools_cmd}"
                 ]
 
                 out, error, timeout_expired = user_subprocess(cmd=CMD, run_time=False, timeout=self.timeout_expired,
                                                               shell=False, log=True)
+
+                env = check_environment()
+                if env == "Linux":    
+                    post_cmd = [
+                        "sudo",
+                        "chmod",
+                        "-R",
+                        "777",
+                        f"{self.Shared_Volume}"
+                    ]
+                    _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=self.timeout_expired, log=True)
+
 
                 if timeout_expired:
                     self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
@@ -1385,7 +1403,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.dialog = None
         self.directory = None
         self.single_op_ctrl = None
-        self.wsl_shared_volume_name = None
+        self.Shared_Volume = None
         self.repo_tag = None
         self.load_progress = None
         self.load_thread = None
@@ -1505,7 +1523,19 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.mainFrame_ui.configpushButton.clicked.connect(self.open_model_config)
 
+        self.mainFrame_ui.remoteradioButton.toggled.connect(self.on_radio_button_toggled)
+        self.mainFrame_ui.localradioButton.toggled.connect(self.on_radio_button_toggled)        
+        self.mainFrame_ui.cmd5.setEnabled(False)
+
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
+
+    def on_radio_button_toggled(self):
+        if self.mainFrame_ui.remoteradioButton.isChecked():
+            self.mainFrame_ui.cmd5.setChecked(False)
+            self.mainFrame_ui.cmd5.setEnabled(False)
+        else:
+            self.mainFrame_ui.cmd5.setEnabled(True)
+
 
     def save_changes(self, full_file, content, dialog):
         # YAML 문자열을 파싱하여 데이터로 변환
@@ -1700,7 +1730,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
-    start_docker_desktop()
+    env = check_environment()
+    if env == "Windows":
+        start_docker_desktop()
 
     import sys
 

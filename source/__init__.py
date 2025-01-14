@@ -8,6 +8,7 @@ from datetime import datetime
 import shutil
 import re
 import itertools
+import platform
 
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread
 from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
@@ -18,7 +19,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.0.0_20250110 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.1.0_20250114 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -430,6 +431,31 @@ def save2txt(file_path, data, use_encoding=False):
     # print("Saved as TEXT.")
 
 
+def check_environment():
+    env = ''
+    system = platform.system()
+    if system == "Windows":
+        # Windows인지 확인, WSL 포함
+        if "microsoft" in platform.version().lower() or "microsoft" in platform.release().lower():
+            env = "WSL"  # Windows Subsystem for Linux
+        env = "Windows"  # 순수 Windows
+    elif system == "Linux":
+        # Linux에서 WSL인지 확인
+        try:
+            with open("/proc/version", "r") as f:
+                version_info = f.read().lower()
+            if "microsoft" in version_info:
+                env = "WSL"  # WSL 환경
+        except FileNotFoundError:
+            pass
+        env = "Linux"  # 순수 Linux
+    else:
+        env = "Other"  # macOS 또는 기타 운영체제
+
+    print(env)
+    return env
+
+
 def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True):
     line_output = []
     error_output = []
@@ -592,7 +618,15 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
                                 break
 
                         # 아래쪽으로는 발견된 줄의 다음 2줄까지 포함
-                        end_index = min(len(lines), i + 2)
+                        # end_index = min(len(lines), i + 2)
+                        # 아래 방향으로 "Command:"가 나오기 전까지 포함
+                        end_index = i
+                        for j in range(i + 1, len(lines)):
+                            if "Command:" in lines[j]:
+                                end_index = j
+                                break
+                        else:
+                            end_index = len(lines)  # "Command:"가 없으면 파일 끝까지
 
                         # 각 라인의 끝에 줄바꿈 추가
                         context = [line + "\n" if not line.endswith("\n") else line for line in
