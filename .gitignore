@@ -1,0 +1,23 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 환경 설정 파일
+*.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS별 임시 파일
+.DS_Store
+Thumbs.db
+
+# pycharm 파일
+.idea
+
+# Test resutl 폴더
+Result
+
+# Git ignore 파일
+#.gitignore
