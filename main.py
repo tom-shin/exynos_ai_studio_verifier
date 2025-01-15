@@ -1039,9 +1039,9 @@ class Model_Verify_Class(QObject):
                 shutil.copy2(src_file, target_file)
 
         if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
-            self.insert_widget_progress = ModalLess_ProgressDialog(message="Loading Scenario")
+            self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
         else:
-            self.insert_widget_progress = Modal_ProgressDialog(message="Loading Scenario")
+            self.insert_widget_progress = ProgressDialog(modal=True, message="Loading Scenario")
 
         self.insert_widget_progress.setProgressBarMaximum(max_value=len(all_test_path))
 
@@ -1063,7 +1063,7 @@ class Model_Verify_Class(QObject):
 
         self.insert_widget_thread.start()
 
-        self.insert_widget_progress.showModal_less()
+        self.insert_widget_progress.show_progress()
 
     def set_text_progress(self, string):
         if self.work_progress is not None:
@@ -1253,9 +1253,9 @@ class Model_Verify_Class(QObject):
         self.start_evaluation_time = time.time()
 
         if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
-            self.work_progress = ModalLess_ProgressDialog(message="Analyzing AI Model", show=True)
+            self.work_progress = ProgressDialog(modal=False, message="Analyzing AI Model", show=True)
         else:
-            self.work_progress = Modal_ProgressDialog(message="Analyzing AI Model", show=True)
+            self.work_progress = ProgressDialog(modal=True, message="Analyzing AI Model", show=True)
 
         self.work_progress.send_user_close_event.connect(self.stop_analyze)
 
@@ -1274,7 +1274,7 @@ class Model_Verify_Class(QObject):
 
         self.model_analyze_thread_instance.start()
 
-        self.work_progress.showModal_less()
+        self.work_progress.show_progress()
 
     def select_all_scenario(self, check):
         if self.added_scenario_widgets is None or len(self.added_scenario_widgets) == 0:
@@ -1656,9 +1656,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         if yes_:
             if self.mainFrame_ui.popctrl_radioButton.isChecked():
-                self.load_progress = ModalLess_ProgressDialog(message="Image Loading", parent=self)
+                self.load_progress = ProgressDialog(modal=False, message="Image Loading", parent=self)
             else:
-                self.load_progress = Modal_ProgressDialog(message="Image Loading", parent=self)
+                self.load_progress = ProgressDialog(modal=True, message="Image Loading", parent=self)
 
             # 드라이브 문자 추출 및 변환
             drive, path = os.path.splitdrive(load_file)
@@ -1669,7 +1669,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
             self.load_thread.send_finish_ui_sig.connect(self.imageLoadResult)
             self.load_thread.start()
 
-            self.load_progress.showModal_less()
+            self.load_progress.show_progress()
 
     def update_docker_imageList(self):
         self.mainFrame_ui.dockerimagecomboBox.clear()

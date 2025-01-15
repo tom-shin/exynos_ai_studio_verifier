@@ -10,6 +10,7 @@ import re
 import itertools
 import platform
 
+from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread
 from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QSpacerItem, \
@@ -19,7 +20,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.2.0_20250115 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.2.1_20250115 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -35,14 +36,21 @@ keyword = {
 ANSI_ESCAPE = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
 
-class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main gui의 제어가 가능 함
+class ProgressDialog(QDialog):  # This class will handle both modal and non-modal dialogs
     send_user_close_event = pyqtSignal(bool)
 
-    def __init__(self, message, show=False, parent=None):
+    def __init__(self, message, modal=True, show=False, parent=None):
         super().__init__(parent)
+
         self.setWindowTitle(message)
 
-        self.resize(700, 100)  # 원하는 크기로 조절
+        # Set the dialog as modal or non-modal based on the 'modal' argument
+        if modal:
+            self.setModal(True)
+        else:
+            self.setWindowModality(QtCore.Qt.NonModal)
+
+        self.resize(700, 100)  # Resize to desired dimensions
 
         self.progress_bar = QProgressBar(self)
         self.label = QLabel("", self)
@@ -63,20 +71,21 @@ class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main g
         layout.addLayout(h_layout)
         self.setLayout(layout)
 
-        # Close 버튼 클릭 시 다이얼로그를 닫음
+        # Close button click event
         self.close_button.clicked.connect(self.close)
 
+        # Show or hide the close button based on 'show'
         if show:
             self.close_button.show()
         else:
             self.close_button.hide()
 
-        # Timer 설정
+        # Timer to toggle radio button every 500ms
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.toggle_radio_button)
-        self.timer.start(500)  # 500ms 간격으로 토글
+        self.timer.start(500)  # 500ms interval
 
-        self.radio_state = False  # 깜빡임 상태 초기화
+        self.radio_state = False  # Initial blink state
 
     def setProgressBarMaximum(self, max_value):
         self.progress_bar.setMaximum(int(max_value))
@@ -87,15 +96,13 @@ class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main g
     def onProgressTextChanged(self, text):
         self.label.setText(text)
 
-    def showModal_less(self):
-        self.showModal()
-
-    def showModal(self):
-        self.show()
+    def show_progress(self):
+        if self.isModal():
+            super().exec_()  # Execute as modal
+        else:
+            self.show()  # Show as non-modal
 
     def closeEvent(self, event):
-        # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
-
         self.send_user_close_event.emit(True)
         event.accept()
 
@@ -121,91 +128,177 @@ class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main g
         self.radio_state = not self.radio_state
 
 
-class Modal_ProgressDialog(QDialog):  # popup 메뉴가 있으면 뒤 main gui의 제어 불 가능 -> modal
-    send_user_close_event = pyqtSignal(bool)
-
-    def __init__(self, message, show=False, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle(message)
-        self.setModal(True)
-
-        self.resize(700, 100)  # 원하는 크기로 조절
-
-        self.progress_bar = QProgressBar(self)
-        self.label = QLabel("", self)
-        self.close_button = QPushButton("Close", self)
-        self.radio_button = QRadioButton("", self)
-
-        # Create a horizontal layout for the close button and spacer
-        h_layout = QHBoxLayout()
-        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        h_layout.addSpacerItem(spacer)
-        h_layout.addWidget(self.close_button)
-
-        # Create the main layout
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.progress_bar)
-        layout.addWidget(self.label)
-        layout.addWidget(self.radio_button)
-        layout.addLayout(h_layout)
-        self.setLayout(layout)
-
-        # Close 버튼 클릭 시 다이얼로그를 닫음
-        self.close_button.clicked.connect(self.close)
-
-        if show:
-            self.close_button.show()
-        else:
-            self.close_button.hide()
-
-        # Timer 설정
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.toggle_radio_button)
-        self.timer.start(500)  # 500ms 간격으로 토글
-
-        self.radio_state = False  # 깜빡임 상태 초기화
-
-    def setProgressBarMaximum(self, max_value):
-        self.progress_bar.setMaximum(int(max_value))
-
-    def onCountChanged(self, value):
-        self.progress_bar.setValue(int(value))
-
-    def onProgressTextChanged(self, text):
-        self.label.setText(text)
-
-    def showModal(self):
-        super().exec_()
-
-    def showModal_less(self):
-        super().show()
-
-    def closeEvent(self, event):
-        # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
-
-        self.send_user_close_event.emit(True)
-        event.accept()
-
-    def toggle_radio_button(self):
-        if self.radio_state:
-            self.radio_button.setStyleSheet("""
-                        QRadioButton::indicator {
-                            width: 12px;
-                            height: 12px;
-                            background-color: red;
-                            border-radius: 5px;
-                        }
-                    """)
-        else:
-            self.radio_button.setStyleSheet("""
-                        QRadioButton::indicator {
-                            width: 12px;
-                            height: 12px;
-                            background-color: blue;
-                            border-radius: 5px;
-                        }
-                    """)
-        self.radio_state = not self.radio_state
+# class ModalLess_ProgressDialog(QWidget):  # popup 메뉴가 있어도 뒤 main gui의 제어가 가능 함
+#     send_user_close_event = pyqtSignal(bool)
+#
+#     def __init__(self, message, show=False, parent=None):
+#         super().__init__(parent)
+#         self.setWindowTitle(message)
+#
+#         self.resize(700, 100)  # 원하는 크기로 조절
+#
+#         self.progress_bar = QProgressBar(self)
+#         self.label = QLabel("", self)
+#         self.close_button = QPushButton("Close", self)
+#         self.radio_button = QRadioButton("", self)
+#
+#         # Create a horizontal layout for the close button and spacer
+#         h_layout = QHBoxLayout()
+#         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+#         h_layout.addSpacerItem(spacer)
+#         h_layout.addWidget(self.close_button)
+#
+#         # Create the main layout
+#         layout = QVBoxLayout(self)
+#         layout.addWidget(self.progress_bar)
+#         layout.addWidget(self.label)
+#         layout.addWidget(self.radio_button)
+#         layout.addLayout(h_layout)
+#         self.setLayout(layout)
+#
+#         # Close 버튼 클릭 시 다이얼로그를 닫음
+#         self.close_button.clicked.connect(self.close)
+#
+#         if show:
+#             self.close_button.show()
+#         else:
+#             self.close_button.hide()
+#
+#         # Timer 설정
+#         self.timer = QTimer(self)
+#         self.timer.timeout.connect(self.toggle_radio_button)
+#         self.timer.start(500)  # 500ms 간격으로 토글
+#
+#         self.radio_state = False  # 깜빡임 상태 초기화
+#
+#     def setProgressBarMaximum(self, max_value):
+#         self.progress_bar.setMaximum(int(max_value))
+#
+#     def onCountChanged(self, value):
+#         self.progress_bar.setValue(int(value))
+#
+#     def onProgressTextChanged(self, text):
+#         self.label.setText(text)
+#
+#     def showModal_less(self):
+#         self.showModal()
+#
+#     def showModal(self):
+#         self.show()
+#
+#     def closeEvent(self, event):
+#         # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
+#
+#         self.send_user_close_event.emit(True)
+#         event.accept()
+#
+#     def toggle_radio_button(self):
+#         if self.radio_state:
+#             self.radio_button.setStyleSheet("""
+#                         QRadioButton::indicator {
+#                             width: 12px;
+#                             height: 12px;
+#                             background-color: red;
+#                             border-radius: 5px;
+#                         }
+#                     """)
+#         else:
+#             self.radio_button.setStyleSheet("""
+#                         QRadioButton::indicator {
+#                             width: 12px;
+#                             height: 12px;
+#                             background-color: blue;
+#                             border-radius: 5px;
+#                         }
+#                     """)
+#         self.radio_state = not self.radio_state
+#
+#
+# class Modal_ProgressDialog(QDialog):  # popup 메뉴가 있으면 뒤 main gui의 제어 불 가능 -> modal
+#     send_user_close_event = pyqtSignal(bool)
+#
+#     def __init__(self, message, show=False, parent=None):
+#         super().__init__(parent)
+#         self.setWindowTitle(message)
+#         self.setModal(True)
+#
+#         self.resize(700, 100)  # 원하는 크기로 조절
+#
+#         self.progress_bar = QProgressBar(self)
+#         self.label = QLabel("", self)
+#         self.close_button = QPushButton("Close", self)
+#         self.radio_button = QRadioButton("", self)
+#
+#         # Create a horizontal layout for the close button and spacer
+#         h_layout = QHBoxLayout()
+#         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+#         h_layout.addSpacerItem(spacer)
+#         h_layout.addWidget(self.close_button)
+#
+#         # Create the main layout
+#         layout = QVBoxLayout(self)
+#         layout.addWidget(self.progress_bar)
+#         layout.addWidget(self.label)
+#         layout.addWidget(self.radio_button)
+#         layout.addLayout(h_layout)
+#         self.setLayout(layout)
+#
+#         # Close 버튼 클릭 시 다이얼로그를 닫음
+#         self.close_button.clicked.connect(self.close)
+#
+#         if show:
+#             self.close_button.show()
+#         else:
+#             self.close_button.hide()
+#
+#         # Timer 설정
+#         self.timer = QTimer(self)
+#         self.timer.timeout.connect(self.toggle_radio_button)
+#         self.timer.start(500)  # 500ms 간격으로 토글
+#
+#         self.radio_state = False  # 깜빡임 상태 초기화
+#
+#     def setProgressBarMaximum(self, max_value):
+#         self.progress_bar.setMaximum(int(max_value))
+#
+#     def onCountChanged(self, value):
+#         self.progress_bar.setValue(int(value))
+#
+#     def onProgressTextChanged(self, text):
+#         self.label.setText(text)
+#
+#     def showModal(self):
+#         super().exec_()
+#
+#     def showModal_less(self):
+#         super().show()
+#
+#     def closeEvent(self, event):
+#         # subprocess.run("taskkill /f /im cmd.exe /t", shell=True)
+#
+#         self.send_user_close_event.emit(True)
+#         event.accept()
+#
+#     def toggle_radio_button(self):
+#         if self.radio_state:
+#             self.radio_button.setStyleSheet("""
+#                         QRadioButton::indicator {
+#                             width: 12px;
+#                             height: 12px;
+#                             background-color: red;
+#                             border-radius: 5px;
+#                         }
+#                     """)
+#         else:
+#             self.radio_button.setStyleSheet("""
+#                         QRadioButton::indicator {
+#                             width: 12px;
+#                             height: 12px;
+#                             background-color: blue;
+#                             border-radius: 5px;
+#                         }
+#                     """)
+#         self.radio_state = not self.radio_state
 
 
 def json_dump_f(file_path, data, use_encoding=False):
