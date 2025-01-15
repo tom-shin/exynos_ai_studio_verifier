@@ -1536,6 +1536,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
+        
+        self.mainFrame_ui.groupBox_4.hide()
 
     def save_deviceID(self):
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
