@@ -19,12 +19,12 @@ ANSI_Escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # ANSI 이�
 
 
 class remote_ssh_server:
-    def __init__(self):
+    def __init__(self, deviceID):
         self.remote_host = '1.220.53.154'
         self.remote_port = 63522
         self.remote_user = 'sam'
         self.remote_password = 'Thunder$@88'
-        self.remote_device = '0000100d8e38c0e0'
+        self.remote_device = deviceID  # '0000100d8e38c0e0'
         self.remote_temp_dir = '/home/sam/tom/temp'
         self.android_device_path = '/data/vendor/enn'
         self.remote_adb_path = '/home/sam/platform-tools/adb'
@@ -141,15 +141,16 @@ class remote_ssh_server:
 
     def ssh_close(self):
         self.clear_remote_temp_dir()
+        self.check_enn_directory_exist()
         self.ssh.close()
         self.ssh = None
 
 
-def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board):
+def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID):
     failed_pairs = []
     CHECK_ENNTEST = []
 
-    instance = remote_ssh_server()
+    instance = remote_ssh_server(deviceID=deviceID)
     ret, error = instance.check_ssh_connection()
 
     if not ret:
@@ -208,7 +209,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         return False, failed_pairs  # 실패한 쌍도 반환
 
 
-def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board):
+def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID):
     def check_enn_directory_exist(DeviceId, android_device_path):
         # Android device path 존재 여부 확인
         check_path_cmd = f"adb {'-s ' + DeviceId if DeviceId else ''} shell ls {android_device_path}"
@@ -238,12 +239,12 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         except Exception as e:
             print(f"Error during path check or modification: {e}")
 
-    instance = remote_ssh_server()
+    instance = remote_ssh_server(deviceID=deviceID)
 
     DeviceTargetDir = instance.android_device_path
     ProfileCMD = instance.ProfileCMD
     ProfileOption = instance.ProfileOption
-    DeviceId = None  # "0000100d0f246013"
+    DeviceId = instance.remote_device  # "0000100d0f246013"
 
     # Device 권한 설정
     if DeviceId is None:
@@ -334,6 +335,8 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
             CHECK_ENNTEST.append(False)
             failed_pairs.append(cleaned_result)
             break
+
+    check_enn_directory_exist(DeviceId=DeviceId, android_device_path=DeviceTargetDir)
 
     if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
         return True, failed_pairs  # 실패한 쌍도 반환

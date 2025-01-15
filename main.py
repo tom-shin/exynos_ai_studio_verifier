@@ -655,11 +655,13 @@ class Model_Analyze_Thread(QThread):
                 if self.grand_parent.remoteradioButton.isChecked():
                     ret, failed_pairs = upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
                                                                    out_dir,
-                                                                   self.grand_parent.enntestcomboBox.currentText())
+                                                                   self.grand_parent.enntestcomboBox.currentText(),
+                                                                   deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
                 else:
                     ret, failed_pairs = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
                                                                   out_dir,
-                                                                  self.grand_parent.enntestcomboBox.currentText())
+                                                                  self.grand_parent.enntestcomboBox.currentText(),
+                                                                  deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
 
                 if ret:
                     result = "Success"
@@ -753,7 +755,7 @@ class Model_Analyze_Thread(QThread):
                                                               shell=False, log=True)
 
                 env = check_environment()
-                if env == "Linux":    
+                if env == "Linux":
                     post_cmd = [
                         "sudo",
                         "chmod",
@@ -762,7 +764,6 @@ class Model_Analyze_Thread(QThread):
                         f"{self.Shared_Volume}"
                     ]
                     _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=self.timeout_expired, log=True)
-
 
                 if timeout_expired:
                     self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
@@ -1435,7 +1436,10 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         # text_concatenation = ', '.join(element_list)
         # self.mainFrame_ui.command_lineedit.setText(text_concatenation)
 
-        self.setWindowTitle(Version)
+        device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
+        _, deviceID_data = json_load_f(file_path=device_m_path)
+        self.mainFrame_ui.localdeviceidlineEdit.setText(deviceID_data["local device"])
+        self.mainFrame_ui.sshdevicelineEdit.setText(deviceID_data["ssh device"])
 
         # image history
         history = os.path.join(BASE_DIR, "source", "history", "release_history.json")
@@ -1524,10 +1528,24 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.configpushButton.clicked.connect(self.open_model_config)
 
         self.mainFrame_ui.remoteradioButton.toggled.connect(self.on_radio_button_toggled)
-        self.mainFrame_ui.localradioButton.toggled.connect(self.on_radio_button_toggled)        
+        self.mainFrame_ui.localradioButton.toggled.connect(self.on_radio_button_toggled)
         self.mainFrame_ui.cmd5.setEnabled(False)
 
+        self.mainFrame_ui.localdeviceidpushButton.clicked.connect(self.save_deviceID)
+        self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
+
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
+
+    def save_deviceID(self):
+        device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
+
+        dump_data = {
+            "local device": f"{self.mainFrame_ui.localdeviceidlineEdit.text().strip()}",
+            "ssh device": f"{self.mainFrame_ui.sshdevicelineEdit.text().strip()}"
+        }
+
+        with open(device_m_path, 'w', encoding='utf-8') as file:
+            json.dump(dump_data, file, indent=4, ensure_ascii=False)
 
     def on_radio_button_toggled(self):
         env = check_environment()
@@ -1539,7 +1557,6 @@ class Project_MainWindow(QtWidgets.QMainWindow):
             self.mainFrame_ui.cmd5.setEnabled(False)
         else:
             self.mainFrame_ui.cmd5.setEnabled(True)
-
 
     def save_changes(self, full_file, content, dialog):
         # YAML 문자열을 파싱하여 데이터로 변환

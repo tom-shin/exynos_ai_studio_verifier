@@ -96,6 +96,16 @@ def set_model_config(grand_parent, my_src_config, target_config, model_name):
     with open(target_config, 'r') as target_yaml_file:
         target_yaml_data = yaml.load(target_yaml_file)
 
+    if grand_parent.remoteradioButton.isChecked():
+        device_id = grand_parent.sshdevicelineEdit.text().strip()
+    else:
+        device_id = grand_parent.localdeviceidlineEdit.text().strip()
+
+    if "profiler" in model_config_data["global_config"]:
+        model_config_data["global_config"]["profiler"]["device_id"] = str(device_id)
+    else:
+        model_config_data["global_config"]["profiler"] = {"device_id": f"{device_id}"}
+
     # null 값 강제로 "temp_null"로 변환
     def replace_null_with_temp(data):
         if isinstance(data, dict):
