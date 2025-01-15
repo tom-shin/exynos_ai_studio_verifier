@@ -23,6 +23,7 @@ from typing import Tuple, List, Dict
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtWidgets import QFileDialog
 
 from source.__init__ import *
 
@@ -1617,11 +1618,17 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         return loaded_images
 
     def image_registration(self):
-        load_file = easygui.fileopenbox(
-            msg="Select AI Studio Image",
-            title="Image Load",
-            default="*.image",
-            filetypes=["*.image", "*.tar"]
+        # load_file = easygui.fileopenbox(
+        #     msg="Select AI Studio Image",
+        #     title="Image Load",
+        #     default="*.image",
+        #     filetypes=["*.image", "*.tar"]
+        # )
+        load_file, _ = QFileDialog.getOpenFileName(
+            None,  # 부모 위젯 없음
+            "Image Load",  # 다이얼로그 제목
+            "",  # 초기 디렉토리 (""은 현재 디렉토리)
+            "AI Studio Image (*.image);;Tar Files (*.tar);;All Files (*)"  # 파일 필터
         )
 
         if load_file is None:
@@ -1680,11 +1687,18 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         # self.update_containerList()
 
     def select_docker_image(self):
-        load_file = easygui.fileopenbox(
-            msg="Select Test Set Scenario",
-            title="Test Set Selection",
-            default="*.image",
-            filetypes=["*.image"]
+        # load_file = easygui.fileopenbox(
+        #     msg="Select Test Set Scenario",
+        #     title="Test Set Selection",
+        #     default="*.image",
+        #     filetypes=["*.image"]
+        # )
+        # QFileDialog for Single File Selection
+        load_file, _ = QFileDialog.getOpenFileName(
+            None,  # 부모 위젯 없음
+            "Test Set Selection",  # 다이얼로그 제목
+            "",  # 초기 디렉토리 (""은 현재 디렉토리)
+            "Image Files (*.image);;All Files (*)"  # 파일 필터
         )
 
         if load_file is None:
@@ -1720,7 +1734,12 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 self.mainFrame_ui.logtextbrowser.show()
 
     def open_directory(self):
-        _directory = easygui.diropenbox()
+        # _directory = easygui.diropenbox()
+        # QFileDialog for Directory Selection
+        _directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        if _directory:
+            print("Selected Directory:", _directory)
+
 
         if _directory is None:
             return
