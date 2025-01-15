@@ -1523,6 +1523,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.mainFrame_ui.actionOn.triggered.connect(self.log_browser_ctrl)
         self.mainFrame_ui.actionOff.triggered.connect(self.log_browser_ctrl)
+        self.mainFrame_ui.actionOpen_Result_Excel.triggered.connect(self.open_test_result)
 
         self.mainFrame_ui.imageregpushButton.clicked.connect(self.image_registration)
 
@@ -1537,7 +1538,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
         
-        self.mainFrame_ui.groupBox_4.hide()
+        self.mainFrame_ui.groupBox_4.hide()        
 
     def save_deviceID(self):
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
@@ -1734,6 +1735,17 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 self.mainFrame_ui.logtextbrowser.hide()
             else:
                 self.mainFrame_ui.logtextbrowser.show()
+    
+    def open_test_result(self):
+        env = check_environment()
+        if env == "Windows":
+            excel_path = rf"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE".replace("\\", "/")
+        else:
+            excel_path = "libreoffice"
+            
+        result_path = os.path.join(BASE_DIR, "Result", "result.xlsx").replace("\\", "/")
+        if os.path.exists(result_path):
+            subprocess.run([excel_path, result_path])
 
     def open_directory(self):
         # _directory = easygui.diropenbox()

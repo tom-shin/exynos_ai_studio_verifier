@@ -584,6 +584,8 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName("menubar")
         self.menuBrowser = QtWidgets.QMenu(self.menubar)
         self.menuBrowser.setObjectName("menuBrowser")
+        self.menuFile = QtWidgets.QMenu(self.menubar)
+        self.menuFile.setObjectName("menuFile")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -592,9 +594,13 @@ class Ui_MainWindow(object):
         self.actionOn.setObjectName("actionOn")
         self.actionOff = QtWidgets.QAction(MainWindow)
         self.actionOff.setObjectName("actionOff")
+        self.actionOpen_Result_Excel = QtWidgets.QAction(MainWindow)
+        self.actionOpen_Result_Excel.setObjectName("actionOpen_Result_Excel")
         self.menuBrowser.addAction(self.actionOn)
         self.menuBrowser.addAction(self.actionOff)
+        self.menuFile.addAction(self.actionOpen_Result_Excel)
         self.menubar.addAction(self.menuBrowser.menuAction())
+        self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -656,8 +662,10 @@ class Ui_MainWindow(object):
         self.sshdeviceidpushButton.setText(_translate("MainWindow", "Save"))
         self.popctrl_radioButton.setText(_translate("MainWindow", "pop control"))
         self.menuBrowser.setTitle(_translate("MainWindow", "Log Browser Ctrl."))
+        self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionOn.setText(_translate("MainWindow", "On"))
         self.actionOff.setText(_translate("MainWindow", "Off"))
+        self.actionOpen_Result_Excel.setText(_translate("MainWindow", "Open Result Excel"))
 
 
 if __name__ == "__main__":
