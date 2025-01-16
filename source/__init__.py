@@ -20,7 +20,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.2.1_20250115 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.3.1_20250116 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -53,6 +53,8 @@ class ProgressDialog(QDialog):  # This class will handle both modal and non-moda
         self.resize(700, 100)  # Resize to desired dimensions
 
         self.progress_bar = QProgressBar(self)
+        self.progress_bar.setMaximum(int(100))
+
         self.label = QLabel("", self)
         self.close_button = QPushButton("Close", self)
         self.radio_button = QRadioButton("", self)

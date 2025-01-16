@@ -912,11 +912,51 @@ class Model_Analyze_Thread(QThread):
         self.wait(3000)
 
 
+class FileCopyThread(QThread):
+    progress_signal = pyqtSignal(int)  # 진행 상황 업데이트
+    finished_signal = pyqtSignal(list)  # 완료 시 신호
+
+    def __init__(self, test_model_paths, target_directory):
+        super().__init__()
+        self.test_model_paths = test_model_paths
+        self.target_directory = target_directory
+        self.all_test_paths = []
+
+    def run(self):
+        for cnt, test_model in enumerate(self.test_model_paths):
+            directory, file_name = separate_folders_and_files(test_model)
+            name, ext = separate_filename_and_extension(file_name)
+
+            target_dir = os.path.join(self.target_directory, name).replace("\\", "/")
+            CheckDir(target_dir)
+
+            # 복사 작업
+            src_file = test_model
+            target_file = os.path.join(target_dir, file_name)
+            shutil.copy2(src_file, target_file)
+            self.all_test_paths.append(target_file)
+
+            # 추가 파일 처리 (예: .prototxt)
+            if "caffemodel" in ext:
+                src_file = os.path.join(directory, f"{name}.prototxt")
+                target_file = os.path.join(target_dir, f"{name}.prototxt")
+                shutil.copy2(src_file, target_file)
+
+            # 진행 상황 업데이트
+            cnt = (cnt + 1) * 100 // len(self.test_model_paths)  # 퍼센트 계산
+            self.progress_signal.emit(cnt)
+
+        # 완료 신호
+        self.finished_signal.emit(self.all_test_paths)
+
+
 class Model_Verify_Class(QObject):
     send_sig_delete_all_sub_widget = pyqtSignal()
+    send_sig_test = pyqtSignal()
 
     def __init__(self, parent, grand_parent):
         super().__init__()
+        self.file_copy_thread = None
         self.parent = parent
         self.grand_parent = grand_parent
 
@@ -932,6 +972,7 @@ class Model_Verify_Class(QObject):
         self.insert_widget_progress = None
 
         self.send_sig_delete_all_sub_widget.connect(self.update_all_sub_widget)
+        self.send_sig_test.connect(self.testF)
 
     def open_file(self):
         # self.parent.mainFrame_ui.scenario_path_lineedit.setText(self.parent.directory.replace("\\", "/"))
@@ -945,6 +986,7 @@ class Model_Verify_Class(QObject):
             if widget:
                 widget.setParent(None)
 
+        print("delete alll")
         self.send_sig_delete_all_sub_widget.emit()
 
     def finish_insert_each_widget(self):
@@ -970,7 +1012,7 @@ class Model_Verify_Class(QObject):
                                                           widget_instance)
 
             self.added_scenario_widgets.append((widget_ui, widget_instance))
-            self.insert_widget_progress.onCountChanged(value=cnt)
+            # self.insert_widget_progress.onCountChanged(value=cnt)
 
             widget_ui.inittextEdit.hide()
             widget_ui.conversiontextEdit.hide()
@@ -1008,11 +1050,16 @@ class Model_Verify_Class(QObject):
             ui.enntesttextEdit.hide()
             ui.onnxruntime_InferenceSessiontextEdit.hide()
 
-    def update_all_sub_widget(self):
+    def testF(self):
+        # self.insert_widget_progress.setProgressBarMaximum(max_value=len(all_test_path))
+
         # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사
         user_fmt = [fmt.strip() for fmt in self.grand_parent.targetformat_lineedit.text().split(",") if fmt.strip()]
+
+        # s = time.time()
         get_test_model_path = get_directory(base_dir=self.parent.directory, user_defined_fmt=user_fmt,
                                             file_full_path=True)
+        # print("[get_directory] ===========================================>", time.time() - s)
 
         # Shared Volume 위치를 지정
         self.parent.directory = os.path.join(BASE_DIR, "Result").replace("\\", "/")
@@ -1020,7 +1067,9 @@ class Model_Verify_Class(QObject):
         CheckDir(self.parent.directory)
 
         all_test_path = []
-        for test_model in get_test_model_path:
+        # s = time.time()
+        print("+++++++++++++++++++++++++++++++++++++")
+        for cnt, test_model in enumerate(get_test_model_path):
             directory, file_name = separate_folders_and_files(test_model)
             name, ext = separate_filename_and_extension(file_name)
 
@@ -1038,12 +1087,18 @@ class Model_Verify_Class(QObject):
                 target_file = os.path.join(target_dir, f"{name}.prototxt")
                 shutil.copy2(src_file, target_file)
 
-        if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
-            self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
-        else:
-            self.insert_widget_progress = ProgressDialog(modal=True, message="Loading Scenario")
+            cnt = cnt % 100
+            print(cnt)
+            self.insert_widget_progress.onCountChanged(value=cnt)
 
-        self.insert_widget_progress.setProgressBarMaximum(max_value=len(all_test_path))
+        # print("[move to Result] ===========================================>", time.time() - s)
+
+        # if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
+        #     self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
+        # else:
+        #     self.insert_widget_progress = ProgressDialog(modal=True, message="Loading Scenario")
+
+        # self.insert_widget_progress.setProgressBarMaximum(max_value=len(all_test_path))
 
         repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
         tag = int(repo_tag.split(":")[1].split(".")[0])
@@ -1063,7 +1118,53 @@ class Model_Verify_Class(QObject):
 
         self.insert_widget_thread.start()
 
+        # self.insert_widget_progress.show_progress()
+
+    def on_file_copy_complete(self, all_test_path):
+        # 복사 완료 후 후속 작업
+        repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
+        tag = int(repo_tag.split(":")[1].split(".")[0])
+        if tag >= 7:
+            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver2.0_model_config_new.yaml")
+        else:
+            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver1.0_model_config_new.yaml")
+
+        with open(full_file, 'r') as model_config_file:
+            model_config_data = self.parent.yaml.load(model_config_file)
+
+        self.added_scenario_widgets = []
+        self.insert_widget_thread = Load_Target_Dir_Thread(all_test_path, self.parent,
+                                                           model_config_data=model_config_data)
+        self.insert_widget_thread.send_scenario_update_ui_sig.connect(self.insert_each_widget)
+        self.insert_widget_thread.send_finish_scenario_update_ui_sig.connect(self.finish_insert_each_widget)
+        self.insert_widget_thread.start()
+
+    def update_all_sub_widget(self):
+        print("send sig")
+
+        # ProgressDialog 생성
+        # if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
+        #     self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
+        # else:
+        #     self.insert_widget_progress = ProgressDialog(modal=True, message="Loading Scenario")
+        self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
         self.insert_widget_progress.show_progress()
+
+        # BASE DIR 아래 Result 폴더 아래에 평가할 모델 복사
+        user_fmt = [fmt.strip() for fmt in self.grand_parent.targetformat_lineedit.text().split(",") if fmt.strip()]
+        get_test_model_path = get_directory(base_dir=self.parent.directory, user_defined_fmt=user_fmt,
+                                            file_full_path=True)
+
+        # Shared Volume 위치 지정
+        self.parent.directory = os.path.join(BASE_DIR, "Result").replace("\\", "/")
+        self.parent.mainFrame_ui.scenario_path_lineedit.setText(self.parent.directory)
+        CheckDir(self.parent.directory)
+
+        # 스레드 생성 및 실행
+        self.file_copy_thread = FileCopyThread(get_test_model_path, self.parent.directory)
+        self.file_copy_thread.progress_signal.connect(self.insert_widget_progress.onCountChanged)  # 진행 상황 업데이트
+        self.file_copy_thread.finished_signal.connect(self.on_file_copy_complete)  # 완료 시 처리
+        self.file_copy_thread.start()
 
     def set_text_progress(self, string):
         if self.work_progress is not None:
@@ -1537,8 +1638,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
-        
-        self.mainFrame_ui.groupBox_4.hide()        
+
+        self.mainFrame_ui.groupBox_4.hide()
 
     def save_deviceID(self):
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
@@ -1735,14 +1836,14 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 self.mainFrame_ui.logtextbrowser.hide()
             else:
                 self.mainFrame_ui.logtextbrowser.show()
-    
+
     def open_test_result(self):
         env = check_environment()
         if env == "Windows":
             excel_path = rf"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE".replace("\\", "/")
         else:
             excel_path = "libreoffice"
-            
+
         result_path = os.path.join(BASE_DIR, "Result", "result.xlsx").replace("\\", "/")
         if os.path.exists(result_path):
             subprocess.run([excel_path, result_path])
@@ -1753,7 +1854,6 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         _directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if _directory:
             print("Selected Directory:", _directory)
-
 
         if _directory is None:
             return
