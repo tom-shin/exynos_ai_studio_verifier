@@ -42,573 +42,573 @@ global_config:
 
 model_config:
   beit_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   convnext_base_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   convnext_tiny_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   convnext_tiny_w8a16_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   convnext_tiny_w8a8_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   densenet121_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   densenet121_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientnet_b0_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientnet_b4_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientnet_v2_s_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientvit_b2_cls_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientvit_l2_cls_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   googlenet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   googlenet_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   inception_v3_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   inception_v3_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mnasnet05_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mobilenet_v2_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   mobilenet_v2_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   mobilenet_v3_large_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mobilenet_v3_large_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mobilenet_v3_small_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mobile_vit_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   regnet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   regnet_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnext101_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnext101_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnext50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnext50_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet101_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet101_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet18_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet18_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   resnet50_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   shufflenet_v2_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   shufflenet_v2_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   squeezenet1_1_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   squeezenet1_1_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   swin_base_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   swin_small_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   swin_tiny_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   vit_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   vit_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   wideresnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   wideresnet50_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   aotgan_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   lama_dilated_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   esrgan_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   quicksrnetlarge_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   quicksrnetlarge_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   quicksrnetmedium_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   quicksrnetmedium_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   quicksrnetsmall_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   quicksrnetsmall_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   real_esrgan_general_x4v3_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   real_esrgan_x4plus_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   sesr_m5_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   sesr_m5_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   xlsr_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   xlsr_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   ddrnet23_slim_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   deeplabv3_plus_mobilenet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   deeplabv3_plus_mobilenet_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   deeplabv3_resnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   efficientvit_l2_seg_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   fcn_resnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   fcn_resnet50_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_122ns_lowres_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_40s_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_40s_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_54s_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_54s_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_78s_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_78s_lowres_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   ffnet_78s_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   fastsam_s_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   fastsam_x_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   mediapipe_selfie_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   sinet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   sam_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   unet_segmentation_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: GPL-3.0
 
   yolov11_seg_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   yolov8_seg_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   conditional_detr_resnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   detr_resnet101_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   detr_resnet101_dc5_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   detr_resnet50_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   detr_resnet50_dc5_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   face_attrib_net_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   face_attrib_net_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   face_det_lite_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   face_det_lite_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   mediapipe_face_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   mediapipe_face_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   mediapipe_hand_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   gear_guard_net_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   gear_guard_net_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   foot_track_net_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   foot_track_net_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   yolov11_det_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   yolov8_det_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   yolov8_det_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: AGPL-3.0
 
   yolonas_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   yolonas_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   yolov3_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: GPL-3.0
 
   yolov6_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: GPL-3.0
 
   yolov7_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: GPL-3.0
 
   yolov7_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: GPL-3.0
 
   facemap_3dmm_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   facemap_3dmm_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: BSD-3-CLAUSE
 
   hrnet_pose_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   hrnet_pose_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   litehrnet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   mediapipe_pose_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   openpose_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: OTHER
 
   posenet_mobilenet_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   posenet_mobilenet_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   depth_anything_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   depth_anything_v2_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   midas_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   midas_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   huggingface_wavlm_base_plus_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   whisper_base_en_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   whisper_tiny_en_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   openai_clip_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   trocr_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: MIT
 
   controlnet_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   riffusion_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: CREATIVEML-OPENRAIL-M
 
   stable_diffusion_v1_5_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: CREATIVEML-OPENRAIL-M
 
   stable_diffusion_v2_1_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: CREATIVEML-OPENRAIL-M
 
   baichuan2_7b_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   ibm_granite_3b_code_instruct_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   indus_1b_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: Qualcomm짰 Generative AI usage and limitations
 
   jais_6p7b_chat_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: Qualcomm짰 Generative AI usage and limitations
 
   llama_v2_7b_chat_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: LLAMA2
 
   llama_v3_8b_chat_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: LLAMA3
 
   llama_v3_1_8b_chat_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: LLAMA3
 
   llama_v3_2_3b_chat_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: LLAMA3
 
   mistral_3b_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: Qualcomm짰 Generative AI usage and limitations
 
   mistral_7b_instruct_v0_3_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
 
   plamo_1b_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: Qualcomm짰 Generative AI usage and limitations
 
   qwen2_7b_instruct_quantized_model.onnx:
-    repo: Qualcomm AI-Hub
+    repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
     license: APACHE-2.0
