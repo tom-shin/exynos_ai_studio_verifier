@@ -41,669 +41,574 @@ global_config:
     device_id: 0000100d0f246013
 
 model_config:
-  mobilenet-v1-quant.tflite:
-    converter:
-      quantize_type: qat
-      SSD: true
-    compiler:
-      enable_stm: true
-    repo: v1.0(pamir)
-    license: unknown
+  beit_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  mobilenet-v2-int8.tflite:
-    converter:
-      quantize_type: qat
-    repo: v1.0(pamir)
-    license: unknown
+  convnext_base_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  PFR_detector.onnx:
-    converter:
-      quantize_type: asymm
-      bias_comp_batchsize: 100
-      bias_comp_target_layers: 0
-      quanmode: MAX
-      tv_input: DATA/images_100_retinaface_db.h5
-      userdb: DATA/images_100_retinaface_db.txt
-      SSD: true
-    compiler:
-      cfs: true
-      datalayout_conversion_in: sw
-      datalayout_conversion_out: sw
-      debug_str: -D multi_vc=False
-      enable_ofm_reuse: false
-      mi: true
-      mo: true
-      multi_vc: false
-    repo: customer[PFR]
-    license: unknown
+  convnext_tiny_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  PFR_segmentation.onnx:
-    converter:
-      quantize_type: asymm
-      bias_comp_batchsize: 100
-      bias_comp_target_layers: 0
-      quanmode: MAX
-      tv_input: DATA/images_100_retinaface_db.h5
-      userdb: DATA/images_100_retinaface_db.txt
-      SSD: true
-    compiler:
-      cfs: true
-      datalayout_conversion_in: sw
-      datalayout_conversion_out: sw
-      debug_str: -D multi_vc=False
-      enable_ofm_reuse: false
-      mi: true
-      mo: true
-      multi_vc: false
-    repo: customer[PFR]
-    license: unknown
+  convnext_tiny_w8a16_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  depth_anything_vitb14.onnx:
-    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
-    license: unknown
+  convnext_tiny_w8a8_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  depth_anything_vitl14.onnx:
-    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
-    license: unknown
+  densenet121_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  depth_anything_vits14.onnx:
-    repo: (pyranee) https://github.com/fabio-sim/Depth-Anything-ONNX/releases/tag/v1.0.0
-    license: unknown
+  densenet121_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_darknet.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  efficientnet_b0_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_m.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  efficientnet_b4_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_nano.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  efficientnet_v2_s_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_s.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  efficientvit_b2_cls_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_tiny.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  efficientvit_l2_cls_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  yolox_x.onnx:
-    repo: (pyranee) https://github.com/Megvii-BaseDetection/YOLOX
-    license: unknown
+  googlenet_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  caffeFP_sample.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  googlenet_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  caffeQAT_sample.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  inception_v3_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Q_MV2_Deeplab_V3_plus_MLPerf.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  inception_v3_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  asr_kor_joint.tflite:
-    repo: SDK_V1.0
-    license: unknown
+  mnasnet05_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  nfd_qvga.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  mobilenet_v2_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
 
-  Q_aic_detector_cnn.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  mobilenet_v2_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
 
-  Q_inception_v3_pamir.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  mobilenet_v3_large_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Q_mobilenet_edgetpu.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  mobilenet_v3_large_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  onnx_sample.onnx:
-    repo: SDK_V1.0
-    license: unknown
+  mobilenet_v3_small_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  SCaffe_SQE.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  mobile_vit_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  sdlp_sample.tflite:
-    repo: SDK_V1.0
-    license: unknown
+  regnet_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  tflite_sample_float.tflite:
-    repo: SDK_V1.0
-    license: unknown
+  regnet_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  tflite_sample_fp16.tflite:
-    repo: SDK_V1.0
-    license: unknown
+  resnext101_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  tflite_sample_uint8.tflite:
-    converter:
-      quantize_type: qat
+  resnext101_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-    repo: SDK_V1.0
-    license: unknown
+  resnext50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  01_aic_classifier_cnn.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  resnext50_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  07_LF_segmenter_cnn.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  resnet101_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Efficientnet_Lite4.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  resnet101_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Mobiledet_SSD.tflite:
-    converter:
-      SSD: true
-      output_dtype: uint8
-    repo: SDK_V1.0
-    license: unknown
+  resnet18_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Mobilenet_Edgetpu.tflite:
-    repo: SDK_V1.0
-    license: unknown
+  resnet18_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  YolACT.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  resnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  Q_vdsr_antutu.caffemodel:
-    repo: SDK_V1.0
-    license: unknown
+  resnet50_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  efficientnet-lite4-11-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
-    license: unknown
+  shufflenet_v2_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  efficientnet-lite4-11-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
-    license: unknown
+  shufflenet_v2_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  efficientnet-lite4-11.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+  squeezenet1_1_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  squeezenet1_1_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  swin_base_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  swin_small_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  swin_tiny_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  vit_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  vit_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  wideresnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  wideresnet50_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  aotgan_model.onnx:
+    repo: Qualcomm AI-Hub
     license: MIT
 
-  mobilenetv2-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  lama_dilated_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
 
-  mobilenetv2-10-modify.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  esrgan_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
 
-  mobilenetv2-10-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetlarge_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  mobilenetv2-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetlarge_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  mobilenetv2-12-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetmedium_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  mobilenetv2-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetmedium_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  mobilenetv2-12-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetsmall_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  mobilenetv2-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet
-    license: Apache 2.0
+  quicksrnetsmall_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  resnet101-v1-7.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  real_esrgan_general_x4v3_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  resnet152-v1-7.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  real_esrgan_x4plus_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
 
-  resnet18-v1-7.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  sesr_m5_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  resnet34-v1-7.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  sesr_m5_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  resnet50-v1-12-int8.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  xlsr_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  resnet50-v1-12-qdq.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
+  xlsr_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
 
-  resnet50-v1-12.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
-
-  resnet50-v1-7.onnx:
-    repo: (ML_Group)  https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
-    license: Apache 2.0
-
-  squeezenet1.0-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-13-qdq.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-3.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-6.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-9.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.1-7.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.0-12-dropout_softmax_removed.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  squeezenet1.1-7-dropout_removed.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/classification/squeezenet
-    license: Apache 2.0
-
-  super-resolution-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
-    license: Apache 2.0
-
-  super-resolution-10-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
-    license: Apache 2.0
-
-  yolov3-10.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+  ddrnet23_slim_model.onnx:
+    repo: Qualcomm AI-Hub
     license: MIT
 
-  yolov3-10-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+  deeplabv3_plus_mobilenet_model.onnx:
+    repo: Qualcomm AI-Hub
     license: MIT
 
-  yolov3-12-int8.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
+  deeplabv3_plus_mobilenet_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
     license: MIT
 
-  yolov3-12.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
-    license: MIT
-
-  yolov3-12-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/yolov3
-    license: MIT
-
-  yolov4.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
-    license: MIT
-
-  yolov4-dynamic2static.onnx:
-    repo: (ML_Group) 
-      https://github.com/onnx/models/tree/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model
-    license: MIT
-
-  inception-tflite-v4-quant-v1.tflite:
-    converter:
-      quantize_type: qat
-
-  inception-v3-uint8.tflite:
-    converter:
-      quantize_type: asymm
-      use_randomdb: false
-    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v3-quant
-    license: unknown
-
-  convnext-base.onnx:
-    repo: https://github.com/pytorch/vision/tree/main/torchvision/models
-    license: BSD 3-Clause
-
-  densenet121.onnx:
-    repo: 
-      https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/densenet121
-    license: BSD 3-Clause
-
-  efficientnet_b4.onnx:
-    repo: 
-      https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/efficientnet_b4
-    license: BSD 3-Clause
-
-  inception-v3.onnx:
-    repo: https://github.com/pytorch/vision/tree/main/torchvision/models
-    license: BSD 3-Clause
-
-  mobilenet-v2.onnx:
-    repo: https://github.com/tonylins/pytorch-mobilenet-v2/tree/master
-    license: Apache 2.0
-
-  resnet50.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/resnet50
-    license: Aimet
-
-  esrgan.onnx:
-    repo: https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/esrgan
-    license: Apache 2.0
-
-  quicksrnetlarge.onnx:
-    repo: 
-      https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/quicksrnetlarge
-    license: Aimet
-
-  sesr_m5.onnx:
-    repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/sesr_m5
-    license: Aimet
-
-  Xenova_vit_base_patch16_224_model.onnx:
-    repo: https://huggingface.co/Xenova/vit-base-patch16-224
-    license: unknown
-
-  Qdrant_resnet50_model_13.onnx:
-    repo: https://huggingface.co/Qdrant/resnet50-onnx
-    license: Apache 2.0
-
-  fancyfeast_joytag_model.onnx:
-    repo: https://huggingface.co/fancyfeast/joytag
-    license: Apache 2.0
-
-  dennisjooo_model.onnx:
-    repo: https://huggingface.co/dennisjooo/Birds-Classifier-EfficientNetB2
-    license: Apache 2.0
-
-  dennisjooo_onnx_model.onnx:
-    repo: https://huggingface.co/dennisjooo/Birds-Classifier-EfficientNetB2
-    license: Apache 2.0
-
-  onnx_community_BiRefNet_lite_model.onnx:
-    repo: https://huggingface.co/onnx-community/BiRefNet_lite
-    license: unknown
-
-  mattmdjaga_segformer_b2_clothes_mode.onnx:
-    repo: https://huggingface.co/mattmdjaga/segformer_b2_clothes
-    license: MIT
-
-  Xenova_yolov9_c_model.onnx:
-    repo: https://huggingface.co/Xenova/yolov9-c
-    license: GNU General Public License v3.0
-
-  franciszzj_Leffa_parsing_atr.onnx:
-    repo: https://huggingface.co/franciszzj/Leffa
-    license: MIT
-
-  franciszzj_Leffa_parsing_lip.onnx:
-    repo: https://huggingface.co/franciszzj/Leffa
-    license: MIT
-
-  Real-ESRGAN-x4plus.onnx:
-    repo: https://huggingface.co/qualcomm/Real-ESRGAN-x4plus
-    license: BSD 3-clause
-
-  Xenova_4x_APISR_GRL_GAN_generator_onnx_model.onnx:
-    repo: https://huggingface.co/Xenova/4x_APISR_GRL_GAN_generator-onnx
-    license: GNU General Public License v3.0
-
-  yisol_IDM-VTON_parsing_atr.onnx:
-    repo: https://huggingface.co/yisol/IDM-VTON
-    license: Creative Commons Attribution Non Commercial Share Alike 4.0
-
-  yisol--IDM-VTON_parsing_lip.onnx:
-    repo: https://huggingface.co/yisol/IDM-VTON
-    license: Creative Commons Attribution Non Commercial Share Alike 4.0
-
-  bestwishysh_antelopev2_1k3d68.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_antelopev2_2d106det.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_antelopev2_genderage.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_antelopev2_glintr100.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_buffalo_l_1k3d68.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_buffalo_l_2d106det.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_buffalo_l_genderage.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  bestwishysh_buffalo_l_w600k_r50.onnx:
-    repo: https://huggingface.co/BestWishYsh/ConsisID-preview
-    license: Apache 2.0
-
-  TMElyralab_MuseV_1k3d68.onnx:
-    repo: https://huggingface.co/TMElyralab/MuseV
-    license: stable-diffusion-license
-
-  TMElyralab_MuseV_2d106det.onnx:
-    repo: https://huggingface.co/TMElyralab/MuseV
-    license: stable-diffusion-license
-
-  TMElyralab_MuseV_genderage.onnx:
-    repo: https://huggingface.co/TMElyralab/MuseV
-    license: stable-diffusion-license
-
-  TMElyralab_MuseV_w600k_r50.onnx:
-    repo: https://huggingface.co/TMElyralab/MuseV
-    license: stable-diffusion-license
-
-  Xenova_vit_base_patch16_224_in21k_model.onnx:
-    repo: https://huggingface.co/Xenova/vit-base-patch16-224-in21k
-    license: unknown
-
-  vitpose-b-aic.onnx:
-    repo: https://huggingface.co/JunkyByte/easy_ViTPose
-    license: Apache 2.0
-
-  HRNetPose.onnx:
-    repo: https://huggingface.co/qualcomm/HRNetPose
-    license: Qualcomm aimet-model-zoo
-
-  mit_han_lab_gazesam_depth_m.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_gazesam_evit_decoder_l0.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_gazesam_evit_encoder_l0.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l0_decoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l0_encoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l1_decoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l1_encoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l2_decoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_l2_encoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_xl0_decoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_xl0_encoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_xl1_decoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  mit_han_lab_onnx_xl1_encoder.onnx:
-    repo: https://huggingface.co/mit-han-lab/efficientvit-sam
-    license: Apache 2.0
-
-  decoder_postnet_and_vocoder.onnx:
-    repo: https://huggingface.co/Xenova/speecht5_tts
-    license: unknown
-
-  inception-v4-quant.tflite:
-    converter:
-      quantize_type: qat
-      output_dtype: uint8
-    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-    license: Apache 2.0
-
-  inception-v4-quant.onnx:
-    converter:
-      quantize_type: qat
-      output_dtype: uint8
-    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-    license: Apache 2.0
-    #python -m tf2onnx.convert --opset 13 --tflite inception-v4-quant.tflite --output inception-v4-quant.onnx
-
-  inception-tflite-v4-v1.tflite:
-    converter:
-      quantize_type: qat
-      output_dtype: uint8
-    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-    license: Apache 2.0
-
-  inception-tflite-v4-v1.onnx:
-    repo: https://www.kaggle.com/models/tensorflow/inception/tfLite/v4
-    license: Apache 2.0
-    #python -m tf2onnx.convert --opset 13 --tflite inception-tflite-v4-v1.tflite --output inception-tflite-v4-v1.onnx
-
-  posenet_mobilenet.onnx:
-    repo: 
-      https://huggingface.co/qualcomm/Posenet-Mobilenet/blob/98d0f2a44e7d01e7a821366a6283f627412823dc/Posenet-Mobilenet.onnx
-    license: Apache 2.0
-
-  midas_v2.onnx:
-    repo: https://aihub.qualcomm.com/models/midas --> download model --> onnx runtime
-      selection
-    license: MIT
-
-  deeplabv3.tflite:
-    repo: https://www.kaggle.com/models/tensorflow/deeplabv3
-    license: Apache 2.0
-
-  deeplabv3.onnx:
-    repo: https://www.kaggle.com/models/tensorflow/deeplabv3
-    license: Apache 2.0
-    #python -m tf2onnx.convert --opset 13 --tflite deeplabv3.tflite --output deeplabv3.onnx
-
-  zero_dce_lite_160x160_iter8_30.tflite:
-    repo: 
-      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-    license: MIT
-
-  zero-dce.pth:
-    repo: 
-      https://github.com/bsun0802/Zero-DCE/blob/master/train-jobs/ckpt/8LE-color-loss2_best_model.pth
-    license: MIT
-
-  zero_dce_lite_160x160_iter8_30.onnx:
-    repo: 
-      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-    license: MIT
-    #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
-
-  zero_dce_lite_160x160_iter8_30_dynamic2static.onnx:
-    repo: 
-      https://github.com/Thehunk1206/Zero-DCE/blob/master/TFLITE_models/zero_dce_lite_160x160_iter8_30.tflite
-    license: MIT
-    #python -m tf2onnx.convert --opset 16 --tflite path/to/tflite/model.tflite --output path/to/onnx/model/model.onnx
-    #dynamic to static conversion
-
-  yolov5s.onnx:
-    converter:
-      do_quantize: false
-    repo: https://github.com/ultralytics/yolov5
+  deeplabv3_resnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  efficientvit_l2_seg_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  fcn_resnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  fcn_resnet50_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_122ns_lowres_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_40s_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_40s_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_54s_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_54s_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_78s_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_78s_lowres_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  ffnet_78s_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  fastsam_s_model.onnx:
+    repo: Qualcomm AI-Hub
     license: AGPL-3.0
+
+  fastsam_x_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  mediapipe_selfie_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  sinet_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  sam_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  unet_segmentation_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: GPL-3.0
+
+  yolov11_seg_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  yolov8_seg_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  conditional_detr_resnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  detr_resnet101_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  detr_resnet101_dc5_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  detr_resnet50_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  detr_resnet50_dc5_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  face_attrib_net_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  face_attrib_net_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  face_det_lite_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  face_det_lite_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  mediapipe_face_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  mediapipe_face_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  mediapipe_hand_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  gear_guard_net_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  gear_guard_net_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  foot_track_net_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  foot_track_net_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  yolov11_det_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  yolov8_det_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  yolov8_det_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: AGPL-3.0
+
+  yolonas_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  yolonas_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  yolov3_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: GPL-3.0
+
+  yolov6_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: GPL-3.0
+
+  yolov7_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: GPL-3.0
+
+  yolov7_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: GPL-3.0
+
+  facemap_3dmm_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  facemap_3dmm_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: BSD-3-CLAUSE
+
+  hrnet_pose_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  hrnet_pose_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  litehrnet_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  mediapipe_pose_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  openpose_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: OTHER
+
+  posenet_mobilenet_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  posenet_mobilenet_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  depth_anything_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  depth_anything_v2_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  midas_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  midas_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  huggingface_wavlm_base_plus_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  whisper_base_en_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  whisper_tiny_en_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  openai_clip_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  trocr_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: MIT
+
+  controlnet_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  riffusion_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: CREATIVEML-OPENRAIL-M
+
+  stable_diffusion_v1_5_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: CREATIVEML-OPENRAIL-M
+
+  stable_diffusion_v2_1_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: CREATIVEML-OPENRAIL-M
+
+  baichuan2_7b_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  ibm_granite_3b_code_instruct_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  indus_1b_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: Qualcomm짰 Generative AI usage and limitations
+
+  jais_6p7b_chat_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: Qualcomm짰 Generative AI usage and limitations
+
+  llama_v2_7b_chat_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: LLAMA2
+
+  llama_v3_8b_chat_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: LLAMA3
+
+  llama_v3_1_8b_chat_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: LLAMA3
+
+  llama_v3_2_3b_chat_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: LLAMA3
+
+  mistral_3b_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: Qualcomm짰 Generative AI usage and limitations
+
+  mistral_7b_instruct_v0_3_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
+
+  plamo_1b_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: Qualcomm짰 Generative AI usage and limitations
+
+  qwen2_7b_instruct_quantized_model.onnx:
+    repo: Qualcomm AI-Hub
+    license: APACHE-2.0
