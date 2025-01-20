@@ -957,7 +957,9 @@ def find_paired_files(directory, mode=2):
     return paired_files
 
 
-def upgrade_find_paired_files(directory):
+def upgrade_find_paired_files(directory, mode=1):
+    # mode==0 --> float32.bin, float32_fp32.bin 모두 평가
+    # mode==1 --> float32.bin만 평가
     paired_files = {}
     inout_dir = None
 
@@ -981,7 +983,15 @@ def upgrade_find_paired_files(directory):
             non_fp_input_files, non_fp_golden_files = categorize_files(non_fp_files)
             fp_input_files, fp_golden_files = categorize_files(fp_files)
 
-            paired_files = {non_fp_input_files: sorted(non_fp_golden_files), fp_input_files: sorted(fp_golden_files)}
+            if mode == 0:
+                paired_files = {
+                    non_fp_input_files: sorted(non_fp_golden_files),
+                    fp_input_files: sorted(fp_golden_files)
+                }
+            elif mode == 1:
+                paired_files = {
+                    non_fp_input_files: sorted(non_fp_golden_files)
+                    }
             break
 
     return paired_files, inout_dir
