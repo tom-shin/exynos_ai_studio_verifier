@@ -6,6 +6,10 @@ global_config:
 
   compiler:
     device: Gen-5a
+  
+  profiler:
+    device: Gen-5anpu
+    device_id: 0000100d0f246013
 
 #  converter:
 #    activation_bitwidth: 8
