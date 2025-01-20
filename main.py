@@ -729,7 +729,7 @@ class Model_Analyze_Thread(QThread):
                 result, error_pair = self.upgrade_execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
 
                 if result == "Success":
-                    log = ""
+                    log = "".join(error_pair)
                 else:
                     print("+++++++++++++++++++++++++++++", error_pair)
                     if len(error_pair) != 0:
@@ -1431,7 +1431,7 @@ class Model_Verify_Class(QObject):
                 "profiling_Result": clean_data(target_widget[0].profilinglineEdit.text().strip()),
                 "profiling_log": clean_data(target_widget[0].profiletextEdit.toPlainText()),
                 "enntest_execute": clean_data(target_widget[0].enntestlineEdit.text().strip()),
-                "enntest_fail(input, golden)": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
+                "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),
             }
