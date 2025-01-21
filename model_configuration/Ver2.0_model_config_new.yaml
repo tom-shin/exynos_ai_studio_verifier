@@ -575,11 +575,11 @@ model_config:
 
   indus_1b_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: Qualcomm짰 Generative AI usage and limitations
+    license: Qualcomm Generative AI usage and limitations
 
   jais_6p7b_chat_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: Qualcomm짰 Generative AI usage and limitations
+    license: Qualcomm Generative AI usage and limitations
 
   llama_v2_7b_chat_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
@@ -599,7 +599,7 @@ model_config:
 
   mistral_3b_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: Qualcomm짰 Generative AI usage and limitations
+    license: Qualcomm Generative AI usage and limitations
 
   mistral_7b_instruct_v0_3_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
@@ -607,7 +607,7 @@ model_config:
 
   plamo_1b_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: Qualcomm짰 Generative AI usage and limitations
+    license: Qualcomm Generative AI usage and limitations
 
   qwen2_7b_instruct_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
