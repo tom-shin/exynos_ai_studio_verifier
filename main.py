@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
+DEBUG = True
 
 import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-import onnx
-import onnxruntime
-import onnxsim
+if not DEBUG:
+    import onnx
+    import onnxruntime
+    import onnxsim
+
 import logging
 import easygui
 import platform
@@ -636,6 +639,7 @@ class Model_Analyze_Thread(QThread):
         return result, error_contents_dict
 
     def upgrade_execute_enntest_ondevice(self, TestResult=None, cwd=None):
+        meory_profile = []
         failed_pairs = []
         nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
         nnc_files = []
@@ -654,12 +658,12 @@ class Model_Analyze_Thread(QThread):
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
                 if self.grand_parent.remoteradioButton.isChecked():
-                    ret, failed_pairs = upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
+                    ret, failed_pairs, meory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
                                                                    out_dir,
                                                                    self.grand_parent.enntestcomboBox.currentText(),
                                                                    deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
                 else:
-                    ret, failed_pairs = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
+                    ret, failed_pairs, meory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
                                                                   out_dir,
                                                                   self.grand_parent.enntestcomboBox.currentText(),
                                                                   deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
@@ -675,9 +679,11 @@ class Model_Analyze_Thread(QThread):
         else:
             result = "Skip"
 
-        return result, failed_pairs
+        return result, failed_pairs, meory_profile
 
     def model_ai_studio_test(self, CommandLists=[], target_widget=None, executed_cnt=0, max_cnt=0):
+        memory_profile = []
+
         def convert_changed_items_to_text(changed_items):
             # changed_items OrderedDict를 텍스트 형식으로 변환
             result_text = ""
@@ -726,7 +732,7 @@ class Model_Analyze_Thread(QThread):
             self.send_set_text_signal.emit(message)
 
             if "enntest" in enntools_cmd:
-                result, error_pair = self.upgrade_execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
+                result, error_pair, memory_profile = self.upgrade_execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
 
                 if result == "Success":
                     log = "".join(error_pair)
@@ -737,7 +743,7 @@ class Model_Analyze_Thread(QThread):
                     else:
                         log = ""
 
-                TestResult[enntools_cmd] = [result, log]
+                TestResult[enntools_cmd] = [result, log, memory_profile]
 
             else:
 
@@ -776,7 +782,7 @@ class Model_Analyze_Thread(QThread):
 
                     result, parameter_set = self.check_enntools_init(init_log_path=cwd, model=_model_,
                                                                      filename=_filename_)
-                    TestResult[enntools_cmd] = [result, convert_changed_items_to_text(parameter_set)]
+                    TestResult[enntools_cmd] = [result, convert_changed_items_to_text(parameter_set), memory_profile]
                 else:
                     check_log = None
                     profile_log = None
@@ -811,7 +817,7 @@ class Model_Analyze_Thread(QThread):
                                 if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
                                     log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
 
-                        TestResult[enntools_cmd] = [result, log]
+                        TestResult[enntools_cmd] = [result, log, memory_profile]
 
             #  enntools cmd 실행될 때마다 update
             self.output_signal_2.emit(target_widget, enntools_cmd, TestResult)
@@ -825,9 +831,10 @@ class Model_Analyze_Thread(QThread):
         name, ext = os.path.splitext(model)
 
         # 최재훈님 전달한 파일
-        onnx_info = self.get_basic_onnx_model_information(model=model, extension=ext)
-        if onnx_info is not None:
-            self.send_onnx_opset_ver_signal.emit(target_widget, onnx_info)
+        if not DEBUG:
+            onnx_info = self.get_basic_onnx_model_information(model=model, extension=ext)
+            if onnx_info is not None:
+                self.send_onnx_opset_ver_signal.emit(target_widget, onnx_info)
 
         # enntools cmd test
         elapsed_time, cwd = self.model_ai_studio_test(CommandLists=CommandLists, target_widget=target_widget,
@@ -1201,6 +1208,10 @@ class Model_Verify_Class(QObject):
             PRINT_(execute_cmd)
             result = TestResult[execute_cmd][0]
             log = TestResult[execute_cmd][1]
+            
+            memory_usage = ""
+            if len(TestResult[execute_cmd][2]) != 0:
+                memory_usage = str(TestResult[execute_cmd][2][0])
 
             if "init" in execute_cmd:
                 sub_widget[0].initlineEdit.setText(result)
@@ -1224,11 +1235,12 @@ class Model_Verify_Class(QObject):
 
             elif "profiling" in execute_cmd:
                 sub_widget[0].profilinglineEdit.setText(result)
-                sub_widget[0].profiletextEdit.setText(log)
+                sub_widget[0].profiletextEdit.setText(log)                
 
             elif "enntest" in execute_cmd:
                 sub_widget[0].enntestlineEdit.setText(result)
                 sub_widget[0].enntesttextEdit.setText(log)
+                sub_widget[0].memorytextEdit.setText(memory_usage)
 
     def update_test_result(self, elapsed_time, sub_widget, executed_cnt, cwd):
         if self.work_progress is not None:
@@ -1324,6 +1336,7 @@ class Model_Verify_Class(QObject):
 
                 target_widget[0].profilinglineEdit.setText("")
                 target_widget[0].profiletextEdit.setText("")
+                target_widget[0].memorytextEdit.setText("")
 
                 target_widget[0].elapsedlineEdit.setText("")
                 target_widget[0].parametersetting_textEdit.setText("")
@@ -1432,6 +1445,7 @@ class Model_Verify_Class(QObject):
                 "profiling_log": clean_data(target_widget[0].profiletextEdit.toPlainText()),
                 "enntest_execute": clean_data(target_widget[0].enntestlineEdit.text().strip()),
                 "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
+                "Memory Usage[MB]": clean_data(target_widget[0].memorytextEdit.toPlainText()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),
             }
