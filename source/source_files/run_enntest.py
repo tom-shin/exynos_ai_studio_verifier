@@ -35,16 +35,55 @@ class MemoryTracing(QThread):
         self.use_local_device = use_local_device
         self.cmd = None
         self.ssh_instance = ssh_instance
+        self.deviceID = deviceID
+
+        self.set_airplane_mode(enable=True)
 
         env = check_environment()
-
         if not self.use_local_device:
-            self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + deviceID if deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
+            self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
         else:
             if env == "Linux":
-                self.cmd = f"adb {'-s ' + deviceID if deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
+                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
             elif env == "Windows":
-                self.cmd = f"adb {'-s ' + deviceID if deviceID else ''} shell cat /proc/meminfo | findstr MemAvailable:"
+                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | findstr MemAvailable:"
+
+    def set_airplane_mode(self, enable=True):
+        try:
+            state = "1" if enable else "0"
+            broadcast_state = "true" if enable else "false"
+
+            if self.use_local_device:
+                # 로컬 디바이스에서 비행기 모드 설정
+                subprocess.run(
+                    ["adb", "shell", "settings", "put", "global", "airplane_mode_on", state],
+                    check=True
+                )
+
+                # 브로드캐스트 전송
+                subprocess.run(
+                    ["adb", "shell", "am", "broadcast", "-a", "android.intent.action.AIRPLANE_MODE", "--ez", "state",
+                     broadcast_state],
+                    check=True
+                )
+            else:
+                # 원격 디바이스에서 비행기 모드 설정
+                cmd = (
+                    f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
+                    f"settings put global airplane_mode_on {state} && "
+                    f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
+                    f"am broadcast -a android.intent.action.AIRPLANE_MODE --ez state {broadcast_state}"
+                )
+
+                # SSH 명령 실행
+                _, _ = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
+
+            print(f"Airplane mode {'enabled' if enable else 'disabled'} successfully.")
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error setting airplane mode on local device: {e}")
+        except Exception as e:
+            print(f"Error setting airplane mode on remote device: {e}")
 
     def run(self):
         while self.running:
@@ -131,6 +170,7 @@ class MemoryTracing(QThread):
 
     def stop(self):
         self.running = False
+        self.set_airplane_mode(enable=False)
         self.memory_usage_parsing()
         self.send_memory_profile_sig.emit(self.memory_profile)
         self.wait(3000)
@@ -336,9 +376,8 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
             failed_pairs.append(cleaned_result)
             break
 
-    instance.ssh_close()
-
     memory_profile_instance.stop()
+    instance.ssh_close()
 
     if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
         return True, failed_pairs, memory_profile_instance.memory_profile
@@ -515,7 +554,7 @@ if __name__ == "__main__":
 
     }
 
-    upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                              deviceID="0000100d0f246013")
-    # upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-    #                            deviceID="000011344eac6013")
+    # upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+    #                           deviceID="0000100d0f246013")
+    upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                               deviceID="000011344eac6013")
