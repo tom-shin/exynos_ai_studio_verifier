@@ -639,7 +639,7 @@ class Model_Analyze_Thread(QThread):
         return result, error_contents_dict
 
     def upgrade_execute_enntest_ondevice(self, TestResult=None, cwd=None):
-        meory_profile = []
+        memory_profile = []
         failed_pairs = []
         nnc_model_path = os.path.join(cwd, "Compiler_result").replace("\\", "/")
         nnc_files = []
@@ -658,15 +658,17 @@ class Model_Analyze_Thread(QThread):
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
                 if self.grand_parent.remoteradioButton.isChecked():
-                    ret, failed_pairs, meory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
-                                                                   out_dir,
-                                                                   self.grand_parent.enntestcomboBox.currentText(),
-                                                                   deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
+                    ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
+                                                                                   current_binary_pos,
+                                                                                   out_dir,
+                                                                                   self.grand_parent.enntestcomboBox.currentText(),
+                                                                                   deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
                 else:
-                    ret, failed_pairs, meory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
-                                                                  out_dir,
-                                                                  self.grand_parent.enntestcomboBox.currentText(),
-                                                                  deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
+                    ret, failed_pairs, memory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs,
+                                                                                  current_binary_pos,
+                                                                                  out_dir,
+                                                                                  self.grand_parent.enntestcomboBox.currentText(),
+                                                                                  deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
 
                 if ret:
                     result = "Success"
@@ -679,7 +681,7 @@ class Model_Analyze_Thread(QThread):
         else:
             result = "Skip"
 
-        return result, failed_pairs, meory_profile
+        return result, failed_pairs, memory_profile
 
     def model_ai_studio_test(self, CommandLists=[], target_widget=None, executed_cnt=0, max_cnt=0):
         memory_profile = []
@@ -732,7 +734,8 @@ class Model_Analyze_Thread(QThread):
             self.send_set_text_signal.emit(message)
 
             if "enntest" in enntools_cmd:
-                result, error_pair, memory_profile = self.upgrade_execute_enntest_ondevice(TestResult=TestResult, cwd=cwd)
+                result, error_pair, memory_profile = self.upgrade_execute_enntest_ondevice(TestResult=TestResult,
+                                                                                           cwd=cwd)
 
                 if result == "Success":
                     log = "".join(error_pair)
@@ -1203,15 +1206,42 @@ class Model_Verify_Class(QObject):
         sub_widget[0].onnxdomain.setText(onnx_info["domain"][0])
         sub_widget[0].onnxlineEdit.setText(onnx_info["opset_version"][0])
 
+    @staticmethod
+    def analyze_memory_trace(memory_usage):
+        if len(memory_usage) == 0:
+            return
+        used_memory = ""
+        # "Start"와 "End" 위치 찾기
+        try:
+            start_idx = memory_usage.index("Start")
+            end_idx = memory_usage.index("End")
+
+            # "Start"와 "End" 사이의 값 추출
+            values_between = [x for x in memory_usage[start_idx + 1:end_idx] if isinstance(x, (int, float))]
+            # 0 값을 제외한 값만 필터링
+            filtered_values = [x for x in values_between if x != 0]
+
+            # 평균, 최소, 최대 계산
+            avg_val = sum(filtered_values) / len(filtered_values)
+            min_val = min(filtered_values)
+            max_val = max(filtered_values)
+
+            used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
+
+        except ValueError as e:
+            print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
+
+        return used_memory
+
     def update_test_result_2(self, sub_widget, execute_cmd, TestResult):
         if self.work_progress is not None:
             PRINT_(execute_cmd)
             result = TestResult[execute_cmd][0]
             log = TestResult[execute_cmd][1]
-            
+
             memory_usage = ""
             if len(TestResult[execute_cmd][2]) != 0:
-                memory_usage = str(TestResult[execute_cmd][2][0])
+                memory_usage = self.analyze_memory_trace(memory_usage=TestResult[execute_cmd][2])
 
             if "init" in execute_cmd:
                 sub_widget[0].initlineEdit.setText(result)
@@ -1235,7 +1265,7 @@ class Model_Verify_Class(QObject):
 
             elif "profiling" in execute_cmd:
                 sub_widget[0].profilinglineEdit.setText(result)
-                sub_widget[0].profiletextEdit.setText(log)                
+                sub_widget[0].profiletextEdit.setText(log)
 
             elif "enntest" in execute_cmd:
                 sub_widget[0].enntestlineEdit.setText(result)
@@ -1444,7 +1474,7 @@ class Model_Verify_Class(QObject):
                 "profiling_Result": clean_data(target_widget[0].profilinglineEdit.text().strip()),
                 "profiling_log": clean_data(target_widget[0].profiletextEdit.toPlainText()),
                 "enntest_execute": clean_data(target_widget[0].enntestlineEdit.text().strip()),
-                "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
+                # "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
                 "Memory Usage[MB]": clean_data(target_widget[0].memorytextEdit.toPlainText()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),

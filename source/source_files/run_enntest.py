@@ -39,14 +39,15 @@ class MemoryTracing(QThread):
 
         self.set_airplane_mode(enable=True)
 
+        # /home/sam/platform-tools/adb -s 000011344eac6013 shell dumpsys meminfo EnnTest_v2_lib | grep "TOTAL PSS" | awk '{print $3}'
         env = check_environment()
         if not self.use_local_device:
-            self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
+            self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
         else:
             if env == "Linux":
-                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | grep MemAvailable:"
+                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
             elif env == "Windows":
-                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell cat /proc/meminfo | findstr MemAvailable:"
+                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
 
     def set_airplane_mode(self, enable=True):
         try:
@@ -95,8 +96,13 @@ class MemoryTracing(QThread):
                         # Extract available memory and store in memory_profile
                         line = result.stdout.strip()
                         if line:
-                            mem_available = line.split(":")[1].strip().replace("kB", "").strip()
-                            self.memory_profile.append(int(mem_available))
+                            try:
+                                value = int(re.search(r"TOTAL PSS:\s+(\d+)", line).group(1)) / 1024
+                                self.memory_profile.append(value)
+                            except:
+                                self.memory_profile.append(0)
+
+
                     else:
                         print(f"Command failed: {result.stderr}")
                 except subprocess.TimeoutExpired:
@@ -106,80 +112,38 @@ class MemoryTracing(QThread):
 
             else:
                 result, error = self.ssh_instance.user_ssh_exec_command(command=self.cmd, print_log=False)
+                if "No proces" in result:
+                    self.memory_profile.append(0)
+                    # print("No Process")
+                else:
+                    try:
+                        value = int(re.search(r"TOTAL PSS:\s+(\d+)", result).group(1)) / 1024
+                        self.memory_profile.append(value)
+                        # print(value)
+                    except Exception as e:
+                        pass
+                        # print("exception", e)
 
-                if result:
-                    mem_available = result.split(":")[1].strip().replace("kB", "").strip()
-                    self.memory_profile.append(int(mem_available))
+                # if result:
+                #     mem_available = result.split(":")[1].strip().replace("kB", "").strip()
+                #     self.memory_profile.append(int(mem_available))
 
             # Sleep to control frequency of sampling
             time.sleep(self.interval)
 
-    def memory_usage_parsing(self):
-        # "Start"와 "End" 위치 찾기
-        try:
-            start_idx = self.memory_profile.index("Start")
-            end_idx = self.memory_profile.index("End")
-
-            # "Start"와 "End" 사이의 값 추출
-            values_between = [x for x in self.memory_profile[start_idx + 1:end_idx] if isinstance(x, (int, float))]
-
-            if not values_between:
-                print("No numerical values between Start and End")
-            else:
-                # IQR 계산
-                q1 = np.percentile(values_between, 25)  # 1st quartile
-                q3 = np.percentile(values_between, 75)  # 3rd quartile
-                iqr = q3 - q1  # Interquartile Range
-                lower_bound = q1 - 1.5 * iqr
-                upper_bound = q3 + 1.5 * iqr
-
-                # IQR 범위 내 값만 사용
-                filtered_values = [x for x in values_between if lower_bound <= x <= upper_bound]
-
-                if not filtered_values:
-                    print("No values within IQR range")
-                    return
-
-                # 평균, 최소, 최대 계산
-                avg_val = sum(filtered_values) / len(filtered_values)
-                min_val = min(filtered_values)
-                max_val = max(filtered_values)
-
-                # "Start" 바로 앞 요소와의 차이 계산
-                if start_idx > 0:
-                    prev_val = self.memory_profile[start_idx - 1]
-                    if isinstance(prev_val, (int, float)):
-                        diff_avg = (prev_val - avg_val) / 1024
-                        # 추출된 값이 memory의 availabel한 용량을 본 것이므로 min_val는 실제 메모리를 가장 많이 사용한 경우
-                        diff_min = (prev_val - min_val) / 1024
-                        # 추출된 값이 memory의 availabel한 용량을 본 것이므로 max_val는 실제 메모리를 가장 적게 사용한 경우
-                        diff_max = (prev_val - max_val) / 1024
-                    else:
-                        print("Start 바로 앞 요소가 숫자가 아닙니다.")
-                        diff_avg = diff_min = diff_max = None
-                else:
-                    print("Start 앞에 요소가 없습니다.")
-                    diff_avg = diff_min = diff_max = None
-
-                # 결과 저장
-                if diff_avg is not None:
-                    self.memory_profile = [f"Average: {diff_avg:.1f}\nMax    : {diff_min:.1f}\nMin    : {diff_max:.1f}",
-                                           self.memory_profile]
-        except ValueError as e:
-            print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
-
     def stop(self):
         self.running = False
         self.set_airplane_mode(enable=False)
-        self.memory_usage_parsing()
         self.send_memory_profile_sig.emit(self.memory_profile)
         self.wait(3000)
 
 
 def PrintMemoryProfile(memory_profile):
     print("[Profile] Recorded memory values:")
-    for mem in memory_profile:
-        print(f"{mem}")
+    with open(os.path.join(os.getcwd(), "memory_trace.log"), "w") as file:
+        for mem_val in memory_profile:
+            file.write(f"{mem_val}\n")
+            # print(f"{mem}")
 
 
 class remote_ssh_server:
@@ -194,7 +158,8 @@ class remote_ssh_server:
         self.remote_adb_path = '/home/sam/platform-tools/adb'
 
         self.ProfileCMD = "EnnTest_v2_lib"
-        self.ProfileOption = "--profile summary --monitor_iter 1 --iter 20000 --useSNR"
+        # self.ProfileOption = "--profile summary --monitor_iter 1 --iter 10000 --useSNR"
+        self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
 
         self.ssh = None
         self.error_log = None
@@ -310,7 +275,8 @@ class remote_ssh_server:
         self.ssh = None
 
 
-def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID=None):
+def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID=None,
+                               wait_time=5):
     failed_pairs = []
     CHECK_ENNTEST = []
 
@@ -323,6 +289,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
     memory_profile_instance = MemoryTracing(use_local_device=False, ssh_instance=instance, deviceID=deviceID)
     memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
     memory_profile_instance.start()
+    time.sleep(wait_time)
 
     NNC_Model = nnc_files[0]
     arg_nnc_model = os.path.join(instance.android_device_path, os.path.basename(NNC_Model)).replace("\\", "/")
@@ -376,8 +343,17 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
             failed_pairs.append(cleaned_result)
             break
 
+    time.sleep(wait_time)
     memory_profile_instance.stop()
     instance.ssh_close()
+
+    # 출력값을 파일로 저장
+    filename = f"memory_trace.log"
+    SaveOutput = os.path.join(out_dir, filename).replace('\\', '/')
+
+    with open(SaveOutput, "w", encoding="utf-8") as f:
+        for mem_val in memory_profile_instance.memory_profile:
+            f.write(str(f"{mem_val}\n"))
 
     if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
         return True, failed_pairs, memory_profile_instance.memory_profile
@@ -385,10 +361,19 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         return False, failed_pairs, memory_profile_instance.memory_profile  # 실패한 쌍도 반환
 
 
-def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID):
-    memory_profile_instance = MemoryTracing(use_local_device=True, deviceID=deviceID)
+def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID,
+                              wait_time=5):
+    instance = remote_ssh_server(deviceID=deviceID)
+
+    DeviceTargetDir = instance.android_device_path
+    ProfileCMD = instance.ProfileCMD
+    ProfileOption = instance.ProfileOption
+    DeviceId = instance.remote_device  # "0000100d0f246013"
+
+    memory_profile_instance = MemoryTracing(use_local_device=True, ssh_instance=instance, deviceID=deviceID)
     memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
     memory_profile_instance.start()
+    time.sleep(wait_time)
 
     def check_enn_directory_exist(DeviceId, android_device_path):
         # Android device path 존재 여부 확인
@@ -418,13 +403,6 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 
         except Exception as e:
             print(f"Error during path check or modification: {e}")
-
-    instance = remote_ssh_server(deviceID=deviceID)
-
-    DeviceTargetDir = instance.android_device_path
-    ProfileCMD = instance.ProfileCMD
-    ProfileOption = instance.ProfileOption
-    DeviceId = instance.remote_device  # "0000100d0f246013"
 
     # Device 권한 설정
     if DeviceId is None:
@@ -523,12 +501,18 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
             failed_pairs.append(cleaned_result)
             break
 
+    time.sleep(wait_time)
     memory_profile_instance.stop()
 
     check_enn_directory_exist(DeviceId=DeviceId, android_device_path=DeviceTargetDir)
 
-    # for test
-    memory_profile_instance.memory_profile = ["Min    :120MB\nMax    :200MB\nAverage: 170MB"]
+    # 출력값을 파일로 저장
+    filename = f"memory_trace.log"
+    SaveOutput = os.path.join(out_dir, filename).replace('\\', '/')
+
+    with open(SaveOutput, "w", encoding="utf-8") as f:
+        for mem_val in memory_profile_instance.memory_profile:
+            f.write(str(f"{mem_val}\n"))
 
     if all(CHECK_ENNTEST):  # 모든 값이 True인 경우
         return True, failed_pairs, memory_profile_instance.memory_profile
@@ -553,7 +537,7 @@ if __name__ == "__main__":
         # "input_data_float32_fp32.bin": ['golden_data_float320_fp32.bin', 'golden_data_float321_fp32.bin']
 
     }
-
+    #
     # upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
     #                           deviceID="0000100d0f246013")
     upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
