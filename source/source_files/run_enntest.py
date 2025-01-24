@@ -44,10 +44,7 @@ class MemoryTracing(QThread):
         if not self.use_local_device:
             self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
         else:
-            if env == "Linux":
-                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
-            elif env == "Windows":
-                self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
+            self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
 
     def set_airplane_mode(self, enable=True):
         try:
@@ -101,7 +98,6 @@ class MemoryTracing(QThread):
                                 self.memory_profile.append(value)
                             except:
                                 self.memory_profile.append(0)
-
 
                     else:
                         print(f"Command failed: {result.stderr}")
