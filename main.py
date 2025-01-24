@@ -24,6 +24,9 @@ import numpy as np
 import uuid
 from typing import Tuple, List, Dict
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QFileDialog
@@ -1226,8 +1229,8 @@ class Model_Verify_Class(QObject):
             min_val = min(filtered_values)
             max_val = max(filtered_values)
 
-            used_memory = f"Average: {avg_val:>10.1f}"
-            # used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
+            # used_memory = f"Average: {avg_val:>10.1f}"
+            used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
 
         except ValueError as e:
             print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
@@ -1269,9 +1272,55 @@ class Model_Verify_Class(QObject):
                 sub_widget[0].profiletextEdit.setText(log)
 
             elif "enntest" in execute_cmd:
+                # TextEdit와 LineEdit 초기화
                 sub_widget[0].enntestlineEdit.setText(result)
                 sub_widget[0].enntesttextEdit.setText(log)
                 sub_widget[0].memorytextEdit.setText(memory_usage)
+
+                # memory profile graph 그리기
+                if len(TestResult[execute_cmd][2]) != 0:
+
+                    # 기존 그래프 제거 및 레이아웃 추가
+                    if not sub_widget[0].memoryprofilewidget.layout():
+                        # 메모리 프로파일 위젯에 새로운 레이아웃 추가
+                        layout = QtWidgets.QVBoxLayout(sub_widget[0].memoryprofilewidget)
+                        sub_widget[0].memoryprofilewidget.setLayout(layout)
+
+                    # 기존 그래프 제거
+                    layout = sub_widget[0].memoryprofilewidget.layout()
+                    for i in reversed(range(layout.count())):
+                        widget_to_remove = layout.itemAt(i).widget()
+                        if widget_to_remove:
+                            layout.removeWidget(widget_to_remove)  # 위젯을 레이아웃에서 제거
+                            widget_to_remove.deleteLater()  # 메모리 해제
+
+                    # 새로운 그래프 생성
+                    figure = Figure()  # Matplotlib Figure 생성
+                    canvas = FigureCanvas(figure)  # Figure를 Canvas로 변환
+                    layout.addWidget(canvas)  # Canvas를 레이아웃에 추가
+
+                    # 데이터 추출 및 처리
+                    values_between = []
+                    for val in TestResult[execute_cmd][2]:
+                        if "Start" in str(val) or "End" in str(val):  # 특정 조건 건너뛰기
+                            continue
+                        try:
+                            values_between.append(float(val))  # 숫자로 변환하여 리스트에 추가
+                        except ValueError:
+                            continue  # 숫자로 변환할 수 없는 값은 무시
+
+                    # 그래프 그리기
+                    ax = figure.add_subplot(111)  # Subplot 추가
+                    if values_between:  # 데이터가 있을 경우에만 그래프 그리기
+                        ax.plot(values_between, marker='o', color='b', label="Memory Usage")  # 데이터 플롯팅
+                        ax.set_title("Memory Usage Profile")  # 그래프 제목
+                        ax.set_xlabel("Time")  # X축 라벨
+                        ax.set_ylabel("Memory (MB)")  # Y축 라벨
+                        ax.legend()  # 범례 추가
+                        ax.grid()  # 격자 추가
+
+                    # Canvas 업데이트
+                    canvas.draw()
 
     def update_test_result(self, elapsed_time, sub_widget, executed_cnt, cwd):
         if self.work_progress is not None:
@@ -1374,6 +1423,24 @@ class Model_Verify_Class(QObject):
 
                 target_widget[0].enntestlineEdit.setText("")
                 target_widget[0].enntesttextEdit.setText("")
+
+                # mrmory profile 레이아웃이 존재하면 기존 그래프 및 위젯 제거
+                layout = target_widget[0].memoryprofilewidget.layout()
+                if layout:
+                    # 레이아웃에서 위젯을 하나씩 제거
+                    for i in reversed(range(layout.count())):
+                        widget_to_remove = layout.itemAt(i).widget()
+                        if widget_to_remove:
+                            layout.removeWidget(widget_to_remove)  # 레이아웃에서 위젯 제거
+                            widget_to_remove.deleteLater()  # 메모리에서 해제
+
+                    # 레이아웃을 새롭게 다시 설정
+                    new_layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
+                    target_widget[0].memoryprofilewidget.setLayout(new_layout)  # 새 레이아웃 설정
+                else:
+                    # 레이아웃이 없으면 새 레이아웃 추가
+                    layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
+                    target_widget[0].memoryprofilewidget.setLayout(layout)  # 새 레이아웃 설정
 
                 directory, model_name = separate_folders_and_files(target_widget[0].pathlineEdit.text())
                 filename, extension = separate_filename_and_extension(model_name)
@@ -1602,6 +1669,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.mainFrame_ui.cmdlabel.hide()
         self.mainFrame_ui.command_lineedit.hide()
+
+        self.setWindowTitle(Version)
 
     @staticmethod
     def kill_docker_desktop():

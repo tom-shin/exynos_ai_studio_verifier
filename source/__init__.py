@@ -20,7 +20,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.3.2_20250120 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.4.0_20250124 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
