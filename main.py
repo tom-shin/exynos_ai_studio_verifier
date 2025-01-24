@@ -1226,7 +1226,8 @@ class Model_Verify_Class(QObject):
             min_val = min(filtered_values)
             max_val = max(filtered_values)
 
-            used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
+            used_memory = f"Average: {avg_val:>10.1f}"
+            # used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
 
         except ValueError as e:
             print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
