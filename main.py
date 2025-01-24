@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-DEBUG = True
+DEBUG = False
 
 import warnings
 
