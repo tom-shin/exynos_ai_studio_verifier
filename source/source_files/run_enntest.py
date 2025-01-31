@@ -330,10 +330,17 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         # 결과 확인
         if "PASSED" in cleaned_result.split("\n")[-2]:
             CHECK_ENNTEST.append(True)
-            success_logs = cleaned_result.split("\n")
-            for logs in success_logs:
-                if "total execution time" in logs.lower() or "measured snr" in logs.lower():
-                    failed_pairs.append(logs + "\n")
+            # success_logs = cleaned_result.split("\n")
+            # for logs in success_logs:
+            #     if "total execution time" in logs.lower() or "measured snr" in logs.lower():
+            #         failed_pairs.append(logs + "\n")
+            failed_pairs = list(set(
+                log.strip() + "\n"
+                for log in cleaned_result.split("\n")
+                if "# monitoriter:" not in log.lower() and
+                any(keyword in log.lower() for keyword in
+                    ["execution performance", "total execution time", "measured snr"])
+            ))
         else:
             CHECK_ENNTEST.append(False)
             failed_pairs.append(cleaned_result)
@@ -488,10 +495,18 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         # 결과 확인
         if "PASSED" in cleaned_result.split("\n")[-2]:
             CHECK_ENNTEST.append(True)
-            success_logs = cleaned_result.split("\n")
-            for logs in success_logs:
-                if "total execution time" in logs.lower() or "measured snr" in logs.lower():
-                    failed_pairs.append(logs + "\n")
+            # success_logs = cleaned_result.split("\n")
+            # for logs in success_logs:
+            #     if "execution performance" in logs.lower() or "total execution time" in logs.lower() or "measured snr" in logs.lower():
+            #         failed_pairs.append(logs + "\n")
+
+            failed_pairs = list(set(
+                log.strip() + "\n"
+                for log in cleaned_result.split("\n")
+                if "# monitoriter:" not in log.lower() and
+                any(keyword in log.lower() for keyword in
+                    ["execution performance", "total execution time", "measured snr"])
+            ))
         else:
             CHECK_ENNTEST.append(False)
             failed_pairs.append(cleaned_result)

@@ -1237,7 +1237,7 @@ class Model_Verify_Class(QObject):
                 return used_memory
 
             # used_memory = f"Average: {avg_val:>10.1f}"
-            used_memory = f"Average: {avg_val:>10.2f}\nMax    : {max_val:>10.2f}\nMin    : {min_val:>10.2f}"
+            used_memory = f"AVG.: {avg_val:>10.2f}\nMAX.: {max_val:>10.2f}\nMIN.: {min_val:>10.2f}"
 
         except ValueError as e:
             print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
@@ -1280,9 +1280,32 @@ class Model_Verify_Class(QObject):
 
             elif "enntest" in execute_cmd:
                 # TextEdit와 LineEdit 초기화
-                sub_widget[0].enntestlineEdit.setText(result)
-                sub_widget[0].enntesttextEdit.setText(log)
                 sub_widget[0].memorytextEdit.setText(memory_usage)
+
+                sub_widget[0].enntestlineEdit.setText(result)
+                if "success" in result.lower():
+                    temp = log.split("\n")
+                    for str_ in temp:
+                        if "snr" in str_.lower():
+                            try:
+                                sub_widget[0].snrlineEdit.setText(re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("dB", " dB"))
+                            except:
+                                sub_widget[0].snrlineEdit.setText("")
+                        elif "perf" in str_.lower():
+                            try:
+                                sub_widget[0].exeperflineEdit.setText(re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("fps", " fps"))
+                            except:
+                                sub_widget[0].exeperflineEdit.setText("")
+                        elif "iter" in str_.lower() and "total" in str_.lower():
+                            temp2 = str_.split("/")
+                            try:
+                                sub_widget[0].iterlineEdit.setText(re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1]))
+                                sub_widget[0].exetimelineEdit.setText(re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", " us"))
+                            except:
+                                sub_widget[0].iterlineEdit.setText("")
+                                sub_widget[0].exetimelineEdit.setText("")
+                else:
+                    sub_widget[0].enntesttextEdit.setText(log)
 
                 # memory profile graph 그리기
                 if len(TestResult[execute_cmd][2]) != 0:
@@ -1423,13 +1446,18 @@ class Model_Verify_Class(QObject):
 
                 target_widget[0].profilinglineEdit.setText("")
                 target_widget[0].profiletextEdit.setText("")
-                target_widget[0].memorytextEdit.setText("")
 
                 target_widget[0].elapsedlineEdit.setText("")
                 target_widget[0].parametersetting_textEdit.setText("")
 
                 target_widget[0].enntestlineEdit.setText("")
                 target_widget[0].enntesttextEdit.setText("")
+
+                target_widget[0].memorytextEdit.setText("")
+                target_widget[0].iterlineEdit.setText("")
+                target_widget[0].snrlineEdit.setText("")
+                target_widget[0].exetimelineEdit.setText("")
+                target_widget[0].exeperflineEdit.setText("")
 
                 # mrmory profile 레이아웃이 존재하면 기존 그래프 및 위젯 제거
                 layout = target_widget[0].memoryprofilewidget.layout()
@@ -1548,9 +1576,13 @@ class Model_Verify_Class(QObject):
                 "analysis_log": clean_data(target_widget[0].analysistextEdit.toPlainText()),
                 "profiling_Result": clean_data(target_widget[0].profilinglineEdit.text().strip()),
                 "profiling_log": clean_data(target_widget[0].profiletextEdit.toPlainText()),
-                "enntest_execute": clean_data(target_widget[0].enntestlineEdit.text().strip()),
-                # "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
+                "enntest_Result": clean_data(target_widget[0].enntestlineEdit.text().strip()),
+                "enntest_log": clean_data(target_widget[0].enntesttextEdit.toPlainText()),
+                "enntest_Iter.[count]": clean_data(target_widget[0].iterlineEdit.text().strip()),
                 "Memory Usage[MB]": clean_data(target_widget[0].memorytextEdit.toPlainText()),
+                "enntest_SNR[dB]": clean_data(target_widget[0].snrlineEdit.text().strip()),
+                "enntest Total Execution Time[us]": clean_data(target_widget[0].exetimelineEdit.text().strip()),
+                "enntest Execution Performance[fps]": clean_data(target_widget[0].exeperflineEdit.text().strip()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),
             }
