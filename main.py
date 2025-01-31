@@ -1225,9 +1225,16 @@ class Model_Verify_Class(QObject):
             filtered_values = [x for x in values_between if x != 0]
 
             # 평균, 최소, 최대 계산
-            avg_val = sum(filtered_values) / len(filtered_values)
-            min_val = min(filtered_values)
-            max_val = max(filtered_values)
+            try:
+                avg_val = sum(filtered_values) / len(filtered_values)
+                min_val = min(filtered_values)
+                max_val = max(filtered_values)
+            except:
+                # avg_val = 0
+                # min_val = 0
+                # max_val = 0
+                print(f"division by zero")
+                return used_memory
 
             # used_memory = f"Average: {avg_val:>10.1f}"
             used_memory = f"Average: {avg_val:>10.1f}\nMax    : {max_val:>10.1f}\nMin    : {min_val:>10.1f}"
