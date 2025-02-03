@@ -594,8 +594,9 @@ if __name__ == "__main__":
     out_dir = os.getcwd()
 
     Test_use_remote_device = True
+    Test_on_Window_PC = True
 
-    if Test_use_remote_device:
+    if Test_on_Window_PC:
         current_binary_pos = rf'C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Converter_result\NPU_zero_dce_lite_160x160_iter8_30_dynamic2static\testvector\inout'
 
         nnc_files = [
@@ -606,8 +607,12 @@ if __name__ == "__main__":
             "input_data_float32.bin": ['golden_data_float320.bin', 'golden_data_float321.bin']
         }
 
-        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                   deviceID="000011344eac6013")
+        if Test_use_remote_device:
+            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                       deviceID="000011344eac6013")
+        else:
+            upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                      deviceID="0000100d0f246013")
 
     else:
         current_binary_pos = rf"/home/tom/work/linux_enntools/mobilenetv2-7/Converter_result/NPU_mobilenetv2-7/testvector/inout"
@@ -620,5 +625,9 @@ if __name__ == "__main__":
             "input_data_float32.bin": ['golden_data_float32.bin']
         }
 
-        upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                  deviceID="0000100d0f246013")
+        if Test_use_remote_device:
+            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                       deviceID="000011344eac6013")
+        else:
+            upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                      deviceID="0000100d0f246013")
