@@ -592,42 +592,19 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 if __name__ == "__main__":
     target_board = ''
     out_dir = os.getcwd()
+    current_binary_pos = "../../tools/example"
+    nnc_files = [
+        os.path.join(current_binary_pos, 'mobilenetv2-7_simplify_O2_SingleCore.nnc')
+    ]
+    input_golden_pairs = {
+        "input_data_float32.bin": ['golden_data_float32.bin']
+    }
 
     Test_use_remote_device = True
-    Test_on_Window_PC = True
 
-    if Test_on_Window_PC:
-        current_binary_pos = rf'C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Converter_result\NPU_zero_dce_lite_160x160_iter8_30_dynamic2static\testvector\inout'
-
-        nnc_files = [
-            rf"C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Compiler_result\zero_dce_lite_160x160_iter8_30_dynamic2static_simplify_O2_SingleCore.nnc"
-        ]
-
-        input_golden_pairs = {
-            "input_data_float32.bin": ['golden_data_float320.bin', 'golden_data_float321.bin']
-        }
-
-        if Test_use_remote_device:
-            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                       deviceID="000011344eac6013")
-        else:
-            upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                      deviceID="0000100d0f246013")
-
+    if Test_use_remote_device:
+        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                   deviceID="000011344eac6013")
     else:
-        current_binary_pos = rf"/home/tom/work/linux_enntools/mobilenetv2-7/Converter_result/NPU_mobilenetv2-7/testvector/inout"
-
-        nnc_files = [
-            rf"/home/tom/work/linux_enntools/mobilenetv2-7/Compiler_result/mobilenetv2-7_simplify_O2_SingleCore.nnc"
-        ]
-
-        input_golden_pairs = {
-            "input_data_float32.bin": ['golden_data_float32.bin']
-        }
-
-        if Test_use_remote_device:
-            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                       deviceID="000011344eac6013")
-        else:
-            upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                      deviceID="0000100d0f246013")
+        upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                  deviceID="0000100d0f246013")
