@@ -38,6 +38,7 @@ class MemoryTracing(QThread):
         self.deviceID = deviceID
 
         self.set_airplane_mode(enable=True)
+        self.memory_initialization()
 
         # /home/sam/platform-tools/adb -s 000011344eac6013 shell dumpsys meminfo EnnTest_v2_lib | grep "TOTAL PSS" | awk '{print $3}'
         env = check_environment()
@@ -45,6 +46,62 @@ class MemoryTracing(QThread):
             self.cmd = f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
         else:
             self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
+
+    def memory_initialization(self):
+        device_id = self.deviceID
+        app_package = self.ssh_instance.ProfileCMD
+
+        # -s 옵션에 device_id를 추가할지 여부 결정
+        device_option = f"-s {device_id}" if device_id else ""  # device_id가 있으면 -s 옵션 추가, 없으면 생략
+
+        if self.use_local_device:
+            adb_path = "adb"
+
+            try:
+                # 모든 background 앱 종료
+                subprocess.run([adb_path, device_option, "shell", "am", "kill-all"], check=True)
+
+                # 앱 캐시 초기화
+                try:
+                    subprocess.run([adb_path, device_option, "shell", "pm", "clear", app_package], check=True)
+                except subprocess.CalledProcessError as e:
+                    print(f"Error while clearing app cache: {e}")
+
+                # 캐시 초기화 (루트 권한 필요 시)
+                subprocess.run(
+                    [adb_path, device_option, "shell", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
+                    check=True)
+
+                print(
+                    f"Memory and cache cleared on device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
+
+            except subprocess.CalledProcessError as e:
+                print(f"Error occurred: {e}")
+
+        else:
+            adb_path = self.ssh_instance.remote_adb_path
+
+            # 명령어 리스트
+            cmds = [
+                f'{adb_path} {device_option} shell am kill-all',  # device_option이 비어 있으면 -s 생략
+                f'{adb_path} {device_option} shell pm clear {app_package}',  # 동일하게 적용
+                f'{adb_path} {device_option} shell "sync; echo 3 > /proc/sys/vm/drop_caches"'
+            ]
+
+            # 각 명령어를 반복문으로 실행
+            for cmd in cmds:
+                try:
+                    stdout, stderr = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
+                    # if stderr:
+                    #     print(f"SSH Command : {stderr}")
+                    # else:
+                    #     print(
+                    #         f"Memory and cache cleared on remote device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
+
+                except Exception as e:
+                    print(f"SSH Error: {e}")
+
+        print(f"Executed Memory Initialization.")
 
     def set_airplane_mode(self, enable=True):
         try:
@@ -534,22 +591,34 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 # 함수 실행 예시
 if __name__ == "__main__":
     target_board = ''
-
     out_dir = os.getcwd()
-    current_binary_pos = rf'C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Converter_result\NPU_zero_dce_lite_160x160_iter8_30_dynamic2static\testvector\inout'
 
-    nnc_files = [
-        rf"C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Compiler_result\zero_dce_lite_160x160_iter8_30_dynamic2static_simplify_O2_SingleCore.nnc"
-    ]
+    Test_use_remote_device = True
 
-    input_golden_pairs = {
-        "input_data_float32.bin": ['golden_data_float320.bin', 'golden_data_float321.bin']
-        # ,
-        # "input_data_float32_fp32.bin": ['golden_data_float320_fp32.bin', 'golden_data_float321_fp32.bin']
+    if Test_use_remote_device:
+        current_binary_pos = rf'C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Converter_result\NPU_zero_dce_lite_160x160_iter8_30_dynamic2static\testvector\inout'
 
-    }
-    #
-    # upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-    #                           deviceID="0000100d0f246013")
-    upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                               deviceID="000011344eac6013")
+        nnc_files = [
+            rf"C:\Work\tom\python_project\AI_MODEL_Rep\Test_Result\Result_v2_20250108_webportalResult\zero_dce_lite_160x160_iter8_30_dynamic2static\Compiler_result\zero_dce_lite_160x160_iter8_30_dynamic2static_simplify_O2_SingleCore.nnc"
+        ]
+
+        input_golden_pairs = {
+            "input_data_float32.bin": ['golden_data_float320.bin', 'golden_data_float321.bin']
+        }
+
+        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                   deviceID="000011344eac6013")
+
+    else:
+        current_binary_pos = rf"/home/tom/work/linux_enntools/mobilenetv2-7/Converter_result/NPU_mobilenetv2-7/testvector/inout"
+
+        nnc_files = [
+            rf"/home/tom/work/linux_enntools/mobilenetv2-7/Compiler_result/mobilenetv2-7_simplify_O2_SingleCore.nnc"
+        ]
+
+        input_golden_pairs = {
+            "input_data_float32.bin": ['golden_data_float32.bin']
+        }
+
+        upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                  deviceID="0000100d0f246013")

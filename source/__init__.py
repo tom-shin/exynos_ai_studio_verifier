@@ -547,7 +547,7 @@ def check_environment():
     else:
         env = "Other"  # macOS 또는 기타 운영체제
 
-    print(env)
+    # print(env)
     return env
 
 
