@@ -1692,7 +1692,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui = rt.Ui_MainWindow()
         self.mainFrame_ui.setupUi(self)
 
-        element_list = [fmt.strip() for fmt in keyword["element_1"]]
+        element_list = [fmt.strip() for fmt in keyword["test_model"]]
         text_concatenation = ', '.join(element_list)
         self.mainFrame_ui.targetformat_lineedit.setText(text_concatenation)
 

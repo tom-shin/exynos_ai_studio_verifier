@@ -24,7 +24,7 @@ Version = "AI Studio Analyzer ver.3.4.2_20250204 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
-    "element_1": ["onnx"],  # , "tflite", "caffemodel"],
+    "test_model": ["onnx"],  # , "tflite", "caffemodel"],
     "error_keyword": ["Error Code:", "Error code:", "Error msg:"],
     "op_exe_cmd": ["enntools init", "enntools conversion", "enntools compile", "enntools estimation",
                    "enntools analysis", "enntest execute"],
@@ -454,7 +454,7 @@ def get_directory(base_dir, user_defined_fmt=None, file_full_path=False):
 
         for file in files:
             if user_defined_fmt is None:
-                if any(file.endswith(ext) for ext in keyword["element_1"]):
+                if any(file.endswith(ext) for ext in keyword["test_model"]):
                     if file_full_path:
                         data.add(os.path.join(root, file))
                     else:
