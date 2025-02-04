@@ -1395,7 +1395,7 @@ class Model_Verify_Class(QObject):
 
             msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes)
             # Always show the message box on top
-            if platform.system() == "Windows":
+            if check_environment() == "Windows":
                 msg_box.setWindowFlags(msg_box.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
 
             # 메시지 박스를 최상단에 표시
@@ -1505,7 +1505,7 @@ class Model_Verify_Class(QObject):
                 "test model is required.\nMark model")
             msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes)  # Yes/No 버튼 추가
 
-            if platform.system() == "Windows":
+            if check_environment() == "Windows":
                 msg_box.setWindowFlags(msg_box.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)  # 항상 위에 표시
 
             answer = msg_box.exec_()  # 대화 상자를 실행하고 사용자의 응답을 반환
@@ -1658,7 +1658,7 @@ class Model_Verify_Class(QObject):
                 "All saved.               \n")
             msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes)  # Yes/No 버튼 추가
 
-            if platform.system() == "Windows":
+            if check_environment() == "Windows":
                 msg_box.setWindowFlags(msg_box.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)  # 항상 위에 표시
 
             answer = msg_box.exec_()  # 대화 상자를 실행하고 사용자의 응답을 반환
