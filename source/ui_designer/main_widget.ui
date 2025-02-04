@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1244</width>
+    <width>1136</width>
     <height>2814</height>
    </rect>
   </property>
@@ -175,15 +175,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_13">
            <item>
-            <widget class="QWidget" name="memoryprofilewidget" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_15"/>
-            </widget>
+            <layout class="QVBoxLayout" name="memory_graph"/>
            </item>
           </layout>
          </widget>

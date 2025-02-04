@@ -29,7 +29,7 @@ from matplotlib.figure import Figure
 
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QApplication
 
 from source.__init__ import *
 
@@ -1288,19 +1288,22 @@ class Model_Verify_Class(QObject):
                     for str_ in temp:
                         if "snr" in str_.lower():
                             try:
-                                sub_widget[0].snrlineEdit.setText(re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("dB", " dB"))
+                                sub_widget[0].snrlineEdit.setText(
+                                    re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("dB", " dB"))
                             except:
                                 sub_widget[0].snrlineEdit.setText("")
                         elif "perf" in str_.lower():
                             try:
-                                sub_widget[0].exeperflineEdit.setText(re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("fps", " fps"))
+                                sub_widget[0].exeperflineEdit.setText(
+                                    re.sub(r"[\[\] ]", "", str_.split(":")[-1]).replace("fps", " fps"))
                             except:
                                 sub_widget[0].exeperflineEdit.setText("")
                         elif "iter" in str_.lower() and "total" in str_.lower():
                             temp2 = str_.split("/")
                             try:
                                 sub_widget[0].iterlineEdit.setText(re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1]))
-                                sub_widget[0].exetimelineEdit.setText(re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", " us"))
+                                sub_widget[0].exetimelineEdit.setText(
+                                    re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", " us"))
                             except:
                                 sub_widget[0].iterlineEdit.setText("")
                                 sub_widget[0].exetimelineEdit.setText("")
@@ -1310,21 +1313,23 @@ class Model_Verify_Class(QObject):
                 # memory profile graph 그리기
                 if len(TestResult[execute_cmd][2]) != 0:
 
-                    # 기존 그래프 제거 및 레이아웃 추가
-                    if not sub_widget[0].memoryprofilewidget.layout():
-                        # 메모리 프로파일 위젯에 새로운 레이아웃 추가
-                        layout = QtWidgets.QVBoxLayout(sub_widget[0].memoryprofilewidget)
-                        sub_widget[0].memoryprofilewidget.setLayout(layout)
-
-                    # 기존 그래프 제거
-                    layout = sub_widget[0].memoryprofilewidget.layout()
-                    for i in reversed(range(layout.count())):
-                        widget_to_remove = layout.itemAt(i).widget()
-                        if widget_to_remove:
-                            layout.removeWidget(widget_to_remove)  # 위젯을 레이아웃에서 제거
-                            widget_to_remove.deleteLater()  # 메모리 해제
+                    # # 기존 그래프 제거 및 레이아웃 추가
+                    # if not sub_widget[0].memoryprofilewidget.layout():
+                    #     # 메모리 프로파일 위젯에 새로운 레이아웃 추가
+                    #     layout = QtWidgets.QVBoxLayout(sub_widget[0].memoryprofilewidget)
+                    #     sub_widget[0].memoryprofilewidget.setLayout(layout)
+                    #
+                    # # 기존 그래프 제거
+                    # layout = sub_widget[0].memoryprofilewidget.layout()
+                    # for i in reversed(range(layout.count())):
+                    #     widget_to_remove = layout.itemAt(i).widget()
+                    #     if widget_to_remove:
+                    #         layout.removeWidget(widget_to_remove)  # 위젯을 레이아웃에서 제거
+                    #         widget_to_remove.deleteLater()  # 메모리 해제
+                    # 레이아웃 내 모든 위젯 삭제
 
                     # 새로운 그래프 생성
+                    layout = sub_widget[0].memory_graph
                     figure = Figure()  # Matplotlib Figure 생성
                     canvas = FigureCanvas(figure)  # Figure를 Canvas로 변환
                     layout.addWidget(canvas)  # Canvas를 레이아웃에 추가
@@ -1459,23 +1464,33 @@ class Model_Verify_Class(QObject):
                 target_widget[0].exetimelineEdit.setText("")
                 target_widget[0].exeperflineEdit.setText("")
 
-                # mrmory profile 레이아웃이 존재하면 기존 그래프 및 위젯 제거
-                layout = target_widget[0].memoryprofilewidget.layout()
-                if layout:
-                    # 레이아웃에서 위젯을 하나씩 제거
-                    for i in reversed(range(layout.count())):
-                        widget_to_remove = layout.itemAt(i).widget()
-                        if widget_to_remove:
-                            layout.removeWidget(widget_to_remove)  # 레이아웃에서 위젯 제거
-                            widget_to_remove.deleteLater()  # 메모리에서 해제
+                # 레이아웃 내 모든 위젯 삭제
+                layout = target_widget[0].memory_graph
+                for i in reversed(range(layout.count())):
+                    widget = layout.itemAt(i).widget()  # 레이아웃에서 위젯 가져오기
+                    if widget is not None:
+                        layout.removeWidget(widget)  # 레이아웃에서 위젯 제거
+                        widget.setParent(None)  # 부모 위젯 참조 제거하여 삭제 준비
+                        del widget  # 위젯 삭제
+                QApplication.processEvents()  # GUI를 즉시 갱신하여 삭제된 위젯 반영
 
-                    # 레이아웃을 새롭게 다시 설정
-                    new_layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
-                    target_widget[0].memoryprofilewidget.setLayout(new_layout)  # 새 레이아웃 설정
-                else:
-                    # 레이아웃이 없으면 새 레이아웃 추가
-                    layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
-                    target_widget[0].memoryprofilewidget.setLayout(layout)  # 새 레이아웃 설정
+                # # mrmory profile 레이아웃이 존재하면 기존 그래프 및 위젯 제거
+                # layout = target_widget[0].memoryprofilewidget.layout()
+                # if layout:
+                #     # 레이아웃에서 위젯을 하나씩 제거
+                #     for i in reversed(range(layout.count())):
+                #         widget_to_remove = layout.itemAt(i).widget()
+                #         if widget_to_remove:
+                #             layout.removeWidget(widget_to_remove)  # 레이아웃에서 위젯 제거
+                #             widget_to_remove.deleteLater()  # 메모리에서 해제
+
+                #     # 레이아웃을 새롭게 다시 설정
+                #     new_layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
+                #     target_widget[0].memoryprofilewidget.setLayout(new_layout)  # 새 레이아웃 설정
+                # else:
+                #     # 레이아웃이 없으면 새 레이아웃 추가
+                #     layout = QtWidgets.QVBoxLayout(target_widget[0].memoryprofilewidget)
+                #     target_widget[0].memoryprofilewidget.setLayout(layout)  # 새 레이아웃 설정
 
                 directory, model_name = separate_folders_and_files(target_widget[0].pathlineEdit.text())
                 filename, extension = separate_filename_and_extension(model_name)
