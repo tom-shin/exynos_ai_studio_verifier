@@ -35,6 +35,7 @@ global_config:
     use_randomdb: true
     userdb: DATA/database.txt
     enable_stm: true
+    multicore: true
 
   profiler:
     device: Gen-6npu
