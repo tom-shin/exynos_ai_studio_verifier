@@ -269,7 +269,10 @@ class remote_ssh_server:
 
     def check_ssh_connection(self):
         if self.ssh is not None:
-            self.ssh_close()
+            # self.ssh_close()
+            self.error_log = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  SSH Already Connected"
+            self.check_enn_directory_exist()
+            return True, self.error_log
 
         try:
             # SSH 연결 시도
@@ -284,7 +287,7 @@ class remote_ssh_server:
                 _, _ = self.user_ssh_exec_command(command=command)
 
             self.check_enn_directory_exist()
-
+            self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection Successed: "
             return True, self.error_log  # 연결 성공 시 True 반환
 
         except paramiko.AuthenticationException:
@@ -351,9 +354,10 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
 
     instance = remote_ssh_server(deviceID=deviceID)
     ret, error = instance.check_ssh_connection()
+    print(error)
 
     if not ret:
-        return False, failed_pairs.append(error)
+        return False, failed_pairs.append(error), []
 
     memory_profile_instance = MemoryTracing(use_local_device=False, ssh_instance=instance, deviceID=deviceID)
     memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
