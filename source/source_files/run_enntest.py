@@ -216,28 +216,73 @@ def PrintMemoryProfile(memory_profile):
 
 
 class remote_ssh_server:
+    ssh = None  # 클래스 변수로 SSH 연결 관리
+
     def __init__(self, deviceID):
         self.remote_host = '1.220.53.154'
         self.remote_port = 63522
         self.remote_user = 'sam'
         self.remote_password = 'Thunder$@88'
-        self.remote_device = deviceID  # '0000100d8e38c0e0'
+        self.remote_device = deviceID
         self.remote_temp_dir = '/home/sam/tom/temp'
         self.android_device_path = '/data/vendor/enn'
         self.remote_adb_path = '/home/sam/platform-tools/adb'
 
         self.ProfileCMD = "EnnTest_v2_lib"
-        # self.ProfileOption = "--profile summary --monitor_iter 1 --iter 10000 --useSNR"
         self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
 
-        self.ssh = None
         self.error_log = None
 
-    def user_ssh_exec_command(self, command, print_log=True):
-        stdin, stdout, stderr = self.ssh.exec_command(command)
+        # 기존 SSH 세션 유지 (없으면 새로 연결)
+        if remote_ssh_server.ssh is None:
+            self.create_ssh_connection()
+        else:
+            self.error_log = " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
+
+        print(self.error_log)
+
+        self.clear_remote_temp_dir()
+        self.check_enn_directory_exist()
+
+    def create_ssh_connection(self):
+        """SSH 연결 생성 및 클래스 변수에 저장"""
+        try:
+            ssh_client = paramiko.SSHClient()
+            ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh_client.connect(self.remote_host, username=self.remote_user, password=self.remote_password,
+                               port=self.remote_port)
+
+            # SSH 연결 성공 시 클래스 변수에 저장
+            remote_ssh_server.ssh = ssh_client
+
+            commands = [
+                rf"{self.remote_adb_path} -s {self.remote_device} root",
+                f"{self.remote_adb_path} -s {self.remote_device} remount"
+            ]
+            for command in commands:
+                _, _ = self.user_ssh_exec_command(command=command)
+
+            self.clear_remote_temp_dir()
+            self.check_enn_directory_exist()
+            self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection succeeded."
+
+        except paramiko.AuthenticationException:
+            self.error_log = "Authentication failed, please check your credentials."
+        except paramiko.SSHException as ssh_error:
+            self.error_log = f"SSH connection failed: {ssh_error}"
+        except Exception as e:
+            self.error_log = f"Error: {e}"
+
+    @staticmethod
+    def user_ssh_exec_command(command, print_log=True):
+        """SSH 명령 실행 (None 체크 추가)"""
+        if remote_ssh_server.ssh is None:
+            print("Error: No active SSH connection.")
+            return None, "No active SSH connection."
+
+        stdin, stdout, stderr = remote_ssh_server.ssh.exec_command(command)
         stdout.channel.recv_exit_status()  # Wait for the command to complete
 
-        # 결과 출력
         output = stdout.read().decode()
         error = stderr.read().decode()
 
@@ -249,71 +294,57 @@ class remote_ssh_server:
 
         return output, error
 
+    # @staticmethod
+    # def close_ssh():
+    #     """SSH 연결을 닫고 클래스 변수 초기화"""
+    #     if remote_ssh_server.ssh is not None:
+    #         remote_ssh_server.ssh.close()
+    #         remote_ssh_server.ssh = None  # 클래스 변수 초기화
+    #         print("SSH connection closed successfully.")
+    #     else:
+    #         print("No active SSH connection to close.")
+
     def check_enn_directory_exist(self):
-        # 디바이스 경로 확인 및 처리
+        """디바이스 경로 존재 여부 확인 후 처리"""
         check_path_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell ls {self.android_device_path}"
         output, error = self.user_ssh_exec_command(command=check_path_cmd)
 
         if "No such file or directory" in error:
             print(f"Path {self.android_device_path} does not exist. Creating directory...")
-
-            # 경로 생성
             create_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell mkdir -p {self.android_device_path}"
             _, _ = self.user_ssh_exec_command(command=create_dir_cmd)
         else:
             print(f"Path {self.android_device_path} exists. Clearing contents...")
-
-            # 디렉토리 내용 삭제
             clear_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell rm -rf {self.android_device_path}/*"
             _, _ = self.user_ssh_exec_command(command=clear_dir_cmd)
 
-    def check_ssh_connection(self):
-        if self.ssh is not None:
-            # self.ssh_close()
-            self.error_log = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  SSH Already Connected"
-            self.clear_remote_temp_dir()
-            self.check_enn_directory_exist()
-            return True, self.error_log
+    def clear_remote_temp_dir(self):
+        """remote_temp_dir 내 모든 파일 삭제"""
+        if remote_ssh_server.ssh is None:
+            print("Error: No active SSH connection.")
+            return
 
-        try:
-            # SSH 연결 시도
-            self.ssh = paramiko.SSHClient()
-            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.ssh.connect(self.remote_host, username=self.remote_user, password=self.remote_password,
-                             port=self.remote_port)
+        print(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
+        delete_command = f"rm -rf {self.remote_temp_dir}/*"
+        output, error = self.user_ssh_exec_command(command=delete_command)
 
-            commands = [rf"{self.remote_adb_path} -s {self.remote_device} root",
-                        f"{self.remote_adb_path} -s {self.remote_device} remount"]
-            for command in commands:
-                _, _ = self.user_ssh_exec_command(command=command)
-
-            self.clear_remote_temp_dir()
-            self.check_enn_directory_exist()
-            self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection Successed: "
-            return True, self.error_log  # 연결 성공 시 True 반환
-
-        except paramiko.AuthenticationException:
-            # 인증 실패 시
-            self.error_log = "Authentication failed, please check your credentials."
-            return False, self.error_log  # 연결 실패 시 False 반환
-
-        except paramiko.SSHException as ssh_error:
-            # SSH 연결 실패 시
-            self.error_log = f"SSH connection failed: {ssh_error}"
-            return False, self.error_log  # 연결 실패 시 False 반환
-
-        except Exception as e:
-            # 기타 오류 처리
-            self.error_log = f"Error: {e}"
-            return False, self.error_log  # 연결 실패 시 False 반환
+        if error:
+            print(f"Error clearing remote temp directory: {error}")
+        else:
+            print(f"Remote temp directory cleared successfully.")
 
     def push_file_to_android_on_remote_server(self, f_local_file):
+        """로컬 파일을 원격 서버를 통해 Android 디바이스에 전송"""
+        if remote_ssh_server.ssh is None:
+            print("Error: No active SSH connection.")
+            return
+
         remote_temp_file = os.path.join(self.remote_temp_dir, os.path.basename(f_local_file)).replace("\\", "/")
 
-        # SFTP를 사용해 로컬 파일을 리모트 서버로 전송
-        sftp = self.ssh.open_sftp()
-
+        # SFTP를 사용해 로컬 파일을 원격 서버로 전송
+        sftp = remote_ssh_server.ssh.open_sftp()
         file_size = os.path.getsize(f_local_file)
+
         with tqdm(total=file_size, unit='B', unit_scale=True, desc='Uploading') as pbar:
             def callback(transferred, total):
                 pbar.update(transferred - pbar.n)
@@ -326,28 +357,6 @@ class remote_ssh_server:
         command = f"{self.remote_adb_path} -s {self.remote_device} push {remote_temp_file} {self.android_device_path}"
         _, _ = self.user_ssh_exec_command(command=command)
 
-    def clear_remote_temp_dir(self):
-        """remote_temp_dir에 있는 모든 파일 삭제"""
-        try:
-            print(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
-            # 파일 삭제 명령
-            delete_command = f"rm -rf {self.remote_temp_dir}/*"
-            output, error = self.user_ssh_exec_command(command=delete_command)
-
-            if error:
-                print(f"Error clearing remote temp directory: {error}")
-            else:
-                print(f"Remote temp directory cleared successfully.")
-
-        except Exception as e:
-            print(f"Error while clearing remote temp directory: {e}")
-
-    def ssh_close(self):
-        self.clear_remote_temp_dir()
-        self.check_enn_directory_exist()
-        self.ssh.close()
-        self.ssh = None
-
 
 def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID=None,
                                wait_time=5):
@@ -355,11 +364,11 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
     CHECK_ENNTEST = []
 
     instance = remote_ssh_server(deviceID=deviceID)
-    ret, error = instance.check_ssh_connection()
-    print(error)
+    # ret, error = instance.check_ssh_connection()
+    # print(error)
 
-    if not ret:
-        return False, failed_pairs.append(error), []
+    # if not ret:
+    #     return False, failed_pairs.append(error), []
 
     memory_profile_instance = MemoryTracing(use_local_device=False, ssh_instance=instance, deviceID=deviceID)
     memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
@@ -570,7 +579,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         ]
 
         memory_profile_instance.memory_profile.append("Start")
-        
+
         # 별도 스레드로 분리
         # result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
         result_queue = queue.Queue()
@@ -643,11 +652,12 @@ if __name__ == "__main__":
         "input_data_float32.bin": ['golden_data_float32.bin']
     }
 
-    Test_use_remote_device = False
+    Test_use_remote_device = True
 
     if Test_use_remote_device:
-        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                   deviceID="000011344eac6013")
+        for i in range(2):
+            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+                                       deviceID="000011344eac6013")
     else:
         upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
                                   deviceID="0000100d0f246013")
