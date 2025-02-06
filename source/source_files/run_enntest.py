@@ -271,6 +271,7 @@ class remote_ssh_server:
         if self.ssh is not None:
             # self.ssh_close()
             self.error_log = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  SSH Already Connected"
+            self.clear_remote_temp_dir()
             self.check_enn_directory_exist()
             return True, self.error_log
 
@@ -286,6 +287,7 @@ class remote_ssh_server:
             for command in commands:
                 _, _ = self.user_ssh_exec_command(command=command)
 
+            self.clear_remote_temp_dir()
             self.check_enn_directory_exist()
             self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection Successed: "
             return True, self.error_log  # 연결 성공 시 True 반환
@@ -436,7 +438,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
 
     time.sleep(wait_time)
     memory_profile_instance.stop()
-    instance.ssh_close()
+    # instance.ssh_close()
 
     # 출력값을 파일로 저장
     filename = f"memory_trace.log"
