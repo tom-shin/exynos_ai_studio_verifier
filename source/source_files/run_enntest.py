@@ -15,6 +15,8 @@ import shutil
 from colorama import Fore, Back, Style, init
 import subprocess
 import numpy as np
+import threading
+import queue
 from source.__init__ import check_environment
 
 ############################################################################################################
@@ -22,8 +24,18 @@ from source.__init__ import check_environment
 ANSI_Escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')  # ANSI 이스케이프 코드 제거용 정규식
 
 
+def execute_ssh_command(instance, command_str, result_queue):
+    result, error = instance.user_ssh_exec_command(command=command_str, print_log=False)
+    result_queue.put((result, error))
+
+
+def execute_local_command(execute_cmd, result_queue):
+    result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
+    result_queue.put(result)
+
+
 class MemoryTracing(QThread):
-    interval = 0.01
+    interval = 3
     encoding = "utf-8"
     errors = "replace"
     send_memory_profile_sig = pyqtSignal(list)
@@ -52,25 +64,29 @@ class MemoryTracing(QThread):
         app_package = self.ssh_instance.ProfileCMD
 
         # -s 옵션에 device_id를 추가할지 여부 결정
-        device_option = f"-s {device_id}" if device_id else ""  # device_id가 있으면 -s 옵션 추가, 없으면 생략
+        device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
 
         if self.use_local_device:
             adb_path = "adb"
 
             try:
                 # 모든 background 앱 종료
-                subprocess.run([adb_path, device_option, "shell", "am", "kill-all"], check=True)
+                subprocess.run([adb_path, *device_option, "shell", "am", "kill-all"], check=True)
 
-                # 앱 캐시 초기화
                 try:
-                    subprocess.run([adb_path, device_option, "shell", "pm", "clear", app_package], check=True)
+                    # 앱 캐시 초기화
+                    subprocess.run([adb_path, *device_option, "shell", "pm", "clear", app_package], check=True)
                 except subprocess.CalledProcessError as e:
                     print(f"Error while clearing app cache: {e}")
 
-                # 캐시 초기화 (루트 권한 필요 시)
-                subprocess.run(
-                    [adb_path, device_option, "shell", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
-                    check=True)
+                try:
+                    # 캐시 초기화 (루트 권한 필요 시)
+                    subprocess.run(
+                        [adb_path, *device_option, "shell", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
+                        check=True
+                    )
+                except subprocess.CalledProcessError as e:
+                    print(f"Error while dropping caches: {e}")
 
                 print(
                     f"Memory and cache cleared on device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
@@ -372,7 +388,18 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         command_str = " ".join(execute_cmd)
 
         memory_profile_instance.memory_profile.append("Start")
-        result, error = instance.user_ssh_exec_command(command=command_str, print_log=False)
+
+        # result, error = instance.user_ssh_exec_command(command=command_str, print_log=False)
+        # 결과를 받을 큐 및 thread로 분리          
+        result_queue = queue.Queue()
+        thread = threading.Thread(target=execute_ssh_command, args=(instance, command_str, result_queue))
+        thread.start()
+        thread.join()
+
+        # 스레드 실행 후 결과 받기
+        result, error = result_queue.get()
+
+        # result, error = instance.user_ssh_exec_command(command=command_str, print_log=False)
         memory_profile_instance.memory_profile.append("End")
 
         # 출력값을 파일로 저장
@@ -537,7 +564,17 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         ]
 
         memory_profile_instance.memory_profile.append("Start")
-        result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
+        
+        # 별도 스레드로 분리
+        # result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
+        result_queue = queue.Queue()
+        thread = threading.Thread(target=execute_local_command, args=(execute_cmd, result_queue))
+        thread.start()
+        thread.join()
+
+        # 스레드 실행 후 결과 받기
+        result = result_queue.get()
+
         memory_profile_instance.memory_profile.append("End")
 
         # 출력값을 파일로 저장
@@ -600,7 +637,7 @@ if __name__ == "__main__":
         "input_data_float32.bin": ['golden_data_float32.bin']
     }
 
-    Test_use_remote_device = True
+    Test_use_remote_device = False
 
     if Test_use_remote_device:
         upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
