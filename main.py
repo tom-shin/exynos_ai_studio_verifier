@@ -999,7 +999,7 @@ class Model_Verify_Class(QObject):
             if widget:
                 widget.setParent(None)
 
-        print("delete alll")
+        print("delete all")
         self.send_sig_delete_all_sub_widget.emit()
 
     def finish_insert_each_widget(self):

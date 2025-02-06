@@ -218,7 +218,7 @@ def PrintMemoryProfile(memory_profile):
 class remote_ssh_server:
     ssh = None  # 클래스 변수로 SSH 연결 관리
 
-    def __init__(self, deviceID):
+    def __init__(self, deviceID, remote_ssh=False):
         self.remote_host = '1.220.53.154'
         self.remote_port = 63522
         self.remote_user = 'sam'
@@ -231,18 +231,18 @@ class remote_ssh_server:
         self.ProfileCMD = "EnnTest_v2_lib"
         self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
 
-        self.error_log = None
+        if remote_ssh:
+            self.error_log = None
+            # 기존 SSH 세션 유지 (없으면 새로 연결)
+            if remote_ssh_server.ssh is None:
+                self.create_ssh_connection()
+            else:
+                self.error_log = " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
 
-        # 기존 SSH 세션 유지 (없으면 새로 연결)
-        if remote_ssh_server.ssh is None:
-            self.create_ssh_connection()
-        else:
-            self.error_log = " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
+            print(self.error_log)
 
-        print(self.error_log)
-
-        self.clear_remote_temp_dir()
-        self.check_enn_directory_exist()
+            self.clear_remote_temp_dir()
+            self.check_enn_directory_exist()
 
     def create_ssh_connection(self):
         """SSH 연결 생성 및 클래스 변수에 저장"""
@@ -363,7 +363,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
     failed_pairs = []
     CHECK_ENNTEST = []
 
-    instance = remote_ssh_server(deviceID=deviceID)
+    instance = remote_ssh_server(deviceID=deviceID, remote_ssh=True)
     # ret, error = instance.check_ssh_connection()
     # print(error)
 
@@ -652,7 +652,7 @@ if __name__ == "__main__":
         "input_data_float32.bin": ['golden_data_float32.bin']
     }
 
-    Test_use_remote_device = True
+    Test_use_remote_device = False
 
     if Test_use_remote_device:
         for i in range(2):
