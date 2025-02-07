@@ -1,5 +1,12 @@
 [
 
+    {
+        "Image": "enntools-7.12.30.12.tar",
+        "Version": "2.0(Alpha)",
+        "TAG": "7.12.30.12",
+        "Repository": "ubuntu-22.04/enntools-rel",
+        "Released": "2025.2.5(최재훈님)"
+    },
      {
         "Image": "enntools-7.13.20.21.tar",
         "Version": "2.0(Alpha)",
