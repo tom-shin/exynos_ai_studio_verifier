@@ -10,6 +10,7 @@ import psutil
 from PyQt5.QtCore import pyqtSignal, QObject, QThread
 
 from .. import separate_folders_and_files
+from source.__init__ import PRINT_
 
 
 def get_image_info_from_dockerImg(image_path):
@@ -21,7 +22,7 @@ def get_image_info_from_dockerImg(image_path):
             repo_tag = manifest_data[0]["RepoTags"]
             return repo_tag  # e.g., ["repository:tag"]
     except Exception as e:
-        print(f"Error reading image metadata: {e}")
+        PRINT_(f"Error reading image metadata: {e}")
         return None
 
 
@@ -61,11 +62,11 @@ def start_docker_desktop():
             try:
                 # 프로세스 이름 확인
                 if process.info['name'] and 'Docker Desktop.exe' in process.info['name']:
-                    print(f"'Docker Desktop.exe' is running (PID: {process.info['pid']}).")
+                    PRINT_(f"'Docker Desktop.exe' is running (PID: {process.info['pid']}).")
                     return True
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
-        print("'Docker Desktop.exe' is not running.")
+        PRINT_("'Docker Desktop.exe' is not running.")
         return False
 
     if check_docker_desktop():
@@ -78,9 +79,9 @@ def start_docker_desktop():
         subprocess.run([docker_desktop_path], check=True)
 
     except subprocess.CalledProcessError as e:
-        print(f"Failed to start Docker Desktop: {e}")
+        PRINT_(f"Failed to start Docker Desktop: {e}")
     except FileNotFoundError:
-        print("Docker Desktop not found. Make sure it's installed.")
+        PRINT_("Docker Desktop not found. Make sure it's installed.")
 
 
 def set_model_config(grand_parent, my_src_config, target_config, model_name):

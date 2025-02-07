@@ -10,6 +10,7 @@ import re
 import itertools
 import platform
 import uuid
+import logging
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread
@@ -21,7 +22,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.5.1_20250206 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.5.2_20250206 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -32,6 +33,16 @@ keyword = {
     "exclusive_dir": ["DATA", "recipe", "yolox_darknet", "etc"]
     # yolox_darknet  --> timeout(12시간)
 }
+
+logging.basicConfig(level=logging.INFO)
+
+EnablePrint = False
+
+
+def PRINT_(*args):
+    if EnablePrint:
+        logging.info(args)
+
 
 # ANSI 코드 정규식 패턴 (터미널 컬러 코드)
 ANSI_ESCAPE = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
@@ -357,7 +368,7 @@ def load_markdown(data_path):
     )
 
     with open(data_path, 'r', encoding=encoding) as file:
-        print(data_path)
+        PRINT_(data_path)
         data_string = file.read()
         documents = markdown_splitter.split_text(data_string)
 
@@ -418,7 +429,7 @@ def load_general(base_dir):
                     cnt += 1
                     data += load_txt(file_path)
 
-    print(f"the number of txt files is : {cnt}")
+    PRINT_(f"the number of txt files is : {cnt}")
     return data
 
 
@@ -433,7 +444,7 @@ def load_document(base_dir):
                     cnt += 1
                     data += load_markdown(file_path)
 
-    print(f"the number of md files is : {cnt}")
+    PRINT_(f"the number of md files is : {cnt}")
     return data
 
 
@@ -441,7 +452,7 @@ def get_markdown_files(source_dir):
     dir_ = source_dir
     loader = DirectoryLoader(dir_, glob="**/*.md", loader_cls=UnstructuredMarkdownLoader)
     documents = loader.load()
-    print("number of doc: ", len(documents))
+    PRINT_("number of doc: ", len(documents))
     return documents
 
 
@@ -504,7 +515,7 @@ def save2html(file_path, data, use_encoding=False):
     with open(file_path, "w", encoding=encoding) as f:
         f.write(data)
 
-    # print("Saved as HTML text.")
+    # PRINT_("Saved as HTML text.")
 
 
 def save2txt(file_path, data, use_encoding=False):
@@ -524,7 +535,7 @@ def save2txt(file_path, data, use_encoding=False):
     with open(file_path, "w", encoding=encoding) as f:
         f.write(data)
 
-    # print("Saved as TEXT.")
+    # PRINT_("Saved as TEXT.")
 
 
 def check_environment():
@@ -548,7 +559,7 @@ def check_environment():
     else:
         env = "Other"  # macOS 또는 기타 운영체제
 
-    # print(env)
+    # PRINT_(env)
     return env
 
 
@@ -576,17 +587,17 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
                         cleaned_sentence = ANSI_ESCAPE.sub('', line)
 
                         if log:
-                            print(cleaned_sentence.strip())  # 실시간 출력
+                            PRINT_(cleaned_sentence.strip())  # 실시간 출력
                         if "OPTYPE : DROPOUT" in line:
                             if log:
-                                print("operror")
+                                PRINT_("operror")
 
                     err_line = process.stderr.readline()
                     if err_line:
                         error_output.append(err_line.strip())
                         cleaned_sentence = ANSI_ESCAPE.sub('', err_line)
                         if log:
-                            print("ERROR:", cleaned_sentence.strip())
+                            PRINT_("ERROR:", cleaned_sentence.strip())
 
                     # 프로세스가 종료되었는지 확인
                     if process.poll() is not None and not line and not err_line:
@@ -598,7 +609,7 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
         except subprocess.TimeoutExpired:
             process.kill()
             if log:
-                print("Timeout occurred, process killed.")
+                PRINT_("Timeout occurred, process killed.")
             error_output.append("Process terminated due to timeout.")
             timeout_expired = True
 
@@ -617,21 +628,21 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
             if log:
                 for line in line_output:
                     cleaned_sentence = ANSI_ESCAPE.sub('', line)
-                    print(cleaned_sentence)  # 디버깅을 위해 주석 해제
+                    PRINT_(cleaned_sentence)  # 디버깅을 위해 주석 해제
 
                 for err_line in error_output:
                     cleaned_sentence = ANSI_ESCAPE.sub('', err_line)
-                    print("ERROR:", cleaned_sentence)  # 에러 메시지 구분을 위해 prefix 추가
+                    PRINT_("ERROR:", cleaned_sentence)  # 에러 메시지 구분을 위해 prefix 추가
 
         except subprocess.TimeoutExpired:
             if log:
-                print("Timeout occurred, command terminated.")
+                PRINT_("Timeout occurred, command terminated.")
             error_output.append("Command terminated due to timeout.")
             timeout_expired = True
         except Exception as e:
             # 기타 예외 처리 추가
             if log:
-                print(f"Error occurred: {str(e)}")
+                PRINT_(f"Error occurred: {str(e)}")
             error_output.append(f"Command failed: {str(e)}")
 
     return line_output, error_output, timeout_expired
@@ -681,7 +692,7 @@ def check_for_specific_string_in_files(directory, check_keywords):
                             check_files.append(filename)  # 에러가 발견된 파일 추가
                             break  # 한 번 발견되면 해당 파일에 대한 검사는 종료
             except Exception as e:
-                print(f"Error reading file {file_path}: {e}")
+                PRINT_(f"Error reading file {file_path}: {e}")
 
     return check_files, context_data
 
@@ -735,7 +746,7 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
                         break  # 한 번 발견되면 해당 파일에 대한 검사는 종료
 
             except Exception as e:
-                print(f"Error reading file {file_path}: {e}")
+                PRINT_(f"Error reading file {file_path}: {e}")
 
     return check_files, context_data
 
@@ -780,7 +791,7 @@ def upgrade_check_for_specific_string_in_files(directory, check_keywords):
 #                         break  # 한 번 발견되면 해당 파일에 대한 검사는 종료
 
 #             except Exception as e:
-#                 print(f"Error reading file {file_path}: {e}")
+#                 PRINT_(f"Error reading file {file_path}: {e}")
 
 #     return check_files, context_data
 
@@ -804,9 +815,9 @@ def remove_alldata_files_except_specific_extension(directory, extension):
 
             try:
                 os.remove(file_path)
-                print(f"삭제됨: {file_path}")
+                PRINT_(f"삭제됨: {file_path}")
             except Exception as e:
-                print(f"파일 삭제 실패: {file_path}, 이유: {e}")
+                PRINT_(f"파일 삭제 실패: {file_path}, 이유: {e}")
 
                 # if not name.endswith(f'.{extension}'):
             #     file_path = os.path.join(root, name)
@@ -815,7 +826,7 @@ def remove_alldata_files_except_specific_extension(directory, extension):
         for name in dirs:
             # 서브디렉토리는 파일이 모두 삭제된 후에 삭제
             dir_path = os.path.join(root, name)
-            # print(f"Deleting directory: {dir_path}")
+            # PRINT_(f"Deleting directory: {dir_path}")
             shutil.rmtree(dir_path)  # 디렉토리 삭제
 
 

@@ -17,7 +17,7 @@ import subprocess
 import numpy as np
 import threading
 import queue
-from source.__init__ import check_environment, get_mac_address
+from source.__init__ import check_environment, get_mac_address, PRINT_
 
 ############################################################################################################
 
@@ -77,7 +77,7 @@ class MemoryTracing(QThread):
                     # 앱 캐시 초기화
                     subprocess.run([adb_path, *device_option, "shell", "pm", "clear", app_package], check=True)
                 except subprocess.CalledProcessError as e:
-                    print(f"Error while clearing app cache: {e}")
+                    PRINT_(f"Error while clearing app cache: {e}")
 
                 try:
                     # 캐시 초기화 (루트 권한 필요 시)
@@ -86,13 +86,13 @@ class MemoryTracing(QThread):
                         check=True
                     )
                 except subprocess.CalledProcessError as e:
-                    print(f"Error while dropping caches: {e}")
+                    PRINT_(f"Error while dropping caches: {e}")
 
-                print(
+                PRINT_(
                     f"Memory and cache cleared on device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
 
             except subprocess.CalledProcessError as e:
-                print(f"Error occurred: {e}")
+                PRINT_(f"Error occurred: {e}")
 
         else:
             adb_path = self.ssh_instance.remote_adb_path
@@ -109,15 +109,15 @@ class MemoryTracing(QThread):
                 try:
                     stdout, stderr = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
                     # if stderr:
-                    #     print(f"SSH Command : {stderr}")
+                    #     PRINT_(f"SSH Command : {stderr}")
                     # else:
-                    #     print(
+                    #     PRINT_(
                     #         f"Memory and cache cleared on remote device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
 
                 except Exception as e:
-                    print(f"SSH Error: {e}")
+                    PRINT_(f"SSH Error: {e}")
 
-        print(f"Executed Memory Initialization.")
+        PRINT_(f"Executed Memory Initialization.")
 
     def set_airplane_mode(self, enable=True):
         try:
@@ -149,12 +149,12 @@ class MemoryTracing(QThread):
                 # SSH 명령 실행
                 _, _ = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
 
-            print(f"Airplane mode {'enabled' if enable else 'disabled'} successfully.")
+            PRINT_(f"Airplane mode {'enabled' if enable else 'disabled'} successfully.")
 
         except subprocess.CalledProcessError as e:
-            print(f"Error setting airplane mode on local device: {e}")
+            PRINT_(f"Error setting airplane mode on local device: {e}")
         except Exception as e:
-            print(f"Error setting airplane mode on remote device: {e}")
+            PRINT_(f"Error setting airplane mode on remote device: {e}")
 
     def run(self):
         while self.running:
@@ -173,25 +173,25 @@ class MemoryTracing(QThread):
                                 self.memory_profile.append(0)
 
                     else:
-                        print(f"Command failed: {result.stderr}")
+                        PRINT_(f"Command failed: {result.stderr}")
                 except subprocess.TimeoutExpired:
-                    print("Command timed out.")
+                    PRINT_("Command timed out.")
                 except Exception as e:
-                    print(f"Unexpected error: {e}")
+                    PRINT_(f"Unexpected error: {e}")
 
             else:
                 result, error = self.ssh_instance.user_ssh_exec_command(command=self.cmd, print_log=False)
                 if "No proces" in result:
                     self.memory_profile.append(0)
-                    # print("No Process")
+                    # PRINT_("No Process")
                 else:
                     try:
                         value = int(re.search(r"TOTAL PSS:\s+(\d+)", result).group(1)) / 1024
                         self.memory_profile.append(value)
-                        # print(value)
+                        # PRINT_(value)
                     except Exception as e:
                         pass
-                        # print("exception", e)
+                        # PRINT_("exception", e)
 
                 # if result:
                 #     mem_available = result.split(":")[1].strip().replace("kB", "").strip()
@@ -208,11 +208,11 @@ class MemoryTracing(QThread):
 
 
 def PrintMemoryProfile(memory_profile):
-    print("[Profile] Recorded memory values:")
+    PRINT_("[Profile] Recorded memory values:")
     with open(os.path.join(os.getcwd(), "memory_trace.log"), "w") as file:
         for mem_val in memory_profile:
             file.write(f"{mem_val}\n")
-            # print(f"{mem}")
+            # PRINT_(f"{mem}")
 
 
 class remote_ssh_server:
@@ -242,10 +242,9 @@ class remote_ssh_server:
     def ensure_ssh_connection(self):
         """SSH 연결이 유효한지 확인하고 필요하면 다시 연결"""
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
-            print("SSH connection lost or not established. Reconnecting...")
             self.create_ssh_connection()
         else:
-            self.error_log = ">>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
+            self.error_log = "SSH connection already established."
 
     def create_ssh_connection(self):
         """SSH 연결 생성 및 클래스 변수에 저장"""
@@ -267,7 +266,7 @@ class remote_ssh_server:
 
             self.check_remote_temp_dir()
             self.check_enn_directory_exist()
-            self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection succeeded."
+            self.error_log = f"SSH connection succeeded."
 
         except paramiko.AuthenticationException:
             self.error_log = "Authentication failed, please check your credentials."
@@ -280,11 +279,11 @@ class remote_ssh_server:
     def user_ssh_exec_command(command, print_log=True):
         """SSH 명령 실행 (연결 상태 체크 추가)"""
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
-            print("Error: No active SSH connection. Attempting to reconnect...")
+            PRINT_("Error: No active SSH connection. Attempting to reconnect...")
             remote_ssh_server().ensure_ssh_connection()
 
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
-            print("Error: Unable to establish SSH connection.")
+            PRINT_("Error: Unable to establish SSH connection.")
             return None, "No active SSH connection."
 
         stdin, stdout, stderr = remote_ssh_server.ssh.exec_command(command)
@@ -295,9 +294,9 @@ class remote_ssh_server:
 
         if print_log:
             if output:
-                print(f"Output: {output}")
+                PRINT_(f"Output: {output}")
             if error:
-                print(f"Error: {error}")
+                PRINT_(f"Error: {error}")
 
         return output, error
 
@@ -307,9 +306,9 @@ class remote_ssh_server:
         if remote_ssh_server.ssh is not None:
             remote_ssh_server.ssh.close()
             remote_ssh_server.ssh = None  # 클래스 변수 초기화
-            print("SSH connection closed successfully.")
+            PRINT_("SSH connection closed successfully.")
         else:
-            print("No active SSH connection to close.")
+            PRINT_("No active SSH connection to close.")
 
     def check_enn_directory_exist(self):
         """디바이스 경로 존재 여부 확인 후 처리"""
@@ -317,49 +316,49 @@ class remote_ssh_server:
         output, error = self.user_ssh_exec_command(command=check_path_cmd)
 
         if "No such file or directory" in error:
-            print(f"Path {self.android_device_path} does not exist. Creating directory...")
+            PRINT_(f"Path {self.android_device_path} does not exist. Creating directory...")
             create_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell mkdir -p {self.android_device_path}"
             _, _ = self.user_ssh_exec_command(command=create_dir_cmd)
         else:
-            print(f"Path {self.android_device_path} exists. Clearing contents...")
+            PRINT_(f"Path {self.android_device_path} exists. Clearing contents...")
             clear_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell rm -rf {self.android_device_path}/*"
             _, _ = self.user_ssh_exec_command(command=clear_dir_cmd)
 
     def check_remote_temp_dir(self):
         """remote_temp_dir 내 모든 파일 삭제"""
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
-            print("Error: No active SSH connection. Attempting to reconnect...")
+            PRINT_("Error: No active SSH connection. Attempting to reconnect...")
             self.ensure_ssh_connection()
 
         if remote_ssh_server.ssh is None:
-            print("Error: Unable to establish SSH connection.")
+            PRINT_("Error: Unable to establish SSH connection.")
             return
 
         self.remote_temp_dir = f'/home/sam/tom/temp_{get_mac_address()}'
         create_temp_cmd = f"mkdir -p {self.remote_temp_dir}"
         output, error = self.user_ssh_exec_command(command=create_temp_cmd)
         if error:
-            print(f"Fail to create remote temp directory: {error}")
+            PRINT_(f"Fail to create remote temp directory: {error}")
         else:
-            print(f"Remote temp directory created successfully.")
+            PRINT_(f"Remote temp directory created successfully.")
 
-        print(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
+        PRINT_(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
         delete_command = f"rm -rf {self.remote_temp_dir}/*"
         output, error = self.user_ssh_exec_command(command=delete_command)
 
         if error:
-            print(f"Error clearing remote temp directory: {error}")
+            PRINT_(f"Error clearing remote temp directory: {error}")
         else:
-            print(f"Remote temp directory cleared successfully.")
+            PRINT_(f"Remote temp directory cleared successfully.")
 
     def push_file_to_android_on_remote_server(self, f_local_file):
         """로컬 파일을 원격 서버를 통해 Android 디바이스에 전송"""
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
-            print("Error: No active SSH connection. Attempting to reconnect...")
+            PRINT_("Error: No active SSH connection. Attempting to reconnect...")
             self.ensure_ssh_connection()
 
         if remote_ssh_server.ssh is None:
-            print("Error: Unable to establish SSH connection.")
+            PRINT_("Error: Unable to establish SSH connection.")
             return
 
         remote_temp_file = os.path.join(self.remote_temp_dir, os.path.basename(f_local_file)).replace("\\", "/")
@@ -388,7 +387,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
 
     instance = remote_ssh_server(deviceID=deviceID, remote_ssh=True)
     # ret, error = instance.check_ssh_connection()
-    # print(error)
+    # PRINT_(error)
 
     # if not ret:
     #     return False, failed_pairs.append(error), []
@@ -447,7 +446,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         with open(SaveOutput, "w", encoding="utf-8") as f:
             cleaned_result = ANSI_Escape.sub('', result)  # ANSI 이스케이프 코드 제거
             f.write(cleaned_result)
-        print(cleaned_result)
+        PRINT_(cleaned_result)
 
         # 결과 확인
         if "PASSED" in cleaned_result.split("\n")[-2]:
@@ -514,20 +513,20 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 
             # 경로가 존재하는 경우
             if "No such file or directory" not in result.stderr:
-                print(f"Path {android_device_path} exists. Clearing contents...")
+                PRINT_(f"Path {android_device_path} exists. Clearing contents...")
 
                 # 해당 경로의 모든 파일 및 폴더 삭제
                 clear_cmd = f"adb {'-s ' + DeviceId if DeviceId else ''} shell rm -rf {android_device_path}/*"
                 subprocess.run(clear_cmd, shell=True)
             else:
-                print(f"Path {android_device_path} does not exist. Creating directory...")
+                PRINT_(f"Path {android_device_path} does not exist. Creating directory...")
 
                 # 경로 생성
                 create_dir_cmd = f"adb {'-s ' + DeviceId if DeviceId else ''} shell mkdir -p {android_device_path}"
                 subprocess.run(create_dir_cmd, shell=True)
 
         except Exception as e:
-            print(f"Error during path check or modification: {e}")
+            PRINT_(f"Error during path check or modification: {e}")
 
     # Device 권한 설정
     if DeviceId is None:
@@ -549,7 +548,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
     else:
         subprocess.run(rf"adb -s {DeviceId} push {NNC_Model} .{DeviceTargetDir}", shell=True)
 
-    # print(input_golden_pairs)
+    # PRINT_(input_golden_pairs)
     CHECK_ENNTEST = []
     failed_pairs = []  # 실패한 파일 쌍을 저장할 리스트
 
@@ -622,7 +621,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         with open(SaveOutput, "w", encoding="utf-8") as f:
             cleaned_result = ANSI_Escape.sub('', result.stdout)  # ANSI 이스케이프 코드 제거
             f.write(cleaned_result)
-        print(cleaned_result)
+        PRINT_(cleaned_result)
 
         # 결과 확인
         if "PASSED" in cleaned_result.split("\n")[-2]:

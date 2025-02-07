@@ -43,12 +43,6 @@ if getattr(sys, 'frozen', False):
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 일반 Python 스크립트 실행 시
 
-logging.basicConfig(level=logging.INFO)
-
-
-def PRINT_(*args):
-    logging.info(args)
-
 
 def load_module_func(module_name):
     mod = __import__(f"{module_name}", fromlist=[module_name])
@@ -140,7 +134,7 @@ class Model_Analyze_Thread(QThread):
             return True
 
         except Exception as e:
-            print(f"에러 발생: {str(e)}")
+            PRINT_(f"에러 발생: {str(e)}")
             return False
 
     @staticmethod
@@ -295,21 +289,21 @@ class Model_Analyze_Thread(QThread):
             quantization_type = "Confirmed FP32 model (all tensors are FP32)"
         elif quant_type:
             quantization_type = quant_type
-            # print(f"  • Model Type: {quant_type}")
+            # PRINT_(f"  • Model Type: {quant_type}")
             # 추가 정보 출력
             additional_msg = ", ".join(op for op in model_ops if op.startswith("Q") or "FP8" in op)
             quantization_type += f"\n- Quantization operators found:  {additional_msg}"
-            # print("    - Quantization operators found:",
+            # PRINT_("    - Quantization operators found:",
             #       ", ".join(op for op in model_ops if op.startswith("Q") or "FP8" in op))
         else:
             additional_msg = ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in initializer_types)
             additional_msg2 = ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in tensor_types)
             quantization_type = f"Model Type: Mixed precision or unknown\n,  - Found initializer types: {additional_msg}\n,  - Found tensor types: {additional_msg2}"
 
-            # print("  • Model Type: Mixed precision or unknown")
-            # print("    - Found initializer types:",
+            # PRINT_("  • Model Type: Mixed precision or unknown")
+            # PRINT_("    - Found initializer types:",
             #       ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in initializer_types))
-            # print("    - Found tensor types:",
+            # PRINT_("    - Found tensor types:",
             #       ", ".join(onnx_dtype_map.get(t, f"Unknown({t})") for t in tensor_types))
 
         return quantization_type
@@ -361,7 +355,7 @@ class Model_Analyze_Thread(QThread):
             is_integrity_ok = "Passed"
 
         except Exception as e:
-            print(f"[Error]: {e}")
+            PRINT_(f"[Error]: {e}")
             is_integrity_ok = "Failed"
             onnx_model_runtime_inference_check_log = str(e)
 
@@ -395,11 +389,11 @@ class Model_Analyze_Thread(QThread):
 
         # try:
         #     onnx.checker.check_model(model)
-        #     print("  • Model check passed ✓")
+        #     PRINT_("  • Model check passed ✓")
         # except onnx.checker.ValidationError as e:
-        #     print(f"  • Validation Error: {str(e)}")
+        #     PRINT_(f"  • Validation Error: {str(e)}")
         # except Exception as e:
-        #     print(f"  • Error: {str(e)}")
+        #     PRINT_(f"  • Error: {str(e)}")
 
         has_dynamic = False
         tensor_info = []
@@ -527,7 +521,7 @@ class Model_Analyze_Thread(QThread):
             check_box = getattr(self.grand_parent, check_box_name, None)  # 객체 가져오기
             if check_box and check_box.isChecked():  # 체크박스가 존재하고 선택되었는지 확인
                 CommandLists.append(check_box.text())  # 체크박스의 텍스트를 리스트에 추가
-        # print("++++++++++++++\n", CommandLists)
+        # PRINT_("++++++++++++++\n", CommandLists)
         return CommandLists
 
     def get_basic_onnx_model_information(self, model=None, extension=None):
@@ -743,7 +737,7 @@ class Model_Analyze_Thread(QThread):
                 if result == "Success":
                     log = "".join(error_pair)
                 else:
-                    print("+++++++++++++++++++++++++++++", error_pair)
+                    PRINT_("+++++++++++++++++++++++++++++", error_pair)
                     if len(error_pair) != 0:
                         log = error_pair[-1]
                     else:
@@ -810,7 +804,7 @@ class Model_Analyze_Thread(QThread):
                         check_log = os.path.join(cwd, "Profiler_result", ".log")
 
                     if check_log is not None:
-                        # print(check_log)
+                        # PRINT_(check_log)
                         result, dict_log = self.check_enntools_cmd_result(check_log=check_log)
                         log = dict2string(dict_log)
 
@@ -915,7 +909,7 @@ class Model_Analyze_Thread(QThread):
         with open(target_file, 'w') as file:
             file.writelines(new_lines)
 
-        print("파일 업데이트 완료")
+        PRINT_("파일 업데이트 완료")
 
     def stop(self):
         self._running = False
@@ -999,7 +993,7 @@ class Model_Verify_Class(QObject):
             if widget:
                 widget.setParent(None)
 
-        print("delete all")
+        PRINT_("delete all")
         self.send_sig_delete_all_sub_widget.emit()
 
     def finish_insert_each_widget(self):
@@ -1072,7 +1066,7 @@ class Model_Verify_Class(QObject):
         # s = time.time()
         get_test_model_path = get_directory(base_dir=self.parent.directory, user_defined_fmt=user_fmt,
                                             file_full_path=True)
-        # print("[get_directory] ===========================================>", time.time() - s)
+        # PRINT_("[get_directory] ===========================================>", time.time() - s)
 
         # Shared Volume 위치를 지정
         self.parent.directory = os.path.join(BASE_DIR, "Result").replace("\\", "/")
@@ -1081,7 +1075,7 @@ class Model_Verify_Class(QObject):
 
         all_test_path = []
         # s = time.time()
-        print("+++++++++++++++++++++++++++++++++++++")
+        PRINT_("+++++++++++++++++++++++++++++++++++++")
         for cnt, test_model in enumerate(get_test_model_path):
             directory, file_name = separate_folders_and_files(test_model)
             name, ext = separate_filename_and_extension(file_name)
@@ -1101,10 +1095,10 @@ class Model_Verify_Class(QObject):
                 shutil.copy2(src_file, target_file)
 
             cnt = cnt % 100
-            print(cnt)
+            PRINT_(cnt)
             self.insert_widget_progress.onCountChanged(value=cnt)
 
-        # print("[move to Result] ===========================================>", time.time() - s)
+        # PRINT_("[move to Result] ===========================================>", time.time() - s)
 
         # if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
         #     self.insert_widget_progress = ProgressDialog(modal=False, message="Loading Scenario")
@@ -1153,7 +1147,7 @@ class Model_Verify_Class(QObject):
         self.insert_widget_thread.start()
 
     def update_all_sub_widget(self):
-        print("send sig")
+        PRINT_("send sig")
 
         # ProgressDialog 생성
         # if self.parent.mainFrame_ui.popctrl_radioButton.isChecked():
@@ -1233,14 +1227,14 @@ class Model_Verify_Class(QObject):
                 # avg_val = 0
                 # min_val = 0
                 # max_val = 0
-                print(f"division by zero")
+                PRINT_(f"division by zero")
                 return used_memory
 
             # used_memory = f"Average: {avg_val:>10.1f}"
             used_memory = f"AVG.: {avg_val:>10.2f}\nMAX.: {max_val:>10.2f}\nMIN.: {min_val:>10.2f}"
 
         except ValueError as e:
-            print(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
+            PRINT_(f"리스트에 'Start' 또는 'End'가 없습니다: {e}")
 
         return used_memory
 
@@ -1842,12 +1836,12 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 self.yaml.dump(yaml_data, file)
 
             # 성공 메시지 (필요시)
-            print("파일이 성공적으로 저장되었습니다.")
+            PRINT_("파일이 성공적으로 저장되었습니다.")
             dialog.accept()  # 저장 후 다이얼로그 닫기
 
         except Exception as e:
             # 에러 메시지 (필요시)
-            print(f"저장 중 오류 발생: {e}")
+            PRINT_(f"저장 중 오류 발생: {e}")
 
     def open_model_config(self):
         repo_tag = self.mainFrame_ui.dockerimagecomboBox.currentText()
@@ -1916,7 +1910,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
             result = any(element_a in element_b for element_a in repo_tag for element_b in repo_tag_in_drive)
 
         if result:
-            print(f"Image '{repo_tag}' is already loaded. Skipping load.")
+            PRINT_(f"Image '{repo_tag}' is already loaded. Skipping load.")
             self.imageLoadResult(success=True, elapsed_time=1)
             return
 
@@ -1983,7 +1977,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         out, error, _ = user_subprocess(cmd=check_command, run_time=False)
 
         if f"{image_name}:{image_tag}" in out:
-            print(f"{image_name}:{image_tag} 이미 로드되어 있습니다.")
+            PRINT_(f"{image_name}:{image_tag} 이미 로드되어 있습니다.")
         else:
             message = "이미지가 로드 되어 있지 않습니다. 로드 하시겠습니까?\n로딩하는데 최소 몇 분 이상이 소요가 됩니다"
             yes_ = Open_QMessageBox(message=message)
@@ -1992,10 +1986,10 @@ class Project_MainWindow(QtWidgets.QMainWindow):
                 load_command = f"docker load -i {load_file}"
                 load_result, _, _ = user_subprocess(cmd=load_command, run_time=False)
                 if any("Loaded image:" in line for line in load_result):
-                    print(f"{image_name}:{image_tag} 이미지가 성공적으로 로드되었습니다.")
+                    PRINT_(f"{image_name}:{image_tag} 이미지가 성공적으로 로드되었습니다.")
                     self.mainFrame_ui.aistudiolineEdit.setText(os.path.basename(load_file))
                 else:
-                    print(f"{image_name}:{image_tag} 로딩 Fail 입니다.")
+                    PRINT_(f"{image_name}:{image_tag} 로딩 Fail 입니다.")
 
     def log_browser_ctrl(self):
         sender = self.sender()
@@ -2021,7 +2015,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         # QFileDialog for Directory Selection
         _directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if _directory:
-            print("Selected Directory:", _directory)
+            PRINT_("Selected Directory:", _directory)
 
         if _directory is None:
             return
