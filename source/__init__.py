@@ -1012,7 +1012,7 @@ def separate_filename_and_extension(filename):
 
 def get_mac_address():
     mac = uuid.getnode()
-    if (mac >> 40) % 2:  # 유효한 MAC 주소인지 확인
-        return "000000000000"  # 기본값 반환
+    # if (mac >> 40) % 2:  # 유효한 MAC 주소인지 확인
+    #     return "000000000000"  # 기본값 반환
     mac_address = ':'.join(f'{(mac >> i) & 0xff:02x}' for i in range(40, -1, -8))
     return "".join(mac_address.split(":"))
