@@ -233,16 +233,19 @@ class remote_ssh_server:
 
         if remote_ssh:
             self.error_log = None
-            # 기존 SSH 세션 유지 (없으면 새로 연결)
-            if remote_ssh_server.ssh is None:
-                self.create_ssh_connection()
-            else:
-                self.error_log = " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
-
+            self.ensure_ssh_connection()  # SSH 연결 체크 및 생성
             print(self.error_log)
 
             self.clear_remote_temp_dir()
             self.check_enn_directory_exist()
+
+    def ensure_ssh_connection(self):
+        """SSH 연결이 유효한지 확인하고 필요하면 다시 연결"""
+        if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+            print("SSH connection lost or not established. Reconnecting...")
+            self.create_ssh_connection()
+        else:
+            self.error_log = ">>>>>>>>>>>>>>>>>>>>>>>>>>>> SSH already connected"
 
     def create_ssh_connection(self):
         """SSH 연결 생성 및 클래스 변수에 저장"""
@@ -275,9 +278,13 @@ class remote_ssh_server:
 
     @staticmethod
     def user_ssh_exec_command(command, print_log=True):
-        """SSH 명령 실행 (None 체크 추가)"""
-        if remote_ssh_server.ssh is None:
-            print("Error: No active SSH connection.")
+        """SSH 명령 실행 (연결 상태 체크 추가)"""
+        if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+            print("Error: No active SSH connection. Attempting to reconnect...")
+            remote_ssh_server().ensure_ssh_connection()
+
+        if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+            print("Error: Unable to establish SSH connection.")
             return None, "No active SSH connection."
 
         stdin, stdout, stderr = remote_ssh_server.ssh.exec_command(command)
@@ -294,15 +301,15 @@ class remote_ssh_server:
 
         return output, error
 
-    # @staticmethod
-    # def close_ssh():
-    #     """SSH 연결을 닫고 클래스 변수 초기화"""
-    #     if remote_ssh_server.ssh is not None:
-    #         remote_ssh_server.ssh.close()
-    #         remote_ssh_server.ssh = None  # 클래스 변수 초기화
-    #         print("SSH connection closed successfully.")
-    #     else:
-    #         print("No active SSH connection to close.")
+    @staticmethod
+    def close_ssh():
+        """SSH 연결을 닫고 클래스 변수 초기화"""
+        if remote_ssh_server.ssh is not None:
+            remote_ssh_server.ssh.close()
+            remote_ssh_server.ssh = None  # 클래스 변수 초기화
+            print("SSH connection closed successfully.")
+        else:
+            print("No active SSH connection to close.")
 
     def check_enn_directory_exist(self):
         """디바이스 경로 존재 여부 확인 후 처리"""
@@ -320,8 +327,12 @@ class remote_ssh_server:
 
     def clear_remote_temp_dir(self):
         """remote_temp_dir 내 모든 파일 삭제"""
+        if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+            print("Error: No active SSH connection. Attempting to reconnect...")
+            self.ensure_ssh_connection()
+
         if remote_ssh_server.ssh is None:
-            print("Error: No active SSH connection.")
+            print("Error: Unable to establish SSH connection.")
             return
 
         print(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
@@ -335,8 +346,12 @@ class remote_ssh_server:
 
     def push_file_to_android_on_remote_server(self, f_local_file):
         """로컬 파일을 원격 서버를 통해 Android 디바이스에 전송"""
+        if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+            print("Error: No active SSH connection. Attempting to reconnect...")
+            self.ensure_ssh_connection()
+
         if remote_ssh_server.ssh is None:
-            print("Error: No active SSH connection.")
+            print("Error: Unable to establish SSH connection.")
             return
 
         remote_temp_file = os.path.join(self.remote_temp_dir, os.path.basename(f_local_file)).replace("\\", "/")
