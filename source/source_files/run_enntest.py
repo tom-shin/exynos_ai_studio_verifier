@@ -49,6 +49,7 @@ class MemoryTracing(QThread):
         self.ssh_instance = ssh_instance
         self.deviceID = deviceID
 
+        self.deviceConnected = True
         self.set_airplane_mode(enable=True)
         self.memory_initialization()
 
@@ -120,6 +121,10 @@ class MemoryTracing(QThread):
         PRINT_(f"Executed Memory Initialization.")
 
     def set_airplane_mode(self, enable=True):
+        device_id = self.deviceID
+        # -s 옵션에 device_id를 추가할지 여부 결정
+        device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
+
         try:
             state = "1" if enable else "0"
             broadcast_state = "true" if enable else "false"
@@ -127,7 +132,7 @@ class MemoryTracing(QThread):
             if self.use_local_device:
                 # 로컬 디바이스에서 비행기 모드 설정
                 subprocess.run(
-                    ["adb", "shell", "settings", "put", "global", "airplane_mode_on", state],
+                    ["adb", *device_option, "shell", "settings", "put", "global", "airplane_mode_on", state],
                     check=True
                 )
 
@@ -153,8 +158,10 @@ class MemoryTracing(QThread):
 
         except subprocess.CalledProcessError as e:
             PRINT_(f"Error setting airplane mode on local device: {e}")
+            self.deviceConnected = False
         except Exception as e:
             PRINT_(f"Error setting airplane mode on remote device: {e}")
+            self.deviceConnected = False
 
     def run(self):
         while self.running:
@@ -495,6 +502,10 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
     DeviceId = instance.remote_device  # "0000100d0f246013"
 
     memory_profile_instance = MemoryTracing(use_local_device=True, ssh_instance=instance, deviceID=deviceID)
+
+    if not memory_profile_instance.deviceConnected:
+        return False, ["check_device"], []
+
     memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
     memory_profile_instance.start()
     time.sleep(wait_time)

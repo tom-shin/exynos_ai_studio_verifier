@@ -673,6 +673,9 @@ class Model_Analyze_Thread(QThread):
                     result = "Fail"
                     if len(failed_pairs) == 0:
                         result = "Server Connection Error"  # remote server failed
+                    elif len(failed_pairs) == 1 and failed_pairs[0] == "check_device":
+                        result = "Device Not Connected"  # remote server failed
+
             else:
                 result = "[Warning !] Check Manually"
         else:
