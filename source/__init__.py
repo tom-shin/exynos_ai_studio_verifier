@@ -9,6 +9,7 @@ import shutil
 import re
 import itertools
 import platform
+import uuid
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread
@@ -20,7 +21,7 @@ from langchain_community.document_loaders import DirectoryLoader, UnstructuredMa
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.5.0_20250206 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.5.1_20250206 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -991,7 +992,7 @@ def upgrade_find_paired_files(directory, mode=1):
             elif mode == 1:
                 paired_files = {
                     non_fp_input_files: sorted(non_fp_golden_files)
-                    }
+                }
             break
 
     return paired_files, inout_dir
@@ -1007,3 +1008,11 @@ def separate_filename_and_extension(filename):
     name, extension = os.path.splitext(filename)
 
     return name, extension.replace(".", "")
+
+
+def get_mac_address():
+    mac = uuid.getnode()
+    if (mac >> 40) % 2:  # 유효한 MAC 주소인지 확인
+        return "000000000000"  # 기본값 반환
+    mac_address = ':'.join(f'{(mac >> i) & 0xff:02x}' for i in range(40, -1, -8))
+    return "".join(mac_address.split(":"))

@@ -17,7 +17,7 @@ import subprocess
 import numpy as np
 import threading
 import queue
-from source.__init__ import check_environment
+from source.__init__ import check_environment, get_mac_address
 
 ############################################################################################################
 
@@ -224,7 +224,7 @@ class remote_ssh_server:
         self.remote_user = 'sam'
         self.remote_password = 'Thunder$@88'
         self.remote_device = deviceID
-        self.remote_temp_dir = '/home/sam/tom/temp'
+        self.remote_temp_dir = None
         self.android_device_path = '/data/vendor/enn'
         self.remote_adb_path = '/home/sam/platform-tools/adb'
 
@@ -236,7 +236,7 @@ class remote_ssh_server:
             self.ensure_ssh_connection()  # SSH 연결 체크 및 생성
             print(self.error_log)
 
-            self.clear_remote_temp_dir()
+            self.check_remote_temp_dir()
             self.check_enn_directory_exist()
 
     def ensure_ssh_connection(self):
@@ -265,7 +265,7 @@ class remote_ssh_server:
             for command in commands:
                 _, _ = self.user_ssh_exec_command(command=command)
 
-            self.clear_remote_temp_dir()
+            self.check_remote_temp_dir()
             self.check_enn_directory_exist()
             self.error_log = f">>>>>>>>>>>>>>>>>>>>>>> SSH connection succeeded."
 
@@ -325,7 +325,7 @@ class remote_ssh_server:
             clear_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell rm -rf {self.android_device_path}/*"
             _, _ = self.user_ssh_exec_command(command=clear_dir_cmd)
 
-    def clear_remote_temp_dir(self):
+    def check_remote_temp_dir(self):
         """remote_temp_dir 내 모든 파일 삭제"""
         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
             print("Error: No active SSH connection. Attempting to reconnect...")
@@ -334,6 +334,14 @@ class remote_ssh_server:
         if remote_ssh_server.ssh is None:
             print("Error: Unable to establish SSH connection.")
             return
+
+        self.remote_temp_dir = f'/home/sam/tom/temp_{get_mac_address()}'
+        create_temp_cmd = f"mkdir -p {self.remote_temp_dir}"
+        output, error = self.user_ssh_exec_command(command=create_temp_cmd)
+        if error:
+            print(f"Fail to create remote temp directory: {error}")
+        else:
+            print(f"Remote temp directory created successfully.")
 
         print(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
         delete_command = f"rm -rf {self.remote_temp_dir}/*"
@@ -657,6 +665,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 
 # 함수 실행 예시
 if __name__ == "__main__":
+
     target_board = ''
     out_dir = os.getcwd()
     current_binary_pos = "../../tools/example"
@@ -667,7 +676,7 @@ if __name__ == "__main__":
         "input_data_float32.bin": ['golden_data_float32.bin']
     }
 
-    Test_use_remote_device = False
+    Test_use_remote_device = True
 
     if Test_use_remote_device:
         for i in range(2):
