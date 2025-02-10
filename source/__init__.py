@@ -636,14 +636,15 @@ def user_subprocess(cmd=None, run_time=False, timeout=None, log=True, shell=True
 
         except subprocess.TimeoutExpired:
             if log:
-                PRINT_("Timeout occurred, command terminated.")
+                print("Timeout occurred, command terminated.")
             error_output.append("Command terminated due to timeout.")
             timeout_expired = True
+
         except Exception as e:
             # 기타 예외 처리 추가
             if log:
-                PRINT_(f"Error occurred: {str(e)}")
-            error_output.append(f"Command failed: {str(e)}")
+                print(f"subprocess Command exception failed:")
+            error_output.append(f"subprocess Command exception failed:")
 
     return line_output, error_output, timeout_expired
 

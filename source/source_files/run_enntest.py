@@ -261,6 +261,9 @@ class remote_ssh_server:
             ssh_client.connect(self.remote_host, username=self.remote_user, password=self.remote_password,
                                port=self.remote_port)
 
+            transport = ssh_client.get_transport()
+            transport.set_keepalive(30)  # 30초마다 KeepAlive 패킷 전송
+
             # SSH 연결 성공 시 클래스 변수에 저장
             remote_ssh_server.ssh = ssh_client
 

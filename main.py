@@ -96,7 +96,7 @@ class Model_Analyze_Thread(QThread):
     output_signal = pyqtSignal(str, tuple, int, str)
     output_signal_2 = pyqtSignal(tuple, str, dict)
 
-    timeout_output_signal = pyqtSignal(str, tuple, float)
+    timeout_output_signal = pyqtSignal(str, tuple)
     finish_output_signal = pyqtSignal(bool)
 
     send_max_progress_cnt = pyqtSignal(int)
@@ -776,7 +776,7 @@ class Model_Analyze_Thread(QThread):
                     _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=self.timeout_expired, log=True)
 
                 if timeout_expired:
-                    self.timeout_output_signal.emit(enntools_cmd, target_widget, self.timeout_expired)
+                    self.timeout_output_signal.emit(enntools_cmd, target_widget)
                     break
 
                 if "init" in enntools_cmd:
@@ -1181,7 +1181,7 @@ class Model_Verify_Class(QObject):
             self.work_progress.onProgressTextChanged(string)
 
     @staticmethod
-    def update_timeout_result(execute_cmd, target_widget, set_timeout):
+    def update_timeout_result(execute_cmd, target_widget):
         if "init" in execute_cmd:
             target_widget[0].initlineEdit.setText("Runtime Out")
         if "conversion" in execute_cmd:
