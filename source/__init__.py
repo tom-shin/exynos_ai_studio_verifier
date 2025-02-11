@@ -28,8 +28,8 @@ Version = "AI Studio Analyzer ver.3.5.2_20250206 (made by tom.shin)"
 keyword = {
     "test_model": ["onnx"],  # , "tflite", "caffemodel"],
     "error_keyword": ["Error Code:", "Error code:", "Error msg:"],
-    "op_exe_cmd": ["enntools init", "enntools conversion", "enntools compile", "enntools estimation",
-                   "enntools analysis", "enntest execute"],
+    # "op_exe_cmd": ["enntools init", "enntools conversion", "enntools compile", "enntools estimation",
+    #                "enntools analysis", "enntest execute"],
     "exclusive_dir": ["DATA", "recipe", "yolox_darknet", "etc"]
     # yolox_darknet  --> timeout(12시간)
 }
