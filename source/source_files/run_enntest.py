@@ -38,7 +38,7 @@ class MemoryTracing(QThread):
     interval = 3
     encoding = "utf-8"
     errors = "replace"
-    send_memory_profile_sig = pyqtSignal(list)
+    # send_memory_profile_sig = pyqtSignal(list)
 
     def __init__(self, use_local_device=False, ssh_instance=None, deviceID=None):
         super().__init__()
@@ -210,15 +210,15 @@ class MemoryTracing(QThread):
     def stop(self):
         self.running = False
         self.set_airplane_mode(enable=False)
-        self.send_memory_profile_sig.emit(self.memory_profile)
+        # self.send_memory_profile_sig.emit(self.memory_profile)
         self.wait(3000)
 
 
-def PrintMemoryProfile(memory_profile):
-    PRINT_("[Profile] Recorded memory values:")
-    with open(os.path.join(os.getcwd(), "memory_trace.log"), "w") as file:
-        for mem_val in memory_profile:
-            file.write(f"{mem_val}\n")
+# def PrintMemoryProfile(memory_profile):
+#     PRINT_("[Profile] Recorded memory values:")
+#     with open(os.path.join(os.getcwd(), "memory_trace.log"), "w") as file:
+#         for mem_val in memory_profile:
+#             file.write(f"{mem_val}\n")
             # PRINT_(f"{mem}")
 
 
@@ -403,7 +403,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
     #     return False, failed_pairs.append(error), []
 
     memory_profile_instance = MemoryTracing(use_local_device=False, ssh_instance=instance, deviceID=deviceID)
-    memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
+    # memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
     memory_profile_instance.start()
     time.sleep(wait_time)
 
@@ -509,7 +509,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
     if not memory_profile_instance.deviceConnected:
         return False, ["check_device"], []
 
-    memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
+    # memory_profile_instance.send_memory_profile_sig.connect(PrintMemoryProfile)
     memory_profile_instance.start()
     time.sleep(wait_time)
 
