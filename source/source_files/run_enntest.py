@@ -236,7 +236,8 @@ class remote_ssh_server:
         self.remote_adb_path = '/home/sam/platform-tools/adb'
 
         self.ProfileCMD = "EnnTest_v2_lib"
-        self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
+        # self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
+        self.ProfileOption = "--iter 10000 --useSNR"
 
         if remote_ssh:
             self.error_log = None
