@@ -788,14 +788,15 @@ class Model_Analyze_Thread(QThread):
                     TestResult[enntools_cmd] = [result, convert_changed_items_to_text(parameter_set), memory_profile]
                 else:
                     check_log = None
-                    profile_log = None
+                    compile_profile_log = None
+                    VisualProfiler_Summary_log = None
 
                     if "conversion" in enntools_cmd:
                         check_log = os.path.join(cwd, "Converter_result", ".log")
 
                     elif "compile" in enntools_cmd:
                         check_log = os.path.join(cwd, "Compiler_result", ".log")
-                        profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
+                        compile_profile_log = os.path.join(cwd, "Compiler_result", "profile_log.txt")
 
                     elif "estimation" in enntools_cmd:
                         check_log = os.path.join(cwd, "Estimator_result", ".log")
@@ -805,20 +806,31 @@ class Model_Analyze_Thread(QThread):
 
                     elif "profiling" in enntools_cmd:
                         check_log = os.path.join(cwd, "Profiler_result", ".log")
+                        VisualProfiler_Summary_log = os.path.join(cwd, "Profiler_result", "VisualProfiler", "ResultProcess", "VisualProfiler_Summary.json")
 
                     if check_log is not None:
                         # PRINT_(check_log)
                         result, dict_log = self.check_enntools_cmd_result(check_log=check_log)
                         log = dict2string(dict_log)
 
-                        if profile_log is not None and os.path.exists(profile_log):
+                        if compile_profile_log is not None and os.path.exists(compile_profile_log):
                             log += f"\n\n[Profile Log]\n"
 
-                            with open(profile_log, 'r') as file:
+                            with open(compile_profile_log, 'r') as file:
                                 lines = file.readlines()
                             for line in lines:
                                 if "Unsupported" in line:  # "Unsupported" 키워드 포함 여부 확인
                                     log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+
+                        elif VisualProfiler_Summary_log is not None and os.path.exists(VisualProfiler_Summary_log):
+                            log = ""
+
+                            with open(VisualProfiler_Summary_log, 'r') as file:
+                                lines = file.readlines()
+                            for line in lines:
+                                if "{" in line or "}" in line:
+                                    continue
+                                log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
 
                         TestResult[enntools_cmd] = [result, log, memory_profile]
 
