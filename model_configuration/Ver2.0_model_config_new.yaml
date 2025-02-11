@@ -256,11 +256,11 @@ model_config:
 
   quicksrnetsmall_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: OTHER
+    license: AIMET
 
   quicksrnetsmall_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: OTHER
+    license: AIMET
 
   real_esrgan_general_x4v3_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
@@ -488,11 +488,11 @@ model_config:
 
   hrnet_pose_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: OTHER
+    license: AIMET
 
   hrnet_pose_quantized_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
-    license: OTHER
+    license: AIMET
 
   litehrnet_model.onnx:
     repo: Qualcomm AI-Hub(pytorch --> onnx conversion)
@@ -1019,7 +1019,7 @@ model_config:
 
   resnet50.onnx:
     repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/resnet50
-    license: Aimet
+    license: AIMET
 
   esrgan.onnx:
     repo: https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/esrgan
@@ -1028,11 +1028,11 @@ model_config:
   quicksrnetlarge.onnx:
     repo:
       https://github.com/quic/ai-hub-models/blob/main/qai_hub_models/models/quicksrnetlarge
-    license: Aimet
+    license: AIMET
 
   sesr_m5.onnx:
     repo: https://github.com/quic/ai-hub-models/tree/main/qai_hub_models/models/sesr_m5
-    license: Aimet
+    license: AIMET
 
   Xenova_vit_base_patch16_224_model.onnx:
     repo: https://huggingface.co/Xenova/vit-base-patch16-224
