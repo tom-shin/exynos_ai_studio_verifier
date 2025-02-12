@@ -237,7 +237,7 @@ class remote_ssh_server:
 
         self.ProfileCMD = "EnnTest_v2_lib"
         # self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
-        self.ProfileOption = "--iter 10000 --useSNR"
+        self.ProfileOption = "--iter 15000 --useSNR"
 
         if remote_ssh:
             self.error_log = None
