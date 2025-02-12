@@ -723,12 +723,17 @@ class Model_Analyze_Thread(QThread):
             CheckDir(out_dir)
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
+                if self.grand_parent.remoteradioButton.isChecked():
+                    deviceID = self.grand_parent.sshdevicelineEdit.text().strip()
+                else:
+                    deviceID = self.grand_parent.localdeviceidlineEdit.text().strip()
+
                 ret, failed_pairs, memory_profile = self.run_task(nnc_files=nnc_files,
                                                                   input_golden_pairs=input_golden_pairs,
                                                                   current_binary_pos=current_binary_pos,
                                                                   out_dir=out_dir,
                                                                   enntest_combo=self.grand_parent.enntestcomboBox.currentText(),
-                                                                  deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
+                                                                  deviceID=deviceID)
 
                 # if self.grand_parent.remoteradioButton.isChecked():
                 #     ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
@@ -1392,7 +1397,7 @@ class Model_Verify_Class(QObject):
 
                                 execution_time = round(
                                     float(re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", "")) / (
-                                                int(total_iter) * 1000), 2)
+                                            int(total_iter) * 1000), 2)
                                 sub_widget[0].exetimelineEdit.setText(str(execution_time) + " ms")
 
                                 # sub_widget[0].iterlineEdit.setText(re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1]))
@@ -1441,7 +1446,8 @@ class Model_Verify_Class(QObject):
                     # 그래프 그리기
                     ax = figure.add_subplot(111)  # Subplot 추가
                     if values_between:  # 데이터가 있을 경우에만 그래프 그리기
-                        ax.plot(values_between, marker='o', color='b', label="Memory Usage")  # 데이터 플롯팅
+                        ax.plot(values_between, color='b', label="Memory Usage")  # 데이터 플롯팅
+                        # ax.plot(values_between, marker='o', color='b', label="Memory Usage")  # 데이터 플롯팅
                         ax.set_title("Memory Usage Profile")  # 그래프 제목
                         ax.set_xlabel("Time")  # X축 라벨
                         ax.set_ylabel("Memory (MB)")  # Y축 라벨
@@ -2141,7 +2147,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
             else:
                 self.mainFrame_ui.logtextbrowser.show()
 
-    def open_test_result(self):
+    @staticmethod
+    def open_excel():
         env = check_environment()
         if env == "Windows":
             excel_path = rf"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE".replace("\\", "/")
@@ -2149,8 +2156,25 @@ class Project_MainWindow(QtWidgets.QMainWindow):
             excel_path = "libreoffice"
 
         result_path = os.path.join(BASE_DIR, "Result", "result.xlsx").replace("\\", "/")
+
         if os.path.exists(result_path):
-            subprocess.run([excel_path, result_path])
+            subprocess.Popen([excel_path, result_path], shell=False)
+
+    def open_test_result(self):
+        thread = threading.Thread(target=self.open_excel, daemon=True)
+        thread.start()
+
+    # @staticmethod
+    # def Xopen_test_result():
+    #     env = check_environment()
+    #     if env == "Windows":
+    #         excel_path = rf"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE".replace("\\", "/")
+    #     else:
+    #         excel_path = "libreoffice"
+    #
+    #     result_path = os.path.join(BASE_DIR, "Result", "result.xlsx").replace("\\", "/")
+    #     if os.path.exists(result_path):
+    #         subprocess.run([excel_path, result_path])
 
     def open_directory(self):
         # _directory = easygui.diropenbox()

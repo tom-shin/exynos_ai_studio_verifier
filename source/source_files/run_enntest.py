@@ -35,7 +35,7 @@ def execute_local_command(execute_cmd, result_queue):
 
 
 class MemoryTracing(QThread):
-    interval = 1
+    interval = 0.2
     encoding = "utf-8"
     errors = "replace"
     # send_memory_profile_sig = pyqtSignal(list)
