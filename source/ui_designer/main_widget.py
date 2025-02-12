@@ -575,7 +575,7 @@ class Ui_Form(object):
         self.profilinglabel.setText(_translate("Form", "Result"))
         self.groupBox_8.setTitle(_translate("Form", "NNC profile(enntester)"))
         self.label_8.setText(_translate("Form", "Result"))
-        self.label_11.setText(_translate("Form", "Total Execution Time"))
+        self.label_11.setText(_translate("Form", "Execution Time[ms]"))
         self.label_10.setText(_translate("Form", "SNR"))
         self.label_12.setText(_translate("Form", "Execution Performance"))
         self.label_9.setText(_translate("Form", "Memory Usage[MB]"))

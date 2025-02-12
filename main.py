@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import threading
+
 DEBUG = False
 
 import warnings
@@ -27,7 +29,7 @@ from typing import Tuple, List, Dict
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from PyQt5.QtCore import pyqtSignal, QObject, QThread
+from PyQt5.QtCore import pyqtSignal, QObject, QThread, QEventLoop
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QFileDialog, QApplication
 
@@ -47,6 +49,34 @@ else:
 def load_module_func(module_name):
     mod = __import__(f"{module_name}", fromlist=[module_name])
     return mod
+
+
+class WorkerThread(QThread):
+    finished = pyqtSignal(bool, list, list)  # ret, failed_pairs, memory_profile 전달
+
+    def __init__(self, remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID):
+        super().__init__()
+        self.remote = remote
+        self.nnc_files = nnc_files
+        self.input_golden_pairs = input_golden_pairs
+        self.current_binary_pos = current_binary_pos
+        self.out_dir = out_dir
+        self.enntest_combo = enntest_combo
+        self.deviceID = deviceID
+
+    def run(self):
+        if self.remote:
+            ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(
+                self.nnc_files, self.input_golden_pairs, self.current_binary_pos,
+                self.out_dir, self.enntest_combo, self.deviceID
+            )
+        else:
+            ret, failed_pairs, memory_profile = upgrade_local_run_enntest(
+                self.nnc_files, self.input_golden_pairs, self.current_binary_pos,
+                self.out_dir, self.enntest_combo, self.deviceID
+            )
+
+        self.finished.emit(ret, failed_pairs, memory_profile)
 
 
 class EmittingStream(QObject):
@@ -105,6 +135,7 @@ class Model_Analyze_Thread(QThread):
 
     def __init__(self, parent=None, grand_parent=None, ssh_client=None, repo_tag=None):
         super().__init__()
+        self.worker = None
         self.parent = parent
         self.grand_parent = grand_parent
         self._running = True
@@ -635,6 +666,44 @@ class Model_Analyze_Thread(QThread):
 
         return result, error_contents_dict
 
+    def run_task(self, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID):
+        remote = True
+        if not self.grand_parent.remoteradioButton.isChecked():
+            remote = False
+
+        self.worker = WorkerThread(remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo,
+                                   deviceID)
+        loop = QEventLoop()  # 이벤트 루프 생성
+
+        result = {}
+
+        def handle_finished(ret, failed_pairs, memory_profile):
+            result['ret'] = ret
+            result['failed_pairs'] = failed_pairs
+            result['memory_profile'] = memory_profile
+            loop.quit()
+
+        self.worker.finished.connect(handle_finished)
+
+        self.worker.start()
+        loop.exec_()
+
+        return result['ret'], result['failed_pairs'], result['memory_profile']
+
+        # if self.grand_parent.remoteradioButton.isChecked():
+        #     ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
+        #                                                                    current_binary_pos,
+        #                                                                    out_dir,
+        #                                                                    enntest_combo,
+        #                                                                    deviceID)
+        # else:
+        #     ret, failed_pairs, memory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs,
+        #                                                                   current_binary_pos,
+        #                                                                   out_dir,
+        #                                                                   enntest_combo,
+        #                                                                   deviceID)
+        # return ret, failed_pairs, memory_profile
+
     def upgrade_execute_enntest_ondevice(self, TestResult=None, cwd=None):
         memory_profile = []
         failed_pairs = []
@@ -654,18 +723,25 @@ class Model_Analyze_Thread(QThread):
             CheckDir(out_dir)
 
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
-                if self.grand_parent.remoteradioButton.isChecked():
-                    ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
-                                                                                   current_binary_pos,
-                                                                                   out_dir,
-                                                                                   self.grand_parent.enntestcomboBox.currentText(),
-                                                                                   deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
-                else:
-                    ret, failed_pairs, memory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs,
-                                                                                  current_binary_pos,
-                                                                                  out_dir,
-                                                                                  self.grand_parent.enntestcomboBox.currentText(),
-                                                                                  deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
+                ret, failed_pairs, memory_profile = self.run_task(nnc_files=nnc_files,
+                                                                  input_golden_pairs=input_golden_pairs,
+                                                                  current_binary_pos=current_binary_pos,
+                                                                  out_dir=out_dir,
+                                                                  enntest_combo=self.grand_parent.enntestcomboBox.currentText(),
+                                                                  deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
+
+                # if self.grand_parent.remoteradioButton.isChecked():
+                #     ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
+                #                                                                    current_binary_pos,
+                #                                                                    out_dir,
+                #                                                                    self.grand_parent.enntestcomboBox.currentText(),
+                #                                                                    deviceID=self.grand_parent.sshdevicelineEdit.text().strip())
+                # else:
+                #     ret, failed_pairs, memory_profile = upgrade_local_run_enntest(nnc_files, input_golden_pairs,
+                #                                                                   current_binary_pos,
+                #                                                                   out_dir,
+                #                                                                   self.grand_parent.enntestcomboBox.currentText(),
+                #                                                                   deviceID=self.grand_parent.localdeviceidlineEdit.text().strip())
 
                 if ret:
                     result = "Success"
@@ -806,7 +882,8 @@ class Model_Analyze_Thread(QThread):
 
                     elif "profiling" in enntools_cmd:
                         check_log = os.path.join(cwd, "Profiler_result", ".log")
-                        VisualProfiler_Summary_log = os.path.join(cwd, "Profiler_result", "VisualProfiler", "ResultProcess", "VisualProfiler_Summary.json")
+                        VisualProfiler_Summary_log = os.path.join(cwd, "Profiler_result", "VisualProfiler",
+                                                                  "ResultProcess", "VisualProfiler_Summary.json")
 
                     if check_log is not None:
                         # PRINT_(check_log)
@@ -1310,9 +1387,17 @@ class Model_Verify_Class(QObject):
                         elif "iter" in str_.lower() and "total" in str_.lower():
                             temp2 = str_.split("/")
                             try:
-                                sub_widget[0].iterlineEdit.setText(re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1]))
-                                sub_widget[0].exetimelineEdit.setText(
-                                    re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", " us"))
+                                total_iter = re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1])
+                                sub_widget[0].iterlineEdit.setText(total_iter)
+
+                                execution_time = round(
+                                    float(re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", "")) / (
+                                                int(total_iter) * 1000), 2)
+                                sub_widget[0].exetimelineEdit.setText(str(execution_time) + " ms")
+
+                                # sub_widget[0].iterlineEdit.setText(re.sub(r"[\[\] ]", "", temp2[0].split(":")[-1]))
+                                # sub_widget[0].exetimelineEdit.setText(
+                                #     re.sub(r"[\[\] ]", "", temp2[1].split(":")[-1]).replace("us", " us"))
                             except:
                                 sub_widget[0].iterlineEdit.setText("")
                                 sub_widget[0].exetimelineEdit.setText("")
@@ -1379,9 +1464,50 @@ class Model_Verify_Class(QObject):
         sub_widget[0].contexts_textEdit.setText(error_message)
         sub_widget[0].lineEdit.setText("Error")
 
+    @staticmethod
+    def find_and_stop_qthreads():
+        app = QApplication.instance()
+        if app:
+            for widget in app.allWidgets():
+                if isinstance(widget, QThread) and widget is not QThread.currentThread():
+                    print(f"Stopping QThread: {widget}")
+                    widget.quit()
+                    widget.wait()
+
+        # QObject 트리에서 QThread 찾기
+        for obj in QObject.children(QApplication.instance()):
+            if isinstance(obj, QThread) and obj is not QThread.currentThread():
+                print(f"Stopping QThread: {obj}")
+                obj.quit()
+                obj.wait()
+
+    @staticmethod
+    def stop_all_threads():
+        current_thread = threading.current_thread()
+
+        for thread in threading.enumerate():
+            if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
+                continue
+
+            if isinstance(thread, threading._DummyThread):  # 더미 스레드는 제외
+                print(f"Skipping DummyThread: {thread.name}")
+                continue
+
+            print(f"Stopping Thread: {thread.name}")
+
+            if hasattr(thread, "stop"):  # stop() 메서드가 있으면 호출
+                thread.stop()
+            elif hasattr(thread, "terminate"):  # terminate() 메서드가 있으면 호출
+                thread.terminate()
+
+            if thread.is_alive():
+                thread.join(timeout=1)  # 1초 기다린 후 종료
+
     def finish_update_test_result(self, normal_stop):
         if self.work_progress is not None:
             self.work_progress.close()
+            self.find_and_stop_qthreads()
+            self.stop_all_threads()
 
             self.end_evaluation_time = time.time()
             elapsed_time = self.end_evaluation_time - self.start_evaluation_time
@@ -1605,7 +1731,8 @@ class Model_Verify_Class(QObject):
                 "enntest_Iter.[count]": clean_data(target_widget[0].iterlineEdit.text().strip()),
                 "Memory Usage[MB]": clean_data(target_widget[0].memorytextEdit.toPlainText()),
                 "enntest_SNR[dB]": clean_data(target_widget[0].snrlineEdit.text().strip()),
-                "enntest Total Execution Time[us]": clean_data(target_widget[0].exetimelineEdit.text().strip()),
+                # "enntest Total Execution Time[us]": clean_data(target_widget[0].exetimelineEdit.text().strip()),
+                "enntest Execution Time[ms]": clean_data(target_widget[0].exetimelineEdit.text().strip()),
                 "enntest Execution Performance[fps]": clean_data(target_widget[0].exeperflineEdit.text().strip()),
                 "model_source": clean_data(target_widget[0].srclineEdit.text().strip()),
                 "elapsed_time": clean_data(target_widget[0].elapsedlineEdit.text().strip()),

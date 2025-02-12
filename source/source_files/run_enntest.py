@@ -35,7 +35,7 @@ def execute_local_command(execute_cmd, result_queue):
 
 
 class MemoryTracing(QThread):
-    interval = 3
+    interval = 1
     encoding = "utf-8"
     errors = "replace"
     # send_memory_profile_sig = pyqtSignal(list)
@@ -440,7 +440,7 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         # result, error = instance.user_ssh_exec_command(command=command_str, print_log=False)
         # 결과를 받을 큐 및 thread로 분리          
         result_queue = queue.Queue()
-        thread = threading.Thread(target=execute_ssh_command, args=(instance, command_str, result_queue))
+        thread = threading.Thread(target=execute_ssh_command, args=(instance, command_str, result_queue), daemon=True)
         thread.start()
         thread.join()
 
@@ -620,7 +620,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
         # 별도 스레드로 분리
         # result = subprocess.run(execute_cmd, capture_output=True, text=True, shell=False)
         result_queue = queue.Queue()
-        thread = threading.Thread(target=execute_local_command, args=(execute_cmd, result_queue))
+        thread = threading.Thread(target=execute_local_command, args=(execute_cmd, result_queue), daemon=True)
         thread.start()
         thread.join()
 
