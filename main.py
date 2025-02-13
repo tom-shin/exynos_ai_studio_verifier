@@ -63,18 +63,45 @@ class WorkerThread(QThread):
         self.out_dir = out_dir
         self.enntest_combo = enntest_combo
         self.deviceID = deviceID
+        self.enntest_profile_iter = [10000, 20000, 30000]
+
+    @staticmethod
+    def check_retry(memory_profile):
+        try:
+            start_idx = memory_profile.index("Start")
+            end_idx = memory_profile.index("End")
+        except ValueError:
+            start_idx = 0
+            end_idx = len(memory_profile)
+
+        values_between = memory_profile[start_idx + 1:end_idx]
+
+        # 값이 없거나 모든 값이 '0'인지 확인
+        if not values_between or all(value == '0' for value in values_between):
+            return True
+        return False
 
     def run(self):
-        if self.remote:
-            ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(
-                self.nnc_files, self.input_golden_pairs, self.current_binary_pos,
-                self.out_dir, self.enntest_combo, self.deviceID
-            )
-        else:
-            ret, failed_pairs, memory_profile = upgrade_local_run_enntest(
-                self.nnc_files, self.input_golden_pairs, self.current_binary_pos,
-                self.out_dir, self.enntest_combo, self.deviceID
-            )
+        ret = False
+        failed_pairs = []
+        memory_profile = []
+
+        # 추론 시간이 너무 짧아 메모리 사용량 체크를 못할 경우 iteration 증가해서 재 평가
+        for profile_iter in self.enntest_profile_iter:
+            if self.remote:
+                ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(
+                    nnc_files=self.nnc_files, input_golden_pairs=self.input_golden_pairs, current_binary_pos=self.current_binary_pos,
+                    out_dir=self.out_dir, profile_iter=profile_iter, deviceID=self.deviceID
+                )
+
+            else:
+                ret, failed_pairs, memory_profile = upgrade_local_run_enntest(
+                    nnc_files=self.nnc_files, input_golden_pairs=self.input_golden_pairs,
+                    current_binary_pos=self.current_binary_pos,
+                    out_dir=self.out_dir, profile_iter=profile_iter, deviceID=self.deviceID
+                )
+            if not self.check_retry(memory_profile=memory_profile):
+                break
 
         self.finished.emit(ret, failed_pairs, memory_profile)
 
@@ -1559,6 +1586,21 @@ class Model_Verify_Class(QObject):
 
         if len(self.added_scenario_widgets) == 0:
             return
+
+        if check_environment() == "Windows":
+            process_name = "EXCEL.EXE"
+            try:
+                subprocess.run(["taskkill", "/t", "/im", process_name, "/f"], check=True, stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                PRINT_(f"[-] Windows: '{process_name}' 프로세스를 찾을 수 없습니다.")
+        else:
+            process_name = "LibreOfficeCalc"
+            try:
+                subprocess.run(["killall", "-9", process_name], check=True, stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                PRINT_(f"[-] Linux: '{process_name}' 프로세스를 찾을 수 없습니다.")
 
         check = False
         for cnt, target_widget in enumerate(self.added_scenario_widgets):

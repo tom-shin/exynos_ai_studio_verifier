@@ -35,7 +35,7 @@ def execute_local_command(execute_cmd, result_queue):
 
 
 class MemoryTracing(QThread):
-    interval = 0.2
+    interval = 1
     encoding = "utf-8"
     errors = "replace"
     # send_memory_profile_sig = pyqtSignal(list)
@@ -225,7 +225,7 @@ class MemoryTracing(QThread):
 class remote_ssh_server:
     ssh = None  # 클래스 변수로 SSH 연결 관리
 
-    def __init__(self, deviceID, remote_ssh=False):
+    def __init__(self, deviceID, profile_iter, remote_ssh=False):
         self.remote_host = '1.220.53.154'
         self.remote_port = 63522
         self.remote_user = 'sam'
@@ -237,7 +237,7 @@ class remote_ssh_server:
 
         self.ProfileCMD = "EnnTest_v2_lib"
         # self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
-        self.ProfileOption = "--iter 15000 --useSNR"
+        self.ProfileOption = f"--iter {profile_iter} --useSNR"
 
         if remote_ssh:
             self.error_log = None
@@ -391,12 +391,12 @@ class remote_ssh_server:
         _, _ = self.user_ssh_exec_command(command=command)
 
 
-def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID=None,
+def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter, deviceID=None,
                                wait_time=5):
     failed_pairs = []
     CHECK_ENNTEST = []
 
-    instance = remote_ssh_server(deviceID=deviceID, remote_ssh=True)
+    instance = remote_ssh_server(deviceID=deviceID, remote_ssh=True, profile_iter=profile_iter)
     # ret, error = instance.check_ssh_connection()
     # PRINT_(error)
 
@@ -496,9 +496,9 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
         return False, failed_pairs, memory_profile_instance.memory_profile  # 실패한 쌍도 반환
 
 
-def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board, deviceID,
+def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter, deviceID,
                               wait_time=5):
-    instance = remote_ssh_server(deviceID=deviceID)
+    instance = remote_ssh_server(deviceID=deviceID, profile_iter=profile_iter)
 
     DeviceTargetDir = instance.android_device_path
     ProfileCMD = instance.ProfileCMD
@@ -680,7 +680,7 @@ def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos,
 # 함수 실행 예시
 if __name__ == "__main__":
 
-    target_board = ''
+    profile_iter = 10000
     out_dir = os.getcwd()
     current_binary_pos = "../../tools/example"
     nnc_files = [
@@ -693,9 +693,8 @@ if __name__ == "__main__":
     Test_use_remote_device = True
 
     if Test_use_remote_device:
-        for i in range(2):
-            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
-                                       deviceID="000011344eac6013")
+        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter,
+                                   deviceID="000011344eac6013")
     else:
-        upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, target_board,
+        upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter,
                                   deviceID="0000100d0f246013")
