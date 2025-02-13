@@ -77,7 +77,7 @@ class WorkerThread(QThread):
         values_between = memory_profile[start_idx + 1:end_idx]
 
         # 값이 없거나 모든 값이 '0'인지 확인
-        if not values_between or all(value == '0' for value in values_between):
+        if not values_between or all(value == 0 for value in values_between):
             return True
         return False
 
@@ -102,6 +102,7 @@ class WorkerThread(QThread):
                 )
             if not self.check_retry(memory_profile=memory_profile):
                 break
+            print(f"Memory usage was not extracted. Increasing profile iteration.")
 
         self.finished.emit(ret, failed_pairs, memory_profile)
 
