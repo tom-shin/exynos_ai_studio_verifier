@@ -1036,6 +1036,7 @@ def find_and_stop_qthreads():
     app = QApplication.instance()
     if app:
         for widget in app.allWidgets():
+            QApplication.processEvents()
             if isinstance(widget, QThread) and widget is not QThread.currentThread():
                 print(f"Stopping QThread: {widget}")
                 widget.quit()
@@ -1043,6 +1044,7 @@ def find_and_stop_qthreads():
 
     # QObject 트리에서 QThread 찾기
     for obj in QObject.children(QApplication.instance()):
+        QApplication.processEvents()
         if isinstance(obj, QThread) and obj is not QThread.currentThread():
             print(f"Stopping QThread: {obj}")
             obj.quit()
@@ -1053,6 +1055,8 @@ def stop_all_threads():
     current_thread = threading.current_thread()
 
     for thread in threading.enumerate():
+        QApplication.processEvents()
+
         if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
             continue
 
@@ -1085,4 +1089,6 @@ def chmod_777(dir_path=None):
             "777",
             f"{dir_}"
         ]
+        QApplication.processEvents()
         _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=3600, log=True)
+

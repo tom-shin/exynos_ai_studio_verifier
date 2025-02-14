@@ -38,6 +38,7 @@ class MemoryTracing(QThread):
     interval = 1
     encoding = "utf-8"
     errors = "replace"
+
     # send_memory_profile_sig = pyqtSignal(list)
 
     def __init__(self, use_local_device=False, ssh_instance=None, deviceID=None):
@@ -219,30 +220,202 @@ class MemoryTracing(QThread):
 #     with open(os.path.join(os.getcwd(), "memory_trace.log"), "w") as file:
 #         for mem_val in memory_profile:
 #             file.write(f"{mem_val}\n")
-            # PRINT_(f"{mem}")
+# PRINT_(f"{mem}")
+
+
+# class remote_ssh_server:
+#     ssh = None  # 클래스 변수로 SSH 연결 관리
+#
+#     def __init__(self, deviceID, profile_iter, remote_ssh=False):
+#         self.remote_host = '1.220.53.154'
+#         self.remote_port = 63522
+#         self.remote_user = 'sam'
+#         self.remote_password = 'Thunder$@88'
+#         self.remote_device = deviceID
+#         self.remote_temp_dir = None
+#         self.android_device_path = '/data/vendor/enn'
+#         self.remote_adb_path = '/home/sam/platform-tools/adb'
+#
+#         self.ProfileCMD = "EnnTest_v2_lib"
+#         # self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
+#         self.ProfileOption = f"--iter {profile_iter} --useSNR"
+#
+#         if remote_ssh:
+#             self.error_log = None
+#             self.ensure_ssh_connection()  # SSH 연결 체크 및 생성
+#             PRINT_(self.error_log)
+#
+#             self.check_remote_temp_dir()
+#             self.check_enn_directory_exist()
+#
+#     def ensure_ssh_connection(self):
+#         """SSH 연결이 유효한지 확인하고 필요하면 다시 연결"""
+#         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+#             self.create_ssh_connection()
+#         else:
+#             self.error_log = "SSH connection already established."
+#
+#     def create_ssh_connection(self):
+#         """SSH 연결 생성 및 클래스 변수에 저장"""
+#         try:
+#             ssh_client = paramiko.SSHClient()
+#             ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+#             ssh_client.connect(self.remote_host, username=self.remote_user, password=self.remote_password,
+#                                port=self.remote_port)
+#
+#             transport = ssh_client.get_transport()
+#             transport.set_keepalive(30)  # 30초마다 KeepAlive 패킷 전송
+#
+#             # SSH 연결 성공 시 클래스 변수에 저장
+#             remote_ssh_server.ssh = ssh_client
+#
+#             commands = [
+#                 rf"{self.remote_adb_path} -s {self.remote_device} root",
+#                 f"{self.remote_adb_path} -s {self.remote_device} remount"
+#             ]
+#             for command in commands:
+#                 _, _ = self.user_ssh_exec_command(command=command)
+#
+#             self.check_remote_temp_dir()
+#             self.check_enn_directory_exist()
+#             self.error_log = f"SSH connection succeeded."
+#
+#         except paramiko.AuthenticationException:
+#             self.error_log = "Authentication failed, please check your credentials."
+#         except paramiko.SSHException as ssh_error:
+#             self.error_log = f"SSH connection failed: {ssh_error}"
+#         except Exception as e:
+#             self.error_log = f"Error: {e}"
+#
+#     @staticmethod
+#     def user_ssh_exec_command(command, print_log=True):
+#         """SSH 명령 실행 (연결 상태 체크 추가)"""
+#         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+#             PRINT_("Error: No active SSH connection. Attempting to reconnect...")
+#             remote_ssh_server().ensure_ssh_connection()
+#
+#         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+#             PRINT_("Error: Unable to establish SSH connection.")
+#             return None, "No active SSH connection."
+#
+#         stdin, stdout, stderr = remote_ssh_server.ssh.exec_command(command)
+#         stdout.channel.recv_exit_status()  # Wait for the command to complete
+#
+#         output = stdout.read().decode()
+#         error = stderr.read().decode()
+#
+#         if print_log:
+#             if output:
+#                 PRINT_(f"Output: {output}")
+#             if error:
+#                 PRINT_(f"Error: {error}")
+#
+#         return output, error
+#
+#     @staticmethod
+#     def close_ssh():
+#         """SSH 연결을 닫고 클래스 변수 초기화"""
+#         if remote_ssh_server.ssh is not None:
+#             remote_ssh_server.ssh.close()
+#             remote_ssh_server.ssh = None  # 클래스 변수 초기화
+#             PRINT_("SSH connection closed successfully.")
+#         else:
+#             PRINT_("No active SSH connection to close.")
+#
+#     def check_enn_directory_exist(self):
+#         """디바이스 경로 존재 여부 확인 후 처리"""
+#         check_path_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell ls {self.android_device_path}"
+#         output, error = self.user_ssh_exec_command(command=check_path_cmd)
+#
+#         if "No such file or directory" in error:
+#             PRINT_(f"Path {self.android_device_path} does not exist. Creating directory...")
+#             create_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell mkdir -p {self.android_device_path}"
+#             _, _ = self.user_ssh_exec_command(command=create_dir_cmd)
+#         else:
+#             PRINT_(f"Path {self.android_device_path} exists. Clearing contents...")
+#             clear_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell rm -rf {self.android_device_path}/*"
+#             _, _ = self.user_ssh_exec_command(command=clear_dir_cmd)
+#
+#     def check_remote_temp_dir(self):
+#         """remote_temp_dir 내 모든 파일 삭제"""
+#         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+#             PRINT_("Error: No active SSH connection. Attempting to reconnect...")
+#             self.ensure_ssh_connection()
+#
+#         if remote_ssh_server.ssh is None:
+#             PRINT_("Error: Unable to establish SSH connection.")
+#             return
+#
+#         self.remote_temp_dir = f'/home/sam/tom/temp_{get_mac_address()}'
+#         create_temp_cmd = f"mkdir -p {self.remote_temp_dir}"
+#         output, error = self.user_ssh_exec_command(command=create_temp_cmd)
+#         if error:
+#             PRINT_(f"Fail to create remote temp directory: {error}")
+#         else:
+#             PRINT_(f"Remote temp directory created successfully.")
+#
+#         PRINT_(f"Clearing files in remote temp directory: {self.remote_temp_dir}")
+#         delete_command = f"rm -rf {self.remote_temp_dir}/*"
+#         output, error = self.user_ssh_exec_command(command=delete_command)
+#
+#         if error:
+#             PRINT_(f"Error clearing remote temp directory: {error}")
+#         else:
+#             PRINT_(f"Remote temp directory cleared successfully.")
+#
+#     def push_file_to_android_on_remote_server(self, f_local_file):
+#         """로컬 파일을 원격 서버를 통해 Android 디바이스에 전송"""
+#         if remote_ssh_server.ssh is None or not remote_ssh_server.ssh.get_transport().is_active():
+#             PRINT_("Error: No active SSH connection. Attempting to reconnect...")
+#             self.ensure_ssh_connection()
+#
+#         if remote_ssh_server.ssh is None:
+#             PRINT_("Error: Unable to establish SSH connection.")
+#             return
+#
+#         remote_temp_file = os.path.join(self.remote_temp_dir, os.path.basename(f_local_file)).replace("\\", "/")
+#
+#         # SFTP를 사용해 로컬 파일을 원격 서버로 전송
+#         sftp = remote_ssh_server.ssh.open_sftp()
+#         file_size = os.path.getsize(f_local_file)
+#
+#         with tqdm(total=file_size, unit='B', unit_scale=True, desc='Uploading') as pbar:
+#             def callback(transferred, total):
+#                 pbar.update(transferred - pbar.n)
+#
+#             sftp.put(f_local_file, remote_temp_file.replace("\\", "/"), callback=callback)
+#
+#         sftp.close()
+#
+#         # 리모트 서버에서 adb push 명령어 실행
+#         command = f"{self.remote_adb_path} -s {self.remote_device} push {remote_temp_file} {self.android_device_path}"
+#         _, _ = self.user_ssh_exec_command(command=command)
 
 
 class remote_ssh_server:
     ssh = None  # 클래스 변수로 SSH 연결 관리
+    remote_device = None  # 클래스 변수로 deviceID 저장
+    profile_iter = None  # 클래스 변수로 profile_iter 저장
 
     def __init__(self, deviceID, profile_iter, remote_ssh=False):
+        remote_ssh_server.remote_device = deviceID
+        remote_ssh_server.profile_iter = profile_iter
+
         self.remote_host = '1.220.53.154'
         self.remote_port = 63522
         self.remote_user = 'sam'
         self.remote_password = 'Thunder$@88'
-        self.remote_device = deviceID
         self.remote_temp_dir = None
         self.android_device_path = '/data/vendor/enn'
         self.remote_adb_path = '/home/sam/platform-tools/adb'
 
         self.ProfileCMD = "EnnTest_v2_lib"
-        # self.ProfileOption = "--monitor_iter 1 --iter 10000 --useSNR"
         self.ProfileOption = f"--iter {profile_iter} --useSNR"
 
         if remote_ssh:
             self.error_log = None
             self.ensure_ssh_connection()  # SSH 연결 체크 및 생성
-            print(self.error_log)
+            PRINT_(self.error_log)
 
             self.check_remote_temp_dir()
             self.check_enn_directory_exist()
@@ -253,6 +426,7 @@ class remote_ssh_server:
             self.create_ssh_connection()
         else:
             self.error_log = "SSH connection already established."
+            print(self.error_log)
 
     def create_ssh_connection(self):
         """SSH 연결 생성 및 클래스 변수에 저장"""
@@ -269,8 +443,8 @@ class remote_ssh_server:
             remote_ssh_server.ssh = ssh_client
 
             commands = [
-                rf"{self.remote_adb_path} -s {self.remote_device} root",
-                f"{self.remote_adb_path} -s {self.remote_device} remount"
+                rf"{self.remote_adb_path} -s {remote_ssh_server.remote_device} root",
+                f"{self.remote_adb_path} -s {remote_ssh_server.remote_device} remount"
             ]
             for command in commands:
                 _, _ = self.user_ssh_exec_command(command=command)
@@ -285,6 +459,7 @@ class remote_ssh_server:
             self.error_log = f"SSH connection failed: {ssh_error}"
         except Exception as e:
             self.error_log = f"Error: {e}"
+        print(self.error_log)
 
     @staticmethod
     def user_ssh_exec_command(command, print_log=True):
@@ -323,16 +498,16 @@ class remote_ssh_server:
 
     def check_enn_directory_exist(self):
         """디바이스 경로 존재 여부 확인 후 처리"""
-        check_path_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell ls {self.android_device_path}"
+        check_path_cmd = f"{self.remote_adb_path} -s {remote_ssh_server.remote_device} shell ls {self.android_device_path}"
         output, error = self.user_ssh_exec_command(command=check_path_cmd)
 
         if "No such file or directory" in error:
             PRINT_(f"Path {self.android_device_path} does not exist. Creating directory...")
-            create_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell mkdir -p {self.android_device_path}"
+            create_dir_cmd = f"{self.remote_adb_path} -s {remote_ssh_server.remote_device} shell mkdir -p {self.android_device_path}"
             _, _ = self.user_ssh_exec_command(command=create_dir_cmd)
         else:
             PRINT_(f"Path {self.android_device_path} exists. Clearing contents...")
-            clear_dir_cmd = f"{self.remote_adb_path} -s {self.remote_device} shell rm -rf {self.android_device_path}/*"
+            clear_dir_cmd = f"{self.remote_adb_path} -s {remote_ssh_server.remote_device} shell rm -rf {self.android_device_path}/*"
             _, _ = self.user_ssh_exec_command(command=clear_dir_cmd)
 
     def check_remote_temp_dir(self):
@@ -345,7 +520,7 @@ class remote_ssh_server:
             PRINT_("Error: Unable to establish SSH connection.")
             return
 
-        self.remote_temp_dir = f'/home/sam/tom/temp_{get_mac_address()}'
+        self.remote_temp_dir = f'/home/sam/tom/temp_{remote_ssh_server.remote_device}'
         create_temp_cmd = f"mkdir -p {self.remote_temp_dir}"
         output, error = self.user_ssh_exec_command(command=create_temp_cmd)
         if error:
@@ -372,23 +547,32 @@ class remote_ssh_server:
             PRINT_("Error: Unable to establish SSH connection.")
             return
 
+        # 원격 서버의 임시 저장소 경로 설정
         remote_temp_file = os.path.join(self.remote_temp_dir, os.path.basename(f_local_file)).replace("\\", "/")
 
-        # SFTP를 사용해 로컬 파일을 원격 서버로 전송
-        sftp = remote_ssh_server.ssh.open_sftp()
-        file_size = os.path.getsize(f_local_file)
+        try:
+            # SFTP 세션 열기
+            sftp = remote_ssh_server.ssh.open_sftp()
+            file_size = os.path.getsize(f_local_file)
 
-        with tqdm(total=file_size, unit='B', unit_scale=True, desc='Uploading') as pbar:
-            def callback(transferred, total):
-                pbar.update(transferred - pbar.n)
+            # tqdm을 사용해 진행률 표시
+            with tqdm(total=file_size, unit='B', unit_scale=True, desc='Uploading') as pbar:
+                def callback(transferred, total):
+                    pbar.update(transferred - pbar.n)
 
-            sftp.put(f_local_file, remote_temp_file.replace("\\", "/"), callback=callback)
+                sftp.put(f_local_file, remote_temp_file, callback=callback)
 
-        sftp.close()
+        except Exception as e:
+            PRINT_(f"Error during file transfer: {e}")
+        finally:
+            sftp.close()  # SFTP 세션 닫기
 
-        # 리모트 서버에서 adb push 명령어 실행
-        command = f"{self.remote_adb_path} -s {self.remote_device} push {remote_temp_file} {self.android_device_path}"
+        # ADB를 사용하여 원격 서버에서 Android 디바이스로 파일 전송
+        command = f"{self.remote_adb_path} -s {remote_ssh_server.remote_device} push {remote_temp_file} {self.android_device_path}"
         _, _ = self.user_ssh_exec_command(command=command)
+
+        PRINT_(
+            f"File {os.path.basename(f_local_file)} successfully pushed to {self.android_device_path} on Android device.")
 
 
 def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter, deviceID=None,
@@ -693,8 +877,9 @@ if __name__ == "__main__":
     Test_use_remote_device = True
 
     if Test_use_remote_device:
-        upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter,
-                                   deviceID="000011344eac6013")
+        for i in range(2):
+            upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter,
+                                       deviceID="000011344eac6013")
     else:
         upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter,
                                   deviceID="0000100d0f246013")
