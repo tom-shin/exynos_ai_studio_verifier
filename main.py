@@ -105,6 +105,10 @@ class WorkerThread(QThread):
                 break
             print(f"Memory usage was not extracted. Increasing profile iteration.")
 
+        if memory_profile[-1] == "End":
+            memory_profile.append(0)
+            memory_profile.append(0)
+
         self.finished.emit(ret, failed_pairs, memory_profile)
 
 
