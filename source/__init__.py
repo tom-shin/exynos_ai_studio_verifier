@@ -38,7 +38,7 @@ keyword = {
 
 logging.basicConfig(level=logging.INFO)
 
-EnablePrint = True
+EnablePrint = False
 
 
 def PRINT_(*args):
