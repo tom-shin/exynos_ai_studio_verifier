@@ -878,7 +878,7 @@ class Model_Analyze_Thread(QThread):
                 out, error, timeout_expired = user_subprocess(cmd=CMD, run_time=False, timeout=self.timeout_expired,
                                                               shell=False, log=True)
 
-                chmod_777(dir_path=self.Shared_Volume)
+                self.parent.chmod_777(dir_path=self.Shared_Volume)
 
                 if timeout_expired:
                     self.timeout_output_signal.emit(enntools_cmd, target_widget)
@@ -1251,7 +1251,12 @@ class Model_Verify_Class(QObject):
     def on_file_copy_complete(self, all_test_path):
         # 복사 완료 후 후속 작업
         repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
-        tag = int(repo_tag.split(":")[1].split(".")[0])
+
+        try:
+            tag = int(repo_tag.split(":")[1].split(".")[0])
+        except:
+            tag = 7
+
         if tag >= 7:
             full_file = os.path.join(BASE_DIR, "model_configuration", "Ver2.0_model_config_new.yaml")
         else:
@@ -1494,12 +1499,76 @@ class Model_Verify_Class(QObject):
         sub_widget[0].contexts_textEdit.setText(error_message)
         sub_widget[0].lineEdit.setText("Error")
 
+    @staticmethod
+    def find_and_stop_qthreads():
+        # PRINT_(f"Stopping QThread:")
+        app = QApplication.instance()
+        if app:
+            for widget in app.allWidgets():
+                if isinstance(widget, QThread) and widget is not QThread.currentThread():
+                    PRINT_(f"Stopping QThread: {widget}")
+                    widget.quit()
+                    widget.wait()
+                    QApplication.processEvents()
+
+        # QObject 트리에서 QThread 찾기
+        for obj in QObject.children(QApplication.instance()):            
+            if isinstance(obj, QThread) and obj is not QThread.currentThread():
+                PRINT_(f"Stopping QThread: {obj}")
+                obj.quit()
+                obj.wait()
+                QApplication.processEvents()
+
+    @staticmethod
+    def stop_all_threads():
+        # PRINT_(f"Stopping Threading.thread:")
+        current_thread = threading.current_thread()
+
+        for thread in threading.enumerate():
+            
+            if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
+                continue
+
+            if isinstance(thread, threading._DummyThread):  # 더미 스레드는 제외
+                PRINT_(f"Skipping DummyThread: {thread.name}")
+                continue
+
+            PRINT_(f"Stopping Thread: {thread.name}")
+
+            if hasattr(thread, "stop"):  # stop() 메서드가 있으면 호출
+                thread.stop()
+            elif hasattr(thread, "terminate"):  # terminate() 메서드가 있으면 호출
+                thread.terminate()
+
+            if thread.is_alive():
+                thread.join(timeout=1)  # 1초 기다린 후 종료
+
+            QApplication.processEvents()
+
+    @staticmethod
+    def chmod_777(dir_path=None):
+        PRINT_("Change Mode to 777")
+        if dir_path is None:
+            return
+
+        env = check_environment()
+        dir_ = dir_path.replace("\\", "/")
+        if env == "Linux":
+            post_cmd = [
+                "sudo",
+                "chmod",
+                "-R",
+                "777",
+                f"{dir_}"
+            ]
+            _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=3600, log=True)
+
     def finish_update_test_result(self, normal_stop):
         if self.work_progress is not None:
             self.work_progress.close()
-            find_and_stop_qthreads()
-            stop_all_threads()
-            chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
+            self.find_and_stop_qthreads()
+            self.stop_all_threads()
+            self.chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
 
             self.end_evaluation_time = time.time()
             elapsed_time = self.end_evaluation_time - self.start_evaluation_time
@@ -2187,18 +2256,18 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         if _directory is None:
             return
 
-        find_and_stop_qthreads()
-        stop_all_threads()
-        chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
+        self.single_op_ctrl.find_and_stop_qthreads()
+        self.single_op_ctrl.stop_all_threads()
+        self.single_op_ctrl.chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
 
         self.directory = _directory.replace("\\", "/")
         if self.single_op_ctrl is not None:
             self.single_op_ctrl.open_file()
 
     def start_analyze(self):
-        find_and_stop_qthreads()
-        stop_all_threads()
-        chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
+        self.single_op_ctrl.find_and_stop_qthreads()
+        self.single_op_ctrl.stop_all_threads()
+        self.single_op_ctrl.chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
 
         if self.single_op_ctrl is not None:
             self.single_op_ctrl.analyze()
