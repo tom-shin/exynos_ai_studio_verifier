@@ -2,6 +2,8 @@ import sys
 import os
 import subprocess
 import json
+import threading
+
 import chardet
 from collections import OrderedDict
 from datetime import datetime
@@ -13,16 +15,16 @@ import uuid
 import logging
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread
+from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QThread, QObject
 from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QSpacerItem, \
-    QSizePolicy, QRadioButton, QWidget, QMessageBox
+    QSizePolicy, QRadioButton, QWidget, QMessageBox, QApplication
 
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredMarkdownLoader
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_text_splitters import CharacterTextSplitter
 
-Version = "AI Studio Analyzer ver.3.6.0_20250212 (made by tom.shin)"
+Version = "AI Studio Analyzer ver.3.6.1_20250214 (made by tom.shin)"
 
 # "enntools profiling"
 keyword = {
@@ -36,7 +38,7 @@ keyword = {
 
 logging.basicConfig(level=logging.INFO)
 
-EnablePrint = False
+EnablePrint = True
 
 
 def PRINT_(*args):
@@ -1028,3 +1030,59 @@ def get_mac_address():
     #     return "000000000000"  # 기본값 반환
     mac_address = ':'.join(f'{(mac >> i) & 0xff:02x}' for i in range(40, -1, -8))
     return "".join(mac_address.split(":"))
+
+
+def find_and_stop_qthreads():
+    app = QApplication.instance()
+    if app:
+        for widget in app.allWidgets():
+            if isinstance(widget, QThread) and widget is not QThread.currentThread():
+                print(f"Stopping QThread: {widget}")
+                widget.quit()
+                widget.wait()
+
+    # QObject 트리에서 QThread 찾기
+    for obj in QObject.children(QApplication.instance()):
+        if isinstance(obj, QThread) and obj is not QThread.currentThread():
+            print(f"Stopping QThread: {obj}")
+            obj.quit()
+            obj.wait()
+
+
+def stop_all_threads():
+    current_thread = threading.current_thread()
+
+    for thread in threading.enumerate():
+        if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
+            continue
+
+        if isinstance(thread, threading._DummyThread):  # 더미 스레드는 제외
+            print(f"Skipping DummyThread: {thread.name}")
+            continue
+
+        print(f"Stopping Thread: {thread.name}")
+
+        if hasattr(thread, "stop"):  # stop() 메서드가 있으면 호출
+            thread.stop()
+        elif hasattr(thread, "terminate"):  # terminate() 메서드가 있으면 호출
+            thread.terminate()
+
+        if thread.is_alive():
+            thread.join(timeout=1)  # 1초 기다린 후 종료
+
+
+def chmod_777(dir_path=None):
+    if dir_path is None:
+        return
+
+    env = check_environment()
+    dir_ = dir_path.replace("\\", "/")
+    if env == "Linux":
+        post_cmd = [
+            "sudo",
+            "chmod",
+            "-R",
+            "777",
+            f"{dir_}"
+        ]
+        _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=3600, log=True)

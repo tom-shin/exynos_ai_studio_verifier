@@ -90,7 +90,8 @@ class WorkerThread(QThread):
         for profile_iter in self.enntest_profile_iter:
             if self.remote:
                 ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(
-                    nnc_files=self.nnc_files, input_golden_pairs=self.input_golden_pairs, current_binary_pos=self.current_binary_pos,
+                    nnc_files=self.nnc_files, input_golden_pairs=self.input_golden_pairs,
+                    current_binary_pos=self.current_binary_pos,
                     out_dir=self.out_dir, profile_iter=profile_iter, deviceID=self.deviceID
                 )
 
@@ -873,16 +874,7 @@ class Model_Analyze_Thread(QThread):
                 out, error, timeout_expired = user_subprocess(cmd=CMD, run_time=False, timeout=self.timeout_expired,
                                                               shell=False, log=True)
 
-                env = check_environment()
-                if env == "Linux":
-                    post_cmd = [
-                        "sudo",
-                        "chmod",
-                        "-R",
-                        "777",
-                        f"{self.Shared_Volume}"
-                    ]
-                    _, _, _ = user_subprocess(cmd=post_cmd, shell=False, timeout=self.timeout_expired, log=True)
+                chmod_777(dir_path=self.Shared_Volume)
 
                 if timeout_expired:
                     self.timeout_output_signal.emit(enntools_cmd, target_widget)
@@ -1498,50 +1490,12 @@ class Model_Verify_Class(QObject):
         sub_widget[0].contexts_textEdit.setText(error_message)
         sub_widget[0].lineEdit.setText("Error")
 
-    @staticmethod
-    def find_and_stop_qthreads():
-        app = QApplication.instance()
-        if app:
-            for widget in app.allWidgets():
-                if isinstance(widget, QThread) and widget is not QThread.currentThread():
-                    print(f"Stopping QThread: {widget}")
-                    widget.quit()
-                    widget.wait()
-
-        # QObject 트리에서 QThread 찾기
-        for obj in QObject.children(QApplication.instance()):
-            if isinstance(obj, QThread) and obj is not QThread.currentThread():
-                print(f"Stopping QThread: {obj}")
-                obj.quit()
-                obj.wait()
-
-    @staticmethod
-    def stop_all_threads():
-        current_thread = threading.current_thread()
-
-        for thread in threading.enumerate():
-            if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
-                continue
-
-            if isinstance(thread, threading._DummyThread):  # 더미 스레드는 제외
-                print(f"Skipping DummyThread: {thread.name}")
-                continue
-
-            print(f"Stopping Thread: {thread.name}")
-
-            if hasattr(thread, "stop"):  # stop() 메서드가 있으면 호출
-                thread.stop()
-            elif hasattr(thread, "terminate"):  # terminate() 메서드가 있으면 호출
-                thread.terminate()
-
-            if thread.is_alive():
-                thread.join(timeout=1)  # 1초 기다린 후 종료
-
     def finish_update_test_result(self, normal_stop):
         if self.work_progress is not None:
             self.work_progress.close()
-            self.find_and_stop_qthreads()
-            self.stop_all_threads()
+            find_and_stop_qthreads()
+            stop_all_threads()
+            chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
 
             self.end_evaluation_time = time.time()
             elapsed_time = self.end_evaluation_time - self.start_evaluation_time
@@ -2229,11 +2183,19 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         if _directory is None:
             return
 
+        find_and_stop_qthreads()
+        stop_all_threads()
+        chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
+
         self.directory = _directory.replace("\\", "/")
         if self.single_op_ctrl is not None:
             self.single_op_ctrl.open_file()
 
     def start_analyze(self):
+        find_and_stop_qthreads()
+        stop_all_threads()
+        chmod_777(dir_path=os.path.join(BASE_DIR, 'Result'))
+
         if self.single_op_ctrl is not None:
             self.single_op_ctrl.analyze()
 
