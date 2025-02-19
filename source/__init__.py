@@ -119,6 +119,7 @@ class ProgressDialog(QDialog):  # This class will handle both modal and non-moda
             self.show()  # Show as non-modal
 
     def closeEvent(self, event):
+        self.timer.stop()
         self.send_user_close_event.emit(True)
         event.accept()
 
