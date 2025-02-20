@@ -259,8 +259,8 @@ if __name__ == "__main__":
 
     path = rf"C:\Work\tom\python_project\AI_MODEL_Rep\test_model_repo\ml_group\dropout\squeezenet1.0-3_opset13.onnx"
     model_instance = ONNX_INFO(model_path=path)
-    model_instance.force_change_input_tensor()
-    # model_instance.remove_op(op_name="Log")  # LOG Dropout
+    # model_instance.force_change_input_tensor()
+    model_instance.remove_op(op_name="Log")  # LOG Dropout
 
     if IND_TEST:
         model_instance.onnx_version_converter()
