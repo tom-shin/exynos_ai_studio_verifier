@@ -997,9 +997,11 @@ def upgrade_find_paired_files(directory, mode=1):
                     (fp_files if "_fp" in filename else non_fp_files).append(filename)
 
             non_fp_input_files, non_fp_golden_files = categorize_files(non_fp_files)
-            fp_input_files, fp_golden_files = categorize_files(fp_files)
+            # fp_input_files, fp_golden_files = categorize_files(fp_files)
 
             if mode == 0:
+                fp_input_files, fp_golden_files = categorize_files(fp_files)
+
                 paired_files = {
                     non_fp_input_files: sorted(non_fp_golden_files),
                     fp_input_files: sorted(fp_golden_files)

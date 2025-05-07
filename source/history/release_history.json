@@ -1,5 +1,11 @@
 [
-
+{
+        "Image": "enntools-rel_7.16.17.21.image",
+        "Version": "2.0(Alpha)",
+        "TAG": "7.16.17.21",
+        "Repository": "ubuntu-22.04/enntools-rel",
+        "Released": "2025.5.7(이석열님)"
+    },
     {
         "Image": "enntools-7.12.30.12.tar",
         "Version": "2.0(Alpha)",
