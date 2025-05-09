@@ -1971,6 +1971,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.mainFrame_ui.cmdlabel.hide()
         self.mainFrame_ui.command_lineedit.hide()
+        
+        self.mainFrame_ui.groupBox_6.hide()
 
         self.setWindowTitle(Version)
 
