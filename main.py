@@ -24,6 +24,7 @@ from ruamel.yaml import YAML
 from io import StringIO
 import numpy as np
 import uuid
+import getpass
 from typing import Tuple, List, Dict
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -630,15 +631,44 @@ class Model_Analyze_Thread(QThread):
 
         return onnx_info
 
+    def update_yaml_with_system_info(self, remote_ssh_config_yaml_path):
+
+        new_values = {
+            'ssh_hostname': self.grand_parent.hostnamelineEdit.text(),
+            'ssh_port': str(self.grand_parent.portlineEdit.text()),
+            'ssh_username': self.grand_parent.usrnamelineEdit.text(),
+            'ssh_passwd': f'"{self.grand_parent.pwdlineEdit.text()}"',
+            'ssh_workspace': './ssh_workspace'
+        }
+
+        with open(remote_ssh_config_yaml_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        updated_lines = []
+        for line in lines:
+            match = re.match(r'^(\s*[\w_]+)\s*:\s*.*$', line)
+            if match:
+                key = match.group(1).strip()
+                if key in new_values:
+                    updated_lines.append(f"{key}: {new_values[key]}\n")
+                    continue
+            updated_lines.append(line)
+
+        with open(remote_ssh_config_yaml_path, 'w', encoding='utf-8') as f:
+            f.writelines(updated_lines)
+
     def check_enntools_init(self, init_log_path=None, model=None, filename=None):
         result = 'Fail'
         parameter_set = OrderedDict()
 
         check_DATA_dir = os.path.join(init_log_path, "DATA").replace("\\", "/")
+        remote_ssh_config = os.path.join(check_DATA_dir, "remote_ssh_config.yaml").replace("\\", "/")
         target_config = os.path.join(init_log_path, f"{filename}.yaml").replace("\\", "/")
 
         if os.path.isdir(check_DATA_dir) and os.path.isfile(target_config):
             result = "Success"
+
+        self.update_yaml_with_system_info(remote_ssh_config_yaml_path=remote_ssh_config)
 
         if self.grand_parent.modifiedradioButton.isChecked():
             repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
@@ -1515,7 +1545,7 @@ class Model_Verify_Class(QObject):
                     QApplication.processEvents()
 
         # QObject 트리에서 QThread 찾기
-        for obj in QObject.children(QApplication.instance()):            
+        for obj in QObject.children(QApplication.instance()):
             if isinstance(obj, QThread) and obj is not QThread.currentThread():
                 PRINT_(f"Stopping QThread: {obj}")
                 obj.quit()
@@ -1528,7 +1558,7 @@ class Model_Verify_Class(QObject):
         current_thread = threading.current_thread()
 
         for thread in threading.enumerate():
-            
+
             if thread is current_thread:  # 현재 실행 중인 main 스레드는 제외
                 continue
 
@@ -1924,6 +1954,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.localdeviceidlineEdit.setText(deviceID_data["local device"])
         self.mainFrame_ui.sshdevicelineEdit.setText(deviceID_data["ssh device"])
 
+        self.update_ssh_information()
+
         # image history
         history = os.path.join(BASE_DIR, "source", "history", "release_history.json")
         _, history_data = json_load_f(file_path=history)
@@ -1993,6 +2025,41 @@ class Project_MainWindow(QtWidgets.QMainWindow):
     def cleanLogBrowser(self):
         self.mainFrame_ui.logtextbrowser.clear()
 
+    def update_ssh_information(self):
+        self.mainFrame_ui.hostnamelineEdit.clear()
+        self.mainFrame_ui.usrnamelineEdit.clear()
+        self.mainFrame_ui.pwdlineEdit.clear()
+        self.mainFrame_ui.portlineEdit.clear()
+
+        env = check_environment()
+
+        if env == "Linux":
+
+            def get_real_ip():
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                try:
+                    # 임의 주소로 연결해 내부 IP 확인 (인터넷 연결 필요 없음)
+                    s.connect(("8.8.8.8", 80))
+                    ip = s.getsockname()[0]
+                except Exception:
+                    ip = "127.0.0.1"
+                finally:
+                    s.close()
+                return ip
+
+            def get_ssh_port():
+                try:
+                    output = subprocess.check_output(['ss', '-tlpn']).decode()
+                    # 기본 포트는 22, 변경 시 sshd 프로세스에서 추출
+                    match = re.search(r'LISTEN.*:(\d+)\s+.*sshd', output)
+                    return match.group(1) if match else "22"
+                except Exception:
+                    return "22"
+
+            self.mainFrame_ui.hostnamelineEdit.setText(get_real_ip())
+            self.mainFrame_ui.usrnamelineEdit.setText(getpass.getuser())
+            self.mainFrame_ui.portlineEdit.setText(get_ssh_port())
+
     def connectSlotSignal(self):
         """ sys.stdout redirection """
         sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
@@ -2017,7 +2084,7 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.localradioButton.toggled.connect(self.on_radio_button_toggled)
         self.mainFrame_ui.cmd5.setEnabled(False)
 
-        self.mainFrame_ui.localdeviceidpushButton.clicked.connect(self.save_deviceID)
+        # self.mainFrame_ui.localdeviceidpushButton.clicked.connect(self.save_deviceID)
         self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
