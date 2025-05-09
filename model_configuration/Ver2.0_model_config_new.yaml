@@ -40,6 +40,7 @@ global_config:
   profiler:
     device: Gen-6npu
     device_id: 0000100d0f246013
+    ssh_bool: SSH_TRUE
 
 model_config:
   beit_model.onnx:

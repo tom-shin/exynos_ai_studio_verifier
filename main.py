@@ -25,6 +25,7 @@ from io import StringIO
 import numpy as np
 import uuid
 import getpass
+import socket
 from typing import Tuple, List, Dict
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -798,7 +799,7 @@ class Model_Analyze_Thread(QThread):
                                                                   input_golden_pairs=input_golden_pairs,
                                                                   current_binary_pos=current_binary_pos,
                                                                   out_dir=out_dir,
-                                                                  enntest_combo=self.grand_parent.enntestcomboBox.currentText(),
+                                                                  enntest_combo='',
                                                                   deviceID=deviceID)
 
                 # if self.grand_parent.remoteradioButton.isChecked():
@@ -2088,8 +2089,6 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
-
-        self.mainFrame_ui.groupBox_4.hide()
 
     def save_deviceID(self):
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
