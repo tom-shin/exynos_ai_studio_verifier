@@ -1974,6 +1974,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         
         self.mainFrame_ui.groupBox_6.hide()
 
+        self.mainFrame_ui.imageregpushButton.hide()
+
         self.setWindowTitle(Version)
 
     @staticmethod
