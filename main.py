@@ -676,10 +676,10 @@ class Model_Analyze_Thread(QThread):
             tag = int(repo_tag.split(":")[1].split(".")[0])
 
             if tag >= 7:
-                src_config = os.path.join(BASE_DIR, "model_configuration",
+                src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
                                           "Ver2.0_model_config_new.yaml").replace("\\", "/")
             else:
-                src_config = os.path.join(BASE_DIR, "model_configuration",
+                src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
                                           "Ver1.0_model_config_new.yaml").replace("\\", "/")
 
             parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
@@ -1265,9 +1265,9 @@ class Model_Verify_Class(QObject):
         repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
         tag = int(repo_tag.split(":")[1].split(".")[0])
         if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver2.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver1.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.parent.yaml.load(model_config_file)
@@ -1292,9 +1292,9 @@ class Model_Verify_Class(QObject):
             tag = 7
 
         if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver2.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver1.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.parent.yaml.load(model_config_file)
@@ -2138,9 +2138,9 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         repo_tag = self.mainFrame_ui.dockerimagecomboBox.currentText()
         tag = int(repo_tag.split(":")[1].split(".")[0])
         if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver2.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "Ver1.0_model_config_new.yaml")
+            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.yaml.load(model_config_file)
