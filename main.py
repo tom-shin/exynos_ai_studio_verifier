@@ -971,6 +971,12 @@ class Model_Analyze_Thread(QThread):
                                 if "{" in line or "}" in line:
                                     continue
                                 log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
+                            
+                            if result == "Success":
+                                layer_profile = os.path.join(cwd, "Profiler_result", "VisualProfiler",
+                                                                  "Annotation", "NPU_STM_summary.json")
+                                self.layer_profile_save(profile_path=layer_profile, target_widget=target_widget)
+
 
                         TestResult[enntools_cmd] = [result, log, memory_profile]
 
@@ -980,6 +986,29 @@ class Model_Analyze_Thread(QThread):
         elapsed_time = self.convert_elapsedTime(start=start_T, finish=time.time())
 
         return elapsed_time, cwd
+
+    def layer_profile_save(self, profile_path, target_widget):
+        _, data = json_load_f(file_path=profile_path)
+        
+        # 저장할 항목 목록 (원하는 키를 여기에 나열)
+        save_index = ["layer_name", "OpType", "DATA_SDMA_time", "DATA_LOAD_time", "EXECUTE_time", "DATA_STORE_time", "Layer_time", "Total_time"]        
+
+        # 각 레이어에 대해 필요한 정보 추출
+        rows = []
+        for layer_id, layer_info in data.items():
+            row = {key: layer_info.get(key, None) for key in save_index}
+            rows.append(row)
+
+        # DataFrame 생성
+        df = pd.DataFrame(rows)
+
+        # 엑셀로 저장
+        _, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
+        _filename_, extension = separate_filename_and_extension(_model_)
+
+        excel_path = os.path.join(BASE_DIR, "Result", "LayerProfile", f"{_filename_}.xlsx").replace("\\", "/")        
+        df.to_excel(excel_path, index=False)
+
 
     def core_ai_studio_test(self, target_widget=None, CommandLists=[], executed_cnt=0, max_cnt=0):
         model = target_widget[0].pathlineEdit.text()
@@ -1326,6 +1355,9 @@ class Model_Verify_Class(QObject):
         self.parent.directory = os.path.join(BASE_DIR, "Result").replace("\\", "/")
         self.parent.mainFrame_ui.scenario_path_lineedit.setText(self.parent.directory)
         CheckDir(self.parent.directory)
+
+        profile_data = os.path.join(BASE_DIR, "Result", "LayerProfile").replace("\\", "/")
+        CheckDir(profile_data)
 
         # 스레드 생성 및 실행
         self.file_copy_thread = FileCopyThread(get_test_model_path, self.parent.directory)
