@@ -1,0 +1,37 @@
+global_config:
+  converter:
+    debug: false
+    device: Gen-5a
+    mode: elt
+    quantize_type: fp16
+
+  compiler:
+    device: Gen-5a
+    quantize_type: fp16
+
+  profiler:
+    device: Gen-5anpu
+    device_id: 0000100d0f246013
+    ssh_bool: SSH_FALSE
+
+model_config:
+  PFR_segmentation.onnx:
+    converter:
+      quantize_type: asymm
+      bias_comp_batchsize: 100
+      bias_comp_target_layers: 0
+      quanmode: MAX
+      tv_input: DATA/images_100_retinaface_db.h5
+      userdb: DATA/images_100_retinaface_db.txt
+      SSD: true
+    compiler:
+      cfs: true
+      datalayout_conversion_in: sw
+      datalayout_conversion_out: sw
+      debug_str: -D multi_vc=False
+      enable_ofm_reuse: false
+      mi: true
+      mo: true
+      multi_vc: false
+    repo: customer[PFR]
+    license: unknown

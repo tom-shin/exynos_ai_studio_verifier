@@ -673,14 +673,18 @@ class Model_Analyze_Thread(QThread):
 
         if self.grand_parent.modifiedradioButton.isChecked():
             repo_tag = self.grand_parent.dockerimagecomboBox.currentText()
-            tag = int(repo_tag.split(":")[1].split(".")[0])
 
-            if tag >= 7:
-                src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
-                                          "Ver2.0_model_config_new.yaml").replace("\\", "/")
+            if "920" in repo_tag:
+                src_config = os.path.join(BASE_DIR, "model_configuration", "npu", "v920_model_config_new.yaml")
             else:
-                src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
-                                          "Ver1.0_model_config_new.yaml").replace("\\", "/")
+                tag = int(repo_tag.split(":")[1].split(".")[0])
+
+                if tag >= 7:
+                    src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
+                                              "Ver2.0_model_config_new.yaml").replace("\\", "/")
+                else:
+                    src_config = os.path.join(BASE_DIR, "model_configuration", "mobile",
+                                              "Ver1.0_model_config_new.yaml").replace("\\", "/")
 
             parameter_set = set_model_config(grand_parent=self.grand_parent, my_src_config=src_config,
                                              target_config=target_config,
@@ -1292,11 +1296,14 @@ class Model_Verify_Class(QObject):
         # self.insert_widget_progress.setProgressBarMaximum(max_value=len(all_test_path))
 
         repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
-        tag = int(repo_tag.split(":")[1].split(".")[0])
-        if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+        if "920" in repo_tag:
+            full_file = os.path.join(BASE_DIR, "model_configuration", "npu", "v920_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
+            tag = int(repo_tag.split(":")[1].split(".")[0])
+            if tag >= 7:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+            else:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.parent.yaml.load(model_config_file)
@@ -1315,15 +1322,15 @@ class Model_Verify_Class(QObject):
         # 복사 완료 후 후속 작업
         repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
 
-        try:
-            tag = int(repo_tag.split(":")[1].split(".")[0])
-        except:
-            tag = 7
-
-        if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+        if "920" in repo_tag:
+            full_file = os.path.join(BASE_DIR, "model_configuration", "npu", "v920_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
+            tag = int(repo_tag.split(":")[1].split(".")[0])
+
+            if tag >= 7:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+            else:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.parent.yaml.load(model_config_file)
@@ -2168,11 +2175,14 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
     def open_model_config(self):
         repo_tag = self.mainFrame_ui.dockerimagecomboBox.currentText()
-        tag = int(repo_tag.split(":")[1].split(".")[0])
-        if tag >= 7:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+        if "920" in repo_tag:
+            full_file = os.path.join(BASE_DIR, "model_configuration", "npu", "v920_model_config_new.yaml")
         else:
-            full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
+            tag = int(repo_tag.split(":")[1].split(".")[0])
+            if tag >= 7:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver2.0_model_config_new.yaml")
+            else:
+                full_file = os.path.join(BASE_DIR, "model_configuration", "mobile", "Ver1.0_model_config_new.yaml")
 
         with open(full_file, 'r') as model_config_file:
             model_config_data = self.yaml.load(model_config_file)
