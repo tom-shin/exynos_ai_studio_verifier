@@ -1,45 +1,19 @@
 global_config:
   converter:
-    activation_bitwidth: 8
     debug: false
     device: Gen-6
-    do_quantize: true
-    input_dtype: float32
-    mode: elt
-    onnx_simplify: true
-    optimize: true
-    output_dtype: float32
     profile_batchsize: 2
     quantize_type: fp16
-    snc_converter: true
     test_vector_gen: true
-    tv_input: DATA/database.h5
-    use_randomdb: true
-    userdb: DATA/database.txt
 
   compiler:
-    activation_bitwidth: 8
     debug: false
     device: Gen-6
-    do_quantize: true
-    input_dtype: float32
-    mode: elt
-    onnx_simplify: true
-    optimize: true
-    output_dtype: float32
-    profile_batchsize: 2
-    quantize_type: fp16
-    snc_converter: true
-    test_vector_gen: true
-    tv_input: DATA/database.h5
-    use_randomdb: true
-    userdb: DATA/database.txt
     enable_stm: true
     multicore: true
 
   profiler:
     device: Gen-6npu
-    device_id: 0000100d0f246013
     ssh_bool: SSH_TRUE
 
 model_config:
