@@ -57,7 +57,8 @@ def load_module_func(module_name):
 class WorkerThread(QThread):
     finished = pyqtSignal(bool, list, list)  # ret, failed_pairs, memory_profile 전달
 
-    def __init__(self, remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID, mobile_project=True):
+    def __init__(self, remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID,
+                 mobile_project=True):
         super().__init__()
         self.remote = remote
         self.nnc_files = nnc_files
@@ -744,7 +745,8 @@ class Model_Analyze_Thread(QThread):
 
         return result, error_contents_dict
 
-    def run_task(self, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID, mobile_project=True):
+    def run_task(self, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID,
+                 mobile_project=True):
         remote = True
         if not self.grand_parent.remoteradioButton.isChecked():
             remote = False
@@ -989,12 +991,11 @@ class Model_Analyze_Thread(QThread):
                                 if "{" in line or "}" in line:
                                     continue
                                 log += line.strip() + "\n"  # 라인을 추가하고 줄 바꿈 추가
-                            
+
                             if result == "Success":
                                 layer_profile = os.path.join(cwd, "Profiler_result", "VisualProfiler",
-                                                                  "Annotation", "NPU_STM_summary.json")
+                                                             "Annotation", "NPU_STM_summary.json")
                                 self.layer_profile_save(profile_path=layer_profile, target_widget=target_widget)
-
 
                         TestResult[enntools_cmd] = [result, log, memory_profile]
 
@@ -1007,9 +1008,10 @@ class Model_Analyze_Thread(QThread):
 
     def layer_profile_save(self, profile_path, target_widget):
         _, data = json_load_f(file_path=profile_path)
-        
+
         # 저장할 항목 목록 (원하는 키를 여기에 나열)
-        save_index = ["layer_name", "OpType", "DATA_SDMA_time", "DATA_LOAD_time", "EXECUTE_time", "DATA_STORE_time", "Layer_time", "Total_time"]        
+        save_index = ["layer_name", "OpType", "DATA_SDMA_time", "DATA_LOAD_time", "EXECUTE_time", "DATA_STORE_time",
+                      "Layer_time", "Total_time"]
 
         # 각 레이어에 대해 필요한 정보 추출
         rows = []
@@ -1024,9 +1026,8 @@ class Model_Analyze_Thread(QThread):
         _, _model_ = separate_folders_and_files(target_widget[0].pathlineEdit.text())
         _filename_, extension = separate_filename_and_extension(_model_)
 
-        excel_path = os.path.join(BASE_DIR, "Result", "LayerProfile", f"{_filename_}.xlsx").replace("\\", "/")        
+        excel_path = os.path.join(BASE_DIR, "Result", "LayerProfile", f"{_filename_}.xlsx").replace("\\", "/")
         df.to_excel(excel_path, index=False)
-
 
     def core_ai_studio_test(self, target_widget=None, CommandLists=[], executed_cnt=0, max_cnt=0):
         model = target_widget[0].pathlineEdit.text()
@@ -2006,17 +2007,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
         _, deviceID_data = json_load_f(file_path=device_m_path)
 
-        def get_device_ids():
-            devices = adbutils.adb.device_list()
-            device_id = [device.serial for device in devices]
-            if len(device_id) == 0:
-                return ""
-            else:
-                return(device_id[0])
-
         # self.mainFrame_ui.localdeviceidlineEdit.setText(deviceID_data["local device"])
-        local_device = get_device_ids()
-        self.mainFrame_ui.localdeviceidlineEdit.setText(local_device)
+        self.get_device_ids()
 
         self.mainFrame_ui.sshdevicelineEdit.setText(deviceID_data["ssh device"])
 
@@ -2036,12 +2028,20 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         self.mainFrame_ui.cmdlabel.hide()
         self.mainFrame_ui.command_lineedit.hide()
-        
+
         self.mainFrame_ui.groupBox_6.hide()
 
         self.mainFrame_ui.imageregpushButton.hide()
 
         self.setWindowTitle(Version)
+
+    def get_device_ids(self):
+        devices = adbutils.adb.device_list()
+        device_id = [device.serial for device in devices]
+        if len(device_id) == 0:
+            self.mainFrame_ui.localdeviceidlineEdit.setText("")
+        else:
+            self.mainFrame_ui.localdeviceidlineEdit.setText(device_id[0])
 
     @staticmethod
     def kill_docker_desktop():
@@ -2156,6 +2156,8 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         # self.mainFrame_ui.localdeviceidpushButton.clicked.connect(self.save_deviceID)
         self.mainFrame_ui.sshdeviceidpushButton.clicked.connect(self.save_deviceID)
+
+        self.mainFrame_ui.localdeviceidpushButton.clicked.connect(self.get_device_ids)
 
         self.single_op_ctrl = Model_Verify_Class(parent=self, grand_parent=self.mainFrame_ui)
 
