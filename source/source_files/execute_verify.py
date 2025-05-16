@@ -102,10 +102,30 @@ def set_model_config(grand_parent, my_src_config, target_config, model_name):
     else:
         device_id = grand_parent.localdeviceidlineEdit.text().strip()
 
+    # 자동으로 프로파일로에 필요한 device id 입력
     if "profiler" in model_config_data["global_config"]:
         model_config_data["global_config"]["profiler"]["device_id"] = str(device_id)
     else:
         model_config_data["global_config"]["profiler"] = {"device_id": f"{device_id}"}
+    
+    # 자동으로 device 입력
+    project_device = grand_parent.projectcomboBox.currentText()
+    if "root" in project_device.lower():
+        project_gen = "Gen-6"
+        project_gen_npu = "Gen-6npu"        
+    elif "solomon" in project_device.lower():
+        project_gen = "Gen-7"
+        project_gen_npu = "Gen-7npu"
+    elif "v920" in project_device.lower():
+        project_gen = "Gen-5a"
+        project_gen_npu = "Gen-5anpu"
+    else:
+        project_gen = "Gen-7"
+        project_gen_npu = "Gen-7npu"
+
+    model_config_data["global_config"]["converter"]["device"] = project_gen
+    model_config_data["global_config"]["compiler"]["device"] = project_gen
+    model_config_data["global_config"]["profiler"]["device"] = project_gen_npu
 
     # null 값 강제로 "temp_null"로 변환
     def replace_null_with_temp(data):
