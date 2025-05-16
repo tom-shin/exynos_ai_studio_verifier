@@ -13,7 +13,7 @@ if not DEBUG:
     import onnxsim
 
 import logging
-import easygui
+# import easygui
 import platform
 import time
 import pandas as pd
@@ -26,6 +26,7 @@ import numpy as np
 import uuid
 import getpass
 import socket
+import adbutils
 from typing import Tuple, List, Dict
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -56,7 +57,7 @@ def load_module_func(module_name):
 class WorkerThread(QThread):
     finished = pyqtSignal(bool, list, list)  # ret, failed_pairs, memory_profile 전달
 
-    def __init__(self, remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID):
+    def __init__(self, remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID, mobile_project=True):
         super().__init__()
         self.remote = remote
         self.nnc_files = nnc_files
@@ -65,7 +66,12 @@ class WorkerThread(QThread):
         self.out_dir = out_dir
         self.enntest_combo = enntest_combo
         self.deviceID = deviceID
-        self.enntest_profile_iter = [10000, 20000, 30000]
+
+        self.mobile_project = mobile_project
+        if self.mobile_project:
+            self.enntest_profile_iter = [10000, 20000, 30000]
+        else:
+            self.enntest_profile_iter = [1]
 
     @staticmethod
     def check_retry(memory_profile):
@@ -101,7 +107,8 @@ class WorkerThread(QThread):
                 ret, failed_pairs, memory_profile = upgrade_local_run_enntest(
                     nnc_files=self.nnc_files, input_golden_pairs=self.input_golden_pairs,
                     current_binary_pos=self.current_binary_pos,
-                    out_dir=self.out_dir, profile_iter=profile_iter, deviceID=self.deviceID
+                    out_dir=self.out_dir, profile_iter=profile_iter, deviceID=self.deviceID,
+                    mobile_project=self.mobile_project
                 )
             if not self.check_retry(memory_profile=memory_profile):
                 break
@@ -737,13 +744,13 @@ class Model_Analyze_Thread(QThread):
 
         return result, error_contents_dict
 
-    def run_task(self, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID):
+    def run_task(self, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo, deviceID, mobile_project=True):
         remote = True
         if not self.grand_parent.remoteradioButton.isChecked():
             remote = False
 
         self.worker = WorkerThread(remote, nnc_files, input_golden_pairs, current_binary_pos, out_dir, enntest_combo,
-                                   deviceID)
+                                   deviceID, mobile_project=mobile_project)
         loop = QEventLoop()  # 이벤트 루프 생성
 
         result = {}
@@ -793,6 +800,11 @@ class Model_Analyze_Thread(QThread):
             out_dir = os.path.join(cwd, "Enntester_result").replace("\\", "/")
             CheckDir(out_dir)
 
+            repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
+            mobile_project = True
+            if "920" in repo_tag:
+                mobile_project = False
+
             if len(nnc_files) != 0 and len(input_golden_pairs) != 0:
                 if self.grand_parent.remoteradioButton.isChecked():
                     deviceID = self.grand_parent.sshdevicelineEdit.text().strip()
@@ -804,7 +816,9 @@ class Model_Analyze_Thread(QThread):
                                                                   current_binary_pos=current_binary_pos,
                                                                   out_dir=out_dir,
                                                                   enntest_combo='',
-                                                                  deviceID=deviceID)
+                                                                  deviceID=deviceID,
+                                                                  mobile_project=mobile_project
+                                                                  )
 
                 # if self.grand_parent.remoteradioButton.isChecked():
                 #     ret, failed_pairs, memory_profile = upgrade_remote_run_enntest(nnc_files, input_golden_pairs,
@@ -1991,7 +2005,19 @@ class Project_MainWindow(QtWidgets.QMainWindow):
 
         device_m_path = os.path.join(BASE_DIR, "model_configuration", "device_manager.json").replace("\\", "/")
         _, deviceID_data = json_load_f(file_path=device_m_path)
-        self.mainFrame_ui.localdeviceidlineEdit.setText(deviceID_data["local device"])
+
+        def get_device_ids():
+            devices = adbutils.adb.device_list()
+            device_id = [device.serial for device in devices]
+            if len(device_id) == 0:
+                return ""
+            else:
+                return(device_id[0])
+
+        # self.mainFrame_ui.localdeviceidlineEdit.setText(deviceID_data["local device"])
+        local_device = get_device_ids()
+        self.mainFrame_ui.localdeviceidlineEdit.setText(local_device)
+
         self.mainFrame_ui.sshdevicelineEdit.setText(deviceID_data["ssh device"])
 
         self.update_ssh_information()

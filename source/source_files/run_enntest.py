@@ -62,107 +62,109 @@ class MemoryTracing(QThread):
             self.cmd = f"adb {'-s ' + self.deviceID if self.deviceID else ''} shell dumpsys meminfo {self.ssh_instance.ProfileCMD}"
 
     def memory_initialization(self):
-        device_id = self.deviceID
-        app_package = self.ssh_instance.ProfileCMD
+        if self.ssh_instance.mobile_project:
+            device_id = self.deviceID
+            app_package = self.ssh_instance.ProfileCMD
 
-        # -s 옵션에 device_id를 추가할지 여부 결정
-        device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
-
-        if self.use_local_device:
-            adb_path = "adb"
-
-            try:
-                # 모든 background 앱 종료
-                subprocess.run([adb_path, *device_option, "shell", "am", "kill-all"], check=True)
-
-                try:
-                    # 앱 캐시 초기화
-                    subprocess.run([adb_path, *device_option, "shell", "pm", "clear", app_package], check=True)
-                except subprocess.CalledProcessError as e:
-                    PRINT_(f"Error while clearing app cache: {e}")
-
-                try:
-                    # 캐시 초기화 (루트 권한 필요 시)
-                    subprocess.run(
-                        [adb_path, *device_option, "shell", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
-                        check=True
-                    )
-                except subprocess.CalledProcessError as e:
-                    PRINT_(f"Error while dropping caches: {e}")
-
-                PRINT_(
-                    f"Memory and cache cleared on device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
-
-            except subprocess.CalledProcessError as e:
-                PRINT_(f"Error occurred: {e}")
-
-        else:
-            adb_path = self.ssh_instance.remote_adb_path
-
-            # 명령어 리스트
-            cmds = [
-                f'{adb_path} {device_option} shell am kill-all',  # device_option이 비어 있으면 -s 생략
-                f'{adb_path} {device_option} shell pm clear {app_package}',  # 동일하게 적용
-                f'{adb_path} {device_option} shell "sync; echo 3 > /proc/sys/vm/drop_caches"'
-            ]
-
-            # 각 명령어를 반복문으로 실행
-            for cmd in cmds:
-                try:
-                    stdout, stderr = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
-                    # if stderr:
-                    #     PRINT_(f"SSH Command : {stderr}")
-                    # else:
-                    #     PRINT_(
-                    #         f"Memory and cache cleared on remote device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
-
-                except Exception as e:
-                    PRINT_(f"SSH Error: {e}")
-
-        PRINT_(f"Executed Memory Initialization.")
-
-    def set_airplane_mode(self, enable=True):
-        device_id = self.deviceID
-        # -s 옵션에 device_id를 추가할지 여부 결정
-        device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
-
-        try:
-            state = "1" if enable else "0"
-            broadcast_state = "true" if enable else "false"
+            # -s 옵션에 device_id를 추가할지 여부 결정
+            device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
 
             if self.use_local_device:
-                # 로컬 디바이스에서 비행기 모드 설정
-                subprocess.run(
-                    ["adb", *device_option, "shell", "settings", "put", "global", "airplane_mode_on", state],
-                    check=True
-                )
+                adb_path = "adb"
 
-                # 브로드캐스트 전송
-                subprocess.run(
-                    ["adb", "shell", "am", "broadcast", "-a", "android.intent.action.AIRPLANE_MODE", "--ez", "state",
-                     broadcast_state],
-                    check=True
-                )
+                try:
+                    # 모든 background 앱 종료
+                    subprocess.run([adb_path, *device_option, "shell", "am", "kill-all"], check=True)
+
+                    try:
+                        # 앱 캐시 초기화
+                        subprocess.run([adb_path, *device_option, "shell", "pm", "clear", app_package], check=True)
+                    except subprocess.CalledProcessError as e:
+                        PRINT_(f"Error while clearing app cache: {e}")
+
+                    try:
+                        # 캐시 초기화 (루트 권한 필요 시)
+                        subprocess.run(
+                            [adb_path, *device_option, "shell", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
+                            check=True
+                        )
+                    except subprocess.CalledProcessError as e:
+                        PRINT_(f"Error while dropping caches: {e}")
+
+                    PRINT_(
+                        f"Memory and cache cleared on device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
+
+                except subprocess.CalledProcessError as e:
+                    PRINT_(f"Error occurred: {e}")
+
             else:
-                # 원격 디바이스에서 비행기 모드 설정
-                cmd = (
-                    f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
-                    f"settings put global airplane_mode_on {state} && "
-                    f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
-                    f"am broadcast -a android.intent.action.AIRPLANE_MODE --ez state {broadcast_state}"
-                )
+                adb_path = self.ssh_instance.remote_adb_path
 
-                # SSH 명령 실행
-                _, _ = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
+                # 명령어 리스트
+                cmds = [
+                    f'{adb_path} {device_option} shell am kill-all',  # device_option이 비어 있으면 -s 생략
+                    f'{adb_path} {device_option} shell pm clear {app_package}',  # 동일하게 적용
+                    f'{adb_path} {device_option} shell "sync; echo 3 > /proc/sys/vm/drop_caches"'
+                ]
 
-            PRINT_(f"Airplane mode {'enabled' if enable else 'disabled'} successfully.")
+                # 각 명령어를 반복문으로 실행
+                for cmd in cmds:
+                    try:
+                        stdout, stderr = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
+                        # if stderr:
+                        #     PRINT_(f"SSH Command : {stderr}")
+                        # else:
+                        #     PRINT_(
+                        #         f"Memory and cache cleared on remote device {device_id} for app {app_package}" if device_id else f"Memory and cache cleared for app {app_package} (device not specified)")
 
-        except subprocess.CalledProcessError as e:
-            PRINT_(f"Error setting airplane mode on local device: {e}")
-            self.deviceConnected = False
-        except Exception as e:
-            PRINT_(f"Error setting airplane mode on remote device: {e}")
-            self.deviceConnected = False
+                    except Exception as e:
+                        PRINT_(f"SSH Error: {e}")
+
+            PRINT_(f"Executed Memory Initialization.")
+
+    def set_airplane_mode(self, enable=True):
+        if self.ssh_instance.mobile_project:
+            device_id = self.deviceID
+            # -s 옵션에 device_id를 추가할지 여부 결정
+            device_option = ["-s", device_id] if device_id else []  # 리스트로 변경
+
+            try:
+                state = "1" if enable else "0"
+                broadcast_state = "true" if enable else "false"
+
+                if self.use_local_device:
+                    # 로컬 디바이스에서 비행기 모드 설정
+                    subprocess.run(
+                        ["adb", *device_option, "shell", "settings", "put", "global", "airplane_mode_on", state],
+                        check=True
+                    )
+
+                    # 브로드캐스트 전송
+                    subprocess.run(
+                        ["adb", "shell", "am", "broadcast", "-a", "android.intent.action.AIRPLANE_MODE", "--ez", "state",
+                         broadcast_state],
+                        check=True
+                    )
+                else:
+                    # 원격 디바이스에서 비행기 모드 설정
+                    cmd = (
+                        f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
+                        f"settings put global airplane_mode_on {state} && "
+                        f"{self.ssh_instance.remote_adb_path} {'-s ' + self.deviceID if self.deviceID else ''} shell "
+                        f"am broadcast -a android.intent.action.AIRPLANE_MODE --ez state {broadcast_state}"
+                    )
+
+                    # SSH 명령 실행
+                    _, _ = self.ssh_instance.user_ssh_exec_command(command=cmd, print_log=False)
+
+                PRINT_(f"Airplane mode {'enabled' if enable else 'disabled'} successfully.")
+
+            except subprocess.CalledProcessError as e:
+                PRINT_(f"Error setting airplane mode on local device: {e}")
+                self.deviceConnected = False
+            except Exception as e:
+                PRINT_(f"Error setting airplane mode on remote device: {e}")
+                self.deviceConnected = False
 
     def run(self):
         while self.running:
@@ -397,7 +399,7 @@ class remote_ssh_server:
     remote_device = None  # 클래스 변수로 deviceID 저장
     profile_iter = None  # 클래스 변수로 profile_iter 저장
 
-    def __init__(self, deviceID, profile_iter, remote_ssh=False):
+    def __init__(self, deviceID, profile_iter, remote_ssh=False, mobile_project=True):
         remote_ssh_server.remote_device = deviceID
         remote_ssh_server.profile_iter = profile_iter
 
@@ -411,6 +413,8 @@ class remote_ssh_server:
 
         self.ProfileCMD = "EnnTest_v2_lib"
         self.ProfileOption = f"--iter {profile_iter} --useSNR"
+
+        self.mobile_project = mobile_project
 
         if remote_ssh:
             self.error_log = None
@@ -681,8 +685,10 @@ def upgrade_remote_run_enntest(nnc_files, input_golden_pairs, current_binary_pos
 
 
 def upgrade_local_run_enntest(nnc_files, input_golden_pairs, current_binary_pos, out_dir, profile_iter, deviceID,
+                              mobile_project=True,
                               wait_time=5):
-    instance = remote_ssh_server(deviceID=deviceID, profile_iter=profile_iter)
+
+    instance = remote_ssh_server(deviceID=deviceID, profile_iter=profile_iter, mobile_project=mobile_project)
 
     DeviceTargetDir = instance.android_device_path
     ProfileCMD = instance.ProfileCMD
