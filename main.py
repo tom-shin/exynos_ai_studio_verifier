@@ -802,7 +802,7 @@ class Model_Analyze_Thread(QThread):
             out_dir = os.path.join(cwd, "Enntester_result").replace("\\", "/")
             CheckDir(out_dir)
 
-            repo_tag = self.parent.mainFrame_ui.dockerimagecomboBox.currentText()
+            repo_tag = self.grand_parent.mainFrame_ui.dockerimagecomboBox.currentText()
             mobile_project = True
             if "920" in repo_tag:
                 mobile_project = False
