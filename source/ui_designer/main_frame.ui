@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1344</width>
-    <height>948</height>
+    <height>847</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -104,8 +104,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>911</width>
-                   <height>544</height>
+                   <width>910</width>
+                   <height>443</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -251,6 +251,11 @@
     </item>
     <item>
      <widget class="QFrame" name="frame_3">
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -258,10 +263,17 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -270,6 +282,12 @@
           <string>Docker Image Information</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <widget class="QComboBox" name="dockerimagecomboBox">
             <property name="sizePolicy">
@@ -280,6 +298,7 @@
             </property>
             <property name="font">
              <font>
+              <pointsize>8</pointsize>
               <weight>50</weight>
               <bold>false</bold>
              </font>
@@ -296,6 +315,7 @@
             </property>
             <property name="font">
              <font>
+              <pointsize>8</pointsize>
               <weight>50</weight>
               <bold>false</bold>
              </font>
@@ -312,6 +332,7 @@
         <widget class="QGroupBox" name="groupBox_3">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -320,6 +341,12 @@
           <string>AI Model Path</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_4">
             <item row="0" column="0">
@@ -332,6 +359,7 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -348,6 +376,7 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -366,6 +395,7 @@
         <widget class="QGroupBox" name="groupBox_4">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -374,10 +404,17 @@
           <string>Project</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <widget class="QComboBox" name="projectcomboBox">
             <property name="font">
              <font>
+              <pointsize>8</pointsize>
               <weight>50</weight>
               <bold>false</bold>
              </font>
@@ -406,6 +443,7 @@
         <widget class="QGroupBox" name="groupBox_6">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -426,6 +464,7 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -448,6 +487,7 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -466,6 +506,7 @@
         <widget class="QGroupBox" name="groupBox_5">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -474,12 +515,19 @@
           <string>Set Config(.yaml)</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_14">
             <item>
              <widget class="QRadioButton" name="defaultradioButton">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -495,6 +543,7 @@
                <widget class="QRadioButton" name="modifiedradioButton">
                 <property name="font">
                  <font>
+                  <pointsize>8</pointsize>
                   <weight>50</weight>
                   <bold>false</bold>
                  </font>
@@ -511,6 +560,7 @@
                <widget class="QPushButton" name="configpushButton">
                 <property name="font">
                  <font>
+                  <pointsize>8</pointsize>
                   <weight>50</weight>
                   <bold>false</bold>
                  </font>
@@ -531,6 +581,7 @@
         <widget class="QGroupBox" name="groupBox_8">
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -539,60 +590,69 @@
           <string>Enntools CMD</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_10">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QRadioButton" name="remoteradioButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>SSH Device</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="localradioButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Local Device</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_9">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <item>
+               <widget class="QRadioButton" name="remoteradioButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>SSH Device</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="localradioButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Local Device</string>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
             <item>
              <widget class="QCheckBox" name="cmd0">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -609,6 +669,7 @@
              <widget class="QCheckBox" name="cmd1">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -625,6 +686,7 @@
              <widget class="QCheckBox" name="cmd2">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -641,6 +703,7 @@
              <widget class="QCheckBox" name="cmd3">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -654,6 +717,7 @@
              <widget class="QCheckBox" name="cmd4">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -667,6 +731,7 @@
              <widget class="QCheckBox" name="cmd5">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -680,6 +745,7 @@
              <widget class="QCheckBox" name="cmd6">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -704,6 +770,7 @@
          </property>
          <property name="font">
           <font>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -712,8 +779,69 @@
           <string>Ctrl. Params.</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
           <item>
            <layout class="QGridLayout" name="gridLayout_5">
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="pwdlineEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QLineEdit" name="localdeviceidlineEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="usrnamelineEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
             <item row="9" column="0">
              <widget class="QLabel" name="timeoutlabel">
               <property name="sizePolicy">
@@ -724,6 +852,7 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
@@ -733,68 +862,8 @@
               </property>
              </widget>
             </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Model Format</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="0">
-             <widget class="QLabel" name="cmdlabel">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Cmd</string>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="1">
-             <widget class="QLineEdit" name="timeoutlineEdit">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>3600</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QLineEdit" name="targetformat_lineedit">
+            <item row="8" column="1">
+             <widget class="QLineEdit" name="error_lineedit">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -803,41 +872,10 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="sshdeviceid">
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>SSH Device ID</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_7">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>SSH Username</string>
               </property>
              </widget>
             </item>
@@ -853,6 +891,7 @@
                 </property>
                 <property name="font">
                  <font>
+                  <pointsize>8</pointsize>
                   <weight>50</weight>
                   <bold>false</bold>
                  </font>
@@ -861,8 +900,28 @@
               </item>
              </layout>
             </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_4">
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Model Format</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_10">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -871,12 +930,13 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="text">
-               <string>SSH Hostname</string>
+               <string>SSH Port</string>
               </property>
              </widget>
             </item>
@@ -890,12 +950,70 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="text">
                <string>Error Keyword</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1">
+             <widget class="QLineEdit" name="timeoutlineEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>3600</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QLineEdit" name="command_lineedit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QLineEdit" name="targetformat_lineedit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
               </property>
              </widget>
             </item>
@@ -921,6 +1039,7 @@
                <widget class="QPushButton" name="sshdeviceidpushButton">
                 <property name="font">
                  <font>
+                  <pointsize>8</pointsize>
                   <weight>50</weight>
                   <bold>false</bold>
                  </font>
@@ -932,93 +1051,31 @@
               </item>
              </layout>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+            <item row="5" column="0">
+             <widget class="QLabel" name="sshdeviceid">
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="text">
-               <string>SSH Password</string>
+               <string>SSH Device ID</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="1">
-             <widget class="QLineEdit" name="error_lineedit">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+            <item row="4" column="0">
+             <widget class="QPushButton" name="localdeviceidpushButton">
               <property name="font">
                <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="1">
-             <widget class="QLineEdit" name="command_lineedit">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item>
-               <widget class="QLineEdit" name="localdeviceidlineEdit">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_10">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="font">
-               <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="text">
-               <string>SSH Port</string>
+               <string>Get Local Device ID</string>
               </property>
              </widget>
             </item>
@@ -1032,41 +1089,50 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="usrnamelineEdit">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_4">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
+              </property>
+              <property name="text">
+               <string>SSH Hostname</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="pwdlineEdit">
+            <item row="7" column="0">
+             <widget class="QLabel" name="cmdlabel">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
+              </property>
+              <property name="text">
+               <string>Cmd</string>
               </property>
              </widget>
             </item>
@@ -1080,22 +1146,50 @@
               </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QPushButton" name="localdeviceidpushButton">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
+                <pointsize>8</pointsize>
                 <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="text">
-               <string>Get Local Device ID</string>
+               <string>SSH Username</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>8</pointsize>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>SSH Password</string>
               </property>
              </widget>
             </item>
